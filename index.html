@@ -322,26 +322,34 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .sheetbar{display:flex; gap:8px; align-items:center; margin-bottom:10px}
 .sheetbar .t{color:#fff; font-weight:700; flex:1}
 .sheet{background:#fff; color:#15181d; padding:24px; border-radius:12px}
-.sheet h1{font-size:20px; margin:0 0 2px; letter-spacing:-.02em}
-.sheet .sub{font-size:12px; color:#5b6069; margin:0 0 16px}
-.sheet table{width:100%; border-collapse:collapse; table-layout:fixed}
-.sheet th{font-size:11px; font-weight:700; color:#5b6069; text-align:left;
-  padding:0 8px 6px; border-bottom:1px solid #8d949c}
-.sheet td{font-size:13px; padding:4px 8px; vertical-align:top; word-break:break-word}
-.sheet tr.dstart > td{border-top:1px solid #dcdfe4}
-.sheet tr.first > td{border-top:none}
-.sheet td.day{font-weight:700; white-space:nowrap}
-.sheet tr.we td.day{border-left:2px solid #15181d; padding-left:6px}
-.sheet td.time{white-space:nowrap; color:#4a4f57}
-.sheet td.who{font-weight:600}
-.sheet td.rest{color:#8a8f97; font-style:italic}
-.sheet td.note{color:#5b6069; font-style:italic; font-size:12px; padding-top:0}
-.sheet .open{color:#9aa0a8; font-weight:500}
-.sheet .sl{display:inline-block; margin-left:5px; padding:0 4px; border:1px solid #15181d;
+.sheet h1{font-size:20px; margin:0 0 2px; letter-spacing:-.02em; color:#15181d}
+.sheet .pd-sub{font-size:12px; color:#5b6069; margin:0 0 16px}
+
+/* Die Tabellendarstellung wird erzwungen, damit keine Regel der App sie aushebeln kann */
+.sheet table{display:table; width:100%; border-collapse:collapse; table-layout:fixed; margin:0}
+.sheet thead{display:table-header-group}
+.sheet tbody{display:table-row-group}
+.sheet tr{display:table-row}
+.sheet th, .sheet td{
+  display:table-cell; vertical-align:top; text-align:left;
+  aspect-ratio:auto; border-radius:0; background:none; box-shadow:none;
+}
+.sheet th{font-size:11px; font-weight:700; color:#5b6069; padding:0 8px 6px; border-bottom:1px solid #8d949c}
+.sheet td{font-size:13px; font-weight:400; padding:5px 8px; word-break:break-word; color:#15181d}
+.sheet tr.pd-start > td{border-top:1px solid #dcdfe4}
+.sheet tr.pd-first > td{border-top:none}
+.sheet td.pd-day{font-weight:700; white-space:nowrap}
+.sheet tr.pd-we td.pd-day{border-left:3px solid #15181d; padding-left:5px}
+.sheet td.pd-time{white-space:nowrap; color:#4a4f57}
+.sheet td.pd-who{font-weight:600}
+.sheet td.pd-rest{color:#8a8f97; font-style:italic}
+.sheet td.pd-note{color:#5b6069; font-style:italic; font-size:12px; padding-top:0}
+.sheet .pd-open{color:#9aa0a8; font-weight:500}
+.sheet .pd-sl{display:inline-block; margin-left:5px; padding:0 4px; border:1px solid #15181d;
   border-radius:3px; font-size:10px; font-weight:700; vertical-align:1px}
-.sheet .sum{margin-top:16px; padding-top:10px; border-top:1px solid #dcdfe4; font-size:12px; color:#3a3e45}
-.sheet .sum b{color:#15181d}
-.sheet .sum span{display:inline-block; margin:0 14px 4px 0}
+.sheet .pd-sum{margin-top:16px; padding-top:10px; border-top:1px solid #dcdfe4; font-size:12px; color:#3a3e45}
+.sheet .pd-sum b{color:#15181d}
+.sheet .pd-sum span{display:inline-block; margin:0 14px 4px 0}
 
 /* ============================================================
    11 — Kleine Bildschirme
@@ -375,12 +383,12 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   #printRoot{display:block!important}
   #printRoot .sheet{padding:0; border-radius:0}
   #printRoot .sheet h1{font-size:15pt}
-  #printRoot .sheet .sub{font-size:8.5pt; margin-bottom:4mm}
+  #printRoot .sheet .pd-sub{font-size:8.5pt; margin-bottom:4mm}
   #printRoot .sheet th{font-size:7.5pt; padding:0 2mm 1.5mm}
   #printRoot .sheet td{font-size:8.5pt; padding:1mm 2mm}
-  #printRoot .sheet td.note{font-size:7.5pt}
-  #printRoot .sheet .sl{font-size:7pt}
-  #printRoot .sheet .sum{font-size:8pt; margin-top:4mm; padding-top:2mm}
+  #printRoot .sheet td.pd-note{font-size:7.5pt}
+  #printRoot .sheet .pd-sl{font-size:7pt}
+  #printRoot .sheet .pd-sum{font-size:8pt; margin-top:4mm; padding-top:2mm}
   #printRoot tr{break-inside:avoid; page-break-inside:avoid}
   @page{size:A4 portrait; margin:12mm}
 }
@@ -1152,27 +1160,27 @@ function buildPrint(){
     const day = month.days[d];
     if(!day) continue;
     const wd = weekdayOf(k, d);
-    const we = (wd === 5 || wd === 6) ? " we" : "";
+    const we = (wd === 5 || wd === 6) ? " pd-we" : "";
     const tag = WD_SHORT[wd] + " " + d + ".";
-    const head = "dstart" + (first ? " first" : "") + we;
+    const head = "pd-start" + (first ? " pd-first" : "") + we;
     first = false;
 
     if(day.closed || !day.shifts.length){
-      rows += `<tr class="${head}"><td class="day">${tag}</td>`
-        + `<td class="rest" colspan="2">${day.closed ? "Ruhetag" : "keine Schichten"}</td></tr>`;
+      rows += `<tr class="${head}"><td class="pd-day">${tag}</td>`
+        + `<td class="pd-rest" colspan="2">${day.closed ? "Ruhetag" : "keine Schichten"}</td></tr>`;
       continue;
     }
 
     const span = day.shifts.length + (day.comment ? 1 : 0);
     day.shifts.forEach((sh, i) => {
       rows += `<tr class="${i === 0 ? head : we.trim()}">`
-        + (i === 0 ? `<td class="day" rowspan="${span}">${tag}</td>` : "")
-        + `<td class="time">${sh.start}–${sh.end}</td>`
-        + `<td class="who">${sh.emp
-            ? esc(personName(sh.emp)) + (sh.sl ? `<span class="sl">SL</span>` : "")
-            : `<span class="open">offen</span>`}</td></tr>`;
+        + (i === 0 ? `<td class="pd-day" rowspan="${span}">${tag}</td>` : "")
+        + `<td class="pd-time">${sh.start}–${sh.end}</td>`
+        + `<td class="pd-who">${sh.emp
+            ? esc(personName(sh.emp)) + (sh.sl ? `<span class="pd-sl">SL</span>` : "")
+            : `<span class="pd-open">offen</span>`}</td></tr>`;
     });
-    if(day.comment) rows += `<tr class="${we.trim()}"><td class="note" colspan="2">${esc(day.comment)}</td></tr>`;
+    if(day.comment) rows += `<tr class="${we.trim()}"><td class="pd-note" colspan="2">${esc(day.comment)}</td></tr>`;
   }
 
   const sum = teamList().map(p => {
@@ -1182,13 +1190,13 @@ function buildPrint(){
 
   const html = `
     <h1>Dienstplan ${esc(monthLabel(k))}</h1>
-    <p class="sub">Bar Rennbahn Schwabing · Stand ${new Date().toLocaleDateString("de-DE")}</p>
+    <p class="pd-sub">Bar Rennbahn Schwabing · Stand ${new Date().toLocaleDateString("de-DE")}</p>
     <table>
-      <colgroup><col style="width:62px"><col style="width:104px"><col></colgroup>
+      <colgroup><col style="width:64px"><col style="width:106px"><col></colgroup>
       <thead><tr><th>Tag</th><th>Zeit</th><th>Wer</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="sum"><b>Schichten je Person:</b> ${sum || "noch nichts verteilt"}
+    <div class="pd-sum"><b>Schichten je Person:</b> ${sum || "noch nichts verteilt"}
       <br>SL = Schichtleitung</div>`;
 
   document.getElementById("printRoot").innerHTML = `<div class="sheet">${html}</div>`;
