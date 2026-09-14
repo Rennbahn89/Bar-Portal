@@ -374,8 +374,8 @@ main{padding:16px 0 110px}
    API. Der anon key ist öffentlich, das ist so vorgesehen:
    geschützt wird in der Datenbank, nicht in dieser Datei.
    ============================================================ */
-const SUPABASE_URL = "https://ldtudrdedvgroxpinsew.supabase.co/rest/v1/";
-const SUPABASE_ANON_KEY = "sb_publishable_UM3VJ8ya07n8WMKR5hc76Q_0xbaGla-";
+const SUPABASE_URL = "https://DEIN-PROJEKT.supabase.co";
+const SUPABASE_ANON_KEY = "DEIN-ANON-KEY";
 /* ========================================================== */
 
 const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
@@ -383,10 +383,23 @@ const WD_SHORT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
 const THEME_KEY = "rennbahn_theme";
 
-/* Art des Anmeldelinks merken, bevor die Bibliothek die Adresse aufräumt */
-const linkType = new URLSearchParams(location.hash.slice(1)).get("type");
+/* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
+   Supabase liefert die Daten je nach Linkart im Anker oder als Parameter. */
+const linkHash  = new URLSearchParams(location.hash.replace(/^#/, ""));
+const linkQuery = new URLSearchParams(location.search);
+const linkType    = linkHash.get("type") || linkQuery.get("type") || "";
+const linkAccess  = linkHash.get("access_token");
+const linkRefresh = linkHash.get("refresh_token");
+const linkCode    = linkQuery.get("code");
+const linkError   = linkHash.get("error_description") || linkQuery.get("error_description")
+                 || linkHash.get("error") || linkQuery.get("error");
+const SETUP_KEY = "rennbahn_setup_offen";
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* detectSessionInUrl bleibt aus: die Auswertung macht consumeLink() selbst,
+   sonst rennt der Start gegen eine noch nicht fertige Sitzung. */
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {detectSessionInUrl:false, persistSession:true, autoRefreshToken:true}
+});
 
 /* ============================================================
    Zustand
@@ -1479,6 +1492,7 @@ async function onSubmit(e){
     const pr = await sb.from("profiles").update({name}).eq("id", me.id);
     if(pr.error){ ui.formError = pr.error.message; render(); return; }
     me.name = name;
+    setupDone();
     ui.screen = "app";
     ui.monthKey = ui.monthKey || monthKey(new Date());
     await reload();
@@ -1572,18 +1586,56 @@ function render(){
 /* ============================================================
    Start
    ============================================================ */
+function cleanUrl(){
+  try{ history.replaceState({}, document.title, location.pathname); }catch(e){}
+}
+
+/* Einladungs- oder Wiederherstellungslink in eine Sitzung verwandeln */
+async function consumeLink(){
+  if(linkError){
+    ui.authError = "Dieser Link ist nicht mehr gültig: " + linkError
+      + ". Fordere unten über \u201ePasswort vergessen\u201c einen neuen an.";
+    cleanUrl();
+    return;
+  }
+  if(linkType === "invite" || linkType === "recovery"){
+    try{ localStorage.setItem(SETUP_KEY, "1"); }catch(e){}
+  }
+  if(linkAccess && linkRefresh){
+    const {error} = await sb.auth.setSession({access_token:linkAccess, refresh_token:linkRefresh});
+    if(error) ui.authError = "Der Link konnte nicht eingelöst werden: " + error.message;
+    cleanUrl();
+    return;
+  }
+  if(linkCode){
+    const {error} = await sb.auth.exchangeCodeForSession(linkCode);
+    if(error) ui.authError = "Der Link konnte nicht eingelöst werden: " + error.message;
+    cleanUrl();
+    return;
+  }
+}
+
+function setupOpen(){
+  try{ return localStorage.getItem(SETUP_KEY) === "1"; }catch(e){ return false; }
+}
+function setupDone(){
+  try{ localStorage.removeItem(SETUP_KEY); }catch(e){}
+}
+
 async function boot(){
   ui.screen = "boot"; render();
 
+  await consumeLink();
+
   const profile = await loadProfile();
   if(!profile){
-    if(ui.bootMsg){ ui.screen = "error"; render(); return; }
-    ui.screen = "auth"; render(); return;
+    ui.screen = ui.bootMsg ? "error" : "auth";
+    render(); return;
   }
   me = profile;
 
-  /* Einladung oder Passwort-Zurücksetzen: erst Name und Passwort festlegen */
-  if(linkType === "invite" || linkType === "recovery" || !me.name){
+  /* Nach Einladung oder Zurücksetzen zuerst Vorname und Passwort festlegen */
+  if(setupOpen() || !me.name){
     ui.screen = "onboard"; render(); return;
   }
 
@@ -1612,6 +1664,7 @@ document.addEventListener("drop", onDrop);
 sb.auth.onAuthStateChange(event => {
   if(event === "SIGNED_OUT"){
     me = null; month = null; people = [];
+    setupDone();
     ui.screen = "auth"; ui.authError = ""; ui.authInfo = "";
     render();
   }
