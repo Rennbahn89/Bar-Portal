@@ -235,7 +235,12 @@ main{padding:16px 0 110px}
 .slot-edit input{padding:7px 8px; font-size:13px; border:1px solid var(--line); border-radius:8px;
   background:var(--bg); width:100%; min-width:0; max-width:100%; text-align:center}
 .slot-edit input[data-edit="label"]{text-align:left}
-input[type="time"]{min-width:0}
+input[type="time"]{
+  -webkit-appearance:none; appearance:none;
+  min-width:0; width:100%; max-width:100%; text-align:center;
+}
+input[type="time"]::-webkit-date-and-time-value{text-align:center; margin:0}
+input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 
 .grouplbl{font-size:12px; font-weight:700; color:var(--ink-3); margin:12px 0 7px}
 .chips{display:flex; flex-wrap:wrap; gap:6px}
@@ -284,8 +289,9 @@ input[type="time"]{min-width:0}
 
 .tpl{border:1px solid var(--line); border-radius:var(--r); padding:10px 12px; margin-bottom:8px}
 .tpl .hd{font-weight:700; margin-bottom:6px; font-size:14px}
-.tpl .line{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,auto) minmax(0,auto) auto;
-  gap:6px; align-items:center; margin-bottom:6px}
+.tpl .line{display:grid; grid-template-columns:minmax(0,1fr) 188px 32px;
+  gap:6px; align-items:center; margin-bottom:8px}
+.tpl .times{display:grid; grid-template-columns:1fr 1fr; gap:6px; min-width:0}
 .tpl input{padding:6px 8px; font-size:13px; border:1px solid var(--line); border-radius:8px; background:var(--bg); min-width:0; width:100%}
 .tpl .rm{width:30px; height:30px; padding:0; flex:none; border-radius:8px;
   border:1px solid var(--line); background:var(--surface); color:var(--ink-3);
@@ -316,17 +322,25 @@ input[type="time"]{min-width:0}
 .sheetbar{display:flex; gap:8px; align-items:center; margin-bottom:10px}
 .sheetbar .t{color:#fff; font-weight:700; flex:1}
 .sheet{background:#fff; color:#15181d; padding:24px; border-radius:12px}
-.sheet h1{font-size:20px; margin:0 0 3px}
-.sheet .sub{font-size:13px; color:#5b6069; margin:0 0 15px}
-.sheet table{width:100%; border-collapse:collapse}
-.sheet th,.sheet td{border:1px solid #c3c7cd; padding:5px 8px; text-align:left; vertical-align:top; font-size:13px}
-.sheet th{background:#eef0f2; font-size:12px}
-.sheet td.day{white-space:nowrap; font-weight:700; width:74px}
-.sheet tr.rest td{color:#8a8f97; font-style:italic}
-.sheet .sh{display:block}
-.sheet .sh i{font-style:normal; color:#5b6069}
-.sheet .cm{display:block; font-size:12px; color:#5b6069; margin-top:3px}
-.sheet .sum{margin-top:15px; font-size:12px; color:#3a3e45}
+.sheet h1{font-size:20px; margin:0 0 2px; letter-spacing:-.02em}
+.sheet .sub{font-size:12px; color:#5b6069; margin:0 0 16px}
+.sheet table{width:100%; border-collapse:collapse; table-layout:fixed}
+.sheet th{font-size:11px; font-weight:700; color:#5b6069; text-align:left;
+  padding:0 8px 6px; border-bottom:1px solid #8d949c}
+.sheet td{font-size:13px; padding:4px 8px; vertical-align:top; word-break:break-word}
+.sheet tr.dstart > td{border-top:1px solid #dcdfe4}
+.sheet tr.first > td{border-top:none}
+.sheet td.day{font-weight:700; white-space:nowrap}
+.sheet tr.we td.day{border-left:2px solid #15181d; padding-left:6px}
+.sheet td.time{white-space:nowrap; color:#4a4f57}
+.sheet td.who{font-weight:600}
+.sheet td.rest{color:#8a8f97; font-style:italic}
+.sheet td.note{color:#5b6069; font-style:italic; font-size:12px; padding-top:0}
+.sheet .open{color:#9aa0a8; font-weight:500}
+.sheet .sl{display:inline-block; margin-left:5px; padding:0 4px; border:1px solid #15181d;
+  border-radius:3px; font-size:10px; font-weight:700; vertical-align:1px}
+.sheet .sum{margin-top:16px; padding-top:10px; border-top:1px solid #dcdfe4; font-size:12px; color:#3a3e45}
+.sheet .sum b{color:#15181d}
 .sheet .sum span{display:inline-block; margin:0 14px 4px 0}
 
 /* ============================================================
@@ -344,6 +358,8 @@ input[type="time"]{min-width:0}
   .team-flags{grid-column:1 / -1}
   .team-list .acts{grid-column:1 / -1; justify-content:flex-start}
   .two-col{grid-template-columns:1fr}
+  .tpl .line{grid-template-columns:minmax(0,1fr) 32px; row-gap:6px}
+  .tpl .times{grid-column:1 / -1}
   .paylist .pay{min-width:0}
   .sync{display:none}
   main{padding-bottom:120px}
@@ -355,21 +371,18 @@ input[type="time"]{min-width:0}
 #printRoot{display:none}
 @media print{
   header.top, .sticky-bar, main, .login, .overlay, .boot{display:none!important}
-  body{background:#fff; color:#000; font-size:10.5pt}
+  body{background:#fff; color:#000}
   #printRoot{display:block!important}
-  #printRoot h1{font-size:17pt; margin:0 0 2mm}
-  #printRoot .sub{font-size:10pt; color:#444; margin:0 0 5mm}
-  #printRoot table{width:100%; border-collapse:collapse}
-  #printRoot th,#printRoot td{border:.4pt solid #999; padding:1.6mm 2mm; text-align:left; vertical-align:top}
-  #printRoot th{background:#eee; font-size:9pt}
-  #printRoot td.day{white-space:nowrap; font-weight:700; width:26mm}
-  #printRoot tr.rest td{color:#888; font-style:italic}
-  #printRoot .sh{display:block; font-size:9.5pt}
-  #printRoot .sh i{font-style:normal; color:#555}
-  #printRoot .cm{display:block; font-size:8.5pt; color:#555; margin-top:1mm}
-  #printRoot .sum{margin-top:5mm; font-size:9pt}
-  #printRoot .sum span{display:inline-block; margin:0 5mm 1.5mm 0}
-  @page{size:A4 portrait; margin:11mm}
+  #printRoot .sheet{padding:0; border-radius:0}
+  #printRoot .sheet h1{font-size:15pt}
+  #printRoot .sheet .sub{font-size:8.5pt; margin-bottom:4mm}
+  #printRoot .sheet th{font-size:7.5pt; padding:0 2mm 1.5mm}
+  #printRoot .sheet td{font-size:8.5pt; padding:1mm 2mm}
+  #printRoot .sheet td.note{font-size:7.5pt}
+  #printRoot .sheet .sl{font-size:7pt}
+  #printRoot .sheet .sum{font-size:8pt; margin-top:4mm; padding-top:2mm}
+  #printRoot tr{break-inside:avoid; page-break-inside:avoid}
+  @page{size:A4 portrait; margin:12mm}
 }
 </style>
 </head>
@@ -1080,9 +1093,11 @@ function adminSettings(){
         <div class="hd">${WD_LONG[wd]}</div>
         ${(templates[wd] || []).map((s, i) => `
           <div class="line">
-            <input data-tpl="${wd}" data-i="${i}" data-f="label" value="${esc(s.label)}">
-            <input data-tpl="${wd}" data-i="${i}" data-f="start" type="time" value="${s.start}">
-            <input data-tpl="${wd}" data-i="${i}" data-f="end" type="time" value="${s.end}">
+            <input data-tpl="${wd}" data-i="${i}" data-f="label" value="${esc(s.label)}" aria-label="Bezeichnung">
+            <span class="times">
+              <input data-tpl="${wd}" data-i="${i}" data-f="start" type="time" value="${s.start}" aria-label="Beginn">
+              <input data-tpl="${wd}" data-i="${i}" data-f="end" type="time" value="${s.end}" aria-label="Ende">
+            </span>
             <button class="rm" data-act="tpldel" data-wd="${wd}" data-i="${i}" aria-label="Schicht entfernen" title="Schicht entfernen">×</button>
           </div>`).join("") || `<div class="empty-note">Ruhetag</div>`}
         <button class="btn sm" data-act="tpladd" data-wd="${wd}">+ Schicht</button>
@@ -1131,20 +1146,35 @@ function viewSheet(){
 function buildPrint(){
   const k = ui.monthKey;
   const n = daysInMonth(k);
-  let rows = "";
+  let rows = "", first = true;
+
   for(let d = 1; d <= n; d++){
     const day = month.days[d];
     if(!day) continue;
-    const wd = WD_SHORT[weekdayOf(k, d)];
-    if(day.closed){
-      rows += `<tr class="rest"><td class="day">${wd} ${d}.</td><td>Ruhetag</td></tr>`;
+    const wd = weekdayOf(k, d);
+    const we = (wd === 5 || wd === 6) ? " we" : "";
+    const tag = WD_SHORT[wd] + " " + d + ".";
+    const head = "dstart" + (first ? " first" : "") + we;
+    first = false;
+
+    if(day.closed || !day.shifts.length){
+      rows += `<tr class="${head}"><td class="day">${tag}</td>`
+        + `<td class="rest" colspan="2">${day.closed ? "Ruhetag" : "keine Schichten"}</td></tr>`;
       continue;
     }
-    const sh = day.shifts.map(s =>
-      `<span class="sh">${esc(s.emp ? personName(s.emp) : "— offen —")}${s.emp && s.sl ? " (SL)" : ""} <i>${s.start}–${s.end} · ${esc(s.label)}</i></span>`
-    ).join("");
-    rows += `<tr><td class="day">${wd} ${d}.</td><td>${sh}${day.comment ? `<span class="cm">${esc(day.comment)}</span>` : ""}</td></tr>`;
+
+    const span = day.shifts.length + (day.comment ? 1 : 0);
+    day.shifts.forEach((sh, i) => {
+      rows += `<tr class="${i === 0 ? head : we.trim()}">`
+        + (i === 0 ? `<td class="day" rowspan="${span}">${tag}</td>` : "")
+        + `<td class="time">${sh.start}–${sh.end}</td>`
+        + `<td class="who">${sh.emp
+            ? esc(personName(sh.emp)) + (sh.sl ? `<span class="sl">SL</span>` : "")
+            : `<span class="open">offen</span>`}</td></tr>`;
+    });
+    if(day.comment) rows += `<tr class="${we.trim()}"><td class="note" colspan="2">${esc(day.comment)}</td></tr>`;
   }
+
   const sum = teamList().map(p => {
     const c = payroll(p.id).shifts;
     return c ? `<span>${esc(p.name)}: ${c}</span>` : "";
@@ -1153,9 +1183,15 @@ function buildPrint(){
   const html = `
     <h1>Dienstplan ${esc(monthLabel(k))}</h1>
     <p class="sub">Bar Rennbahn Schwabing · Stand ${new Date().toLocaleDateString("de-DE")}</p>
-    <table><thead><tr><th>Tag</th><th>Schichten</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="sum"><b>Schichten je Person:</b> ${sum}<br>SL = Schichtleitung</div>`;
-  document.getElementById("printRoot").innerHTML = html;
+    <table>
+      <colgroup><col style="width:62px"><col style="width:104px"><col></colgroup>
+      <thead><tr><th>Tag</th><th>Zeit</th><th>Wer</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="sum"><b>Schichten je Person:</b> ${sum || "noch nichts verteilt"}
+      <br>SL = Schichtleitung</div>`;
+
+  document.getElementById("printRoot").innerHTML = `<div class="sheet">${html}</div>`;
   return html;
 }
 
