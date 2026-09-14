@@ -395,9 +395,21 @@ const linkError   = linkHash.get("error_description") || linkQuery.get("error_de
                  || linkHash.get("error") || linkQuery.get("error");
 const SETUP_KEY = "rennbahn_setup_offen";
 
+/* Projektadresse säubern: Leerzeichen, Schrägstriche am Ende und ein
+   versehentlich mitkopierter Pfad fallen weg. Übrig bleibt der reine Host. */
+function apiBase(u){
+  let s = String(u || "").trim();
+  if(!s) return "";
+  if(!/^https?:\/\//i.test(s)) s = "https://" + s;
+  try{ const p = new URL(s); return p.protocol + "//" + p.host; }
+  catch(e){ return s.replace(/\/+$/, ""); }
+}
+const API_URL = apiBase(SUPABASE_URL);
+const API_KEY = String(SUPABASE_ANON_KEY).trim();
+
 /* detectSessionInUrl bleibt aus: die Auswertung macht consumeLink() selbst,
    sonst rennt der Start gegen eine noch nicht fertige Sitzung. */
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+const sb = window.supabase.createClient(API_URL, API_KEY, {
   auth: {detectSessionInUrl:false, persistSession:true, autoRefreshToken:true}
 });
 
@@ -1622,8 +1634,31 @@ function setupDone(){
   try{ localStorage.removeItem(SETUP_KEY); }catch(e){}
 }
 
+/* Prüft vor allem anderen, ob Adresse und Schlüssel überhaupt stimmen.
+   Ohne das enden Tippfehler in kryptischen Meldungen mitten im Ablauf. */
+async function probe(){
+  if(!API_URL) return "In der Datei fehlt die SUPABASE_URL.";
+  if(API_KEY.length < 30) return "Der SUPABASE_ANON_KEY sieht unvollständig aus.";
+  let res;
+  try{
+    res = await fetch(API_URL + "/auth/v1/health", {headers:{apikey:API_KEY}});
+  }catch(e){
+    return "Unter " + API_URL + " ist kein Supabase-Projekt erreichbar. "
+      + "Prüfe die Project URL in der index.html.";
+  }
+  if(res.ok) return "";
+  if(res.status === 401 || res.status === 403)
+    return "Adresse erreichbar, aber der SUPABASE_ANON_KEY wird abgelehnt. "
+      + "Hol ihn nochmal aus Project Settings, API.";
+  return "Der Server unter " + API_URL + " antwortet mit Status " + res.status
+    + ". Prüfe die Project URL in der index.html.";
+}
+
 async function boot(){
   ui.screen = "boot"; render();
+
+  const trouble = await probe();
+  if(trouble){ ui.bootMsg = trouble; ui.screen = "error"; render(); return; }
 
   await consumeLink();
 
