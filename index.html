@@ -257,9 +257,11 @@ main{padding:16px 0 110px}
 .status{font-size:12px; font-weight:700; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-2)}
 .status.yes{background:var(--ok-soft); color:var(--ok)}
 
-.team-list li{display:grid; grid-template-columns:minmax(0,1fr) 84px 96px 116px auto; gap:10px; align-items:center}
+.team-list li{display:grid; grid-template-columns:minmax(0,1fr) 84px auto auto; gap:10px; align-items:center}
+.team-list li.off{opacity:.5}
 .team-list .status{text-align:center; width:100%}
-.team-list .lim{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-2); cursor:pointer}
+.team-flags{display:flex; gap:14px; flex-wrap:wrap}
+.team-list .lim{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-2); cursor:pointer; white-space:nowrap}
 .team-list .lim input{width:16px; height:16px; accent-color:var(--accent); flex:none; margin:0}
 .team-list .acts{display:flex; gap:7px; justify-content:flex-end}
 
@@ -328,7 +330,7 @@ main{padding:16px 0 110px}
   .col{flex:0 0 84vw}
   .daystrip{margin:0 calc(-1 * var(--pad)); padding:2px var(--pad) 10px}
   .team-list li{grid-template-columns:minmax(0,1fr) 84px; row-gap:8px}
-  .team-list .lim{grid-column:1 / -1}
+  .team-flags{grid-column:1 / -1}
   .team-list .acts{grid-column:1 / -1; justify-content:flex-start}
   .two-col{grid-template-columns:1fr}
   .paylist .pay{min-width:0}
@@ -469,7 +471,7 @@ function hoursOf(sh){
 }
 const isAdmin = () => !!me && me.role === "admin";
 const personName = id => { const p = people.find(x => x.id === id); return p ? p.name : "?"; };
-const teamList = () => people.filter(p => p.active);
+const teamList = () => people.filter(p => p.active && p.schedulable);
 
 /* Ruhetag, solange das Büro den Monat noch nicht angelegt hat */
 const closedByTemplate = wd => !(templates[wd] && templates[wd].length);
@@ -554,7 +556,7 @@ async function loadAll(depth){
   const admin = isAdmin();
 
   const r = await Promise.all([
-    sb.from("profiles").select("id,name,role,active").order("name"),
+    sb.from("profiles").select("id,name,role,active,schedulable").order("name"),
     sb.from("shift_templates").select("weekday,pos,label,starts,ends").order("weekday").order("pos"),
     sb.from("months").select("ym,published").eq("ym", ym).maybeSingle(),
     sb.from("days").select("ym,day,closed,note").eq("ym", ym),
@@ -995,21 +997,28 @@ function adminTeam(){
     <p>Neue Leute lädst du im Supabase-Dashboard ein: Authentication, Users, Invite user.
        Das geht bewusst nicht aus der App heraus — dafür wäre ein Schlüssel nötig, der im Browser nichts zu suchen hat.
        Nach der Einladung legt die Person Vorname und Passwort selbst fest und erscheint hier.</p>
-    <ul class="list team-list">${people.map(p => `<li>
+    <ul class="list team-list">${people.map(p => `<li class="${p.active ? "" : "off"}">
       <span class="nm">${esc(p.name)}${p.id === me.id ? ` <span class="tiny muted">(du)</span>` : ""}</span>
-      <span class="status ${availOf(p.id).confirmed ? "yes" : ""}">${availOf(p.id).confirmed ? "bestätigt" : "offen"}</span>
-      <label class="lim"><input type="checkbox" data-act="togglerole" data-emp="${p.id}" ${p.role === "admin" ? "checked" : ""}> Büro</label>
-      ${config.limitOn
-        ? `<label class="lim"><input type="checkbox" data-act="toggleexempt" data-emp="${p.id}" ${p.exempt ? "checked" : ""}> ohne Grenze</label>`
-        : `<span></span>`}
+      <span class="status ${!p.schedulable || !p.active ? "" : availOf(p.id).confirmed ? "yes" : ""}">${
+        !p.active ? "inaktiv" : !p.schedulable ? "—" : availOf(p.id).confirmed ? "bestätigt" : "offen"}</span>
+      <span class="team-flags">
+        <label class="lim"><input type="checkbox" data-act="togglerole" data-emp="${p.id}" ${p.role === "admin" ? "checked" : ""}> Büro</label>
+        <label class="lim"><input type="checkbox" data-act="toggleplan" data-emp="${p.id}" ${p.schedulable ? "checked" : ""}> wird eingeplant</label>
+        ${config.limitOn
+          ? `<label class="lim"><input type="checkbox" data-act="toggleexempt" data-emp="${p.id}" ${p.exempt ? "checked" : ""}> ohne Grenze</label>`
+          : ""}
+      </span>
       <span class="acts">
-        ${availOf(p.id).confirmed ? `<button class="btn sm" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : ""}
+        ${p.active && p.schedulable && availOf(p.id).confirmed ? `<button class="btn sm" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : ""}
         ${p.id === me.id ? "" : `<button class="btn sm ${p.active ? "danger" : ""}" data-act="toggleactive" data-emp="${p.id}">${p.active ? "Deaktivieren" : "Aktivieren"}</button>`}
       </span>
     </li>`).join("") || `<li class="muted">Noch niemand eingeladen.</li>`}</ul>
     <p class="tiny muted" style="margin:14px 0 0">
-      Deaktivieren nimmt jemanden aus Planung und Listen heraus, der Zugang bleibt bestehen.
-      Wer endgültig weg soll, wird im Supabase-Dashboard als Konto gelöscht.
+      <b>Büro</b> gibt Zugriff auf Planung, Löhne und Freigabe.
+      <b>Wird eingeplant</b> entscheidet getrennt davon, ob jemand im Dienstplan auftaucht —
+      ein reiner Bürozugang steht damit weder in der Checkliste noch bei den verfügbaren Leuten.
+      <b>Deaktivieren</b> nimmt jemanden ganz heraus, der Zugang bleibt bestehen;
+      endgültig gelöscht wird das Konto im Supabase-Dashboard.
     </p>
   </div>`;
 }
@@ -1343,6 +1352,14 @@ async function handleClick(e){
       p.active = !p.active;
       render();
       await write(sb.from("profiles").update({active:p.active}).eq("id", p.id));
+      return;
+    }
+    case "toggleplan": {
+      const p = people.find(x => x.id === el.dataset.emp);
+      if(!p) return;
+      p.schedulable = !p.schedulable;
+      render();
+      await write(sb.from("profiles").update({schedulable:p.schedulable}).eq("id", p.id));
       return;
     }
     case "toggleexempt": {
