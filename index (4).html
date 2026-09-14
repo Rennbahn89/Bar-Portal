@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dienstplan — Bar Rennbahn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   1 — Farben und Grundwerte
+   ============================================================ */
+:root{
+  --bg:#F2F3F5; --surface:#FFFFFF; --surface-2:#E9EBEF; --line:#D5D9E0;
+  --ink:#171B22; --ink-2:#5A6270; --ink-3:#868E9C;
+  --accent:#A96A12; --accent-ink:#FFFFFF; --accent-soft:#F6E9D5;
+  --ok:#27714F; --ok-soft:#DEF0E6; --ok-line:#9DCDB4;
+  --no:#A8332B; --no-soft:#F8E3E1; --no-line:#E0A9A4;
+  --shadow:0 1px 2px rgba(20,26,36,.07), 0 10px 28px rgba(20,26,36,.06);
+  --r:10px; --pad:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151C; --surface:#1A1F29; --surface-2:#232A36; --line:#2F3743;
+    --ink:#E7EAF0; --ink-2:#99A2B1; --ink-3:#727C8B;
+    --accent:#E0A33C; --accent-ink:#1C1403; --accent-soft:#33291A;
+    --ok:#63C695; --ok-soft:#173627; --ok-line:#2C5C45;
+    --no:#EC8479; --no-soft:#3A1E1C; --no-line:#663631;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12151C; --surface:#1A1F29; --surface-2:#232A36; --line:#2F3743;
+  --ink:#E7EAF0; --ink-2:#99A2B1; --ink-3:#727C8B;
+  --accent:#E0A33C; --accent-ink:#1C1403; --accent-soft:#33291A;
+  --ok:#63C695; --ok-soft:#173627; --ok-line:#2C5C45;
+  --no:#EC8479; --no-soft:#3A1E1C; --no-line:#663631;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:Archivo,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px; line-height:1.45; font-variant-numeric:tabular-nums; overflow-x:hidden;
+}
+h1,h2,h3{margin:0; font-weight:700; letter-spacing:-.02em; line-height:1.15}
+button,input,textarea{font:inherit; color:inherit; font-variant-numeric:tabular-nums}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; scroll-behavior:auto!important}}
+
+/* ============================================================
+   2 — Bausteine
+   ============================================================ */
+.wrap{max-width:1240px; margin:0 auto; padding:0 var(--pad); width:100%}
+.row{display:flex; align-items:center; gap:10px}
+.grow{flex:1; min-width:0}
+.stack{display:grid; gap:14px}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow)}
+
+.btn{
+  border:1px solid var(--line); background:var(--surface); color:var(--ink);
+  padding:9px 14px; border-radius:var(--r); font-weight:600; font-size:14px;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  transition:border-color .12s, background .12s; white-space:nowrap;
+}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent; border-color:transparent; color:var(--ink-2); padding:7px 9px}
+.btn.ghost:hover{background:var(--surface-2); color:var(--ink)}
+.btn.danger{color:var(--no); border-color:var(--no-line); background:transparent}
+.btn.sm{padding:5px 10px; font-size:13px}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+
+.field{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:var(--r);
+  background:var(--surface); color:var(--ink)}
+.field:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.lbl{display:block; font-size:13px; font-weight:600; color:var(--ink-2); margin:0 0 6px}
+.err{color:var(--no); font-size:13px; font-weight:600; margin:0}
+.okmsg{color:var(--ok); font-size:13px; font-weight:600; margin:0}
+
+.pill{display:inline-flex; align-items:center; gap:7px; padding:6px 11px; border-radius:999px;
+  border:1px solid var(--line); background:var(--surface); font-size:13px; font-weight:600; color:var(--ink-2)}
+.pill b{color:var(--ink)}
+.pill.done{background:var(--ok-soft); border-color:var(--ok-line); color:var(--ok)}
+.pill.done b{color:var(--ok)}
+.pill.warn{background:var(--no-soft); border-color:var(--no-line); color:var(--no)}
+.pill.warn b{color:var(--no)}
+
+.banner{padding:12px 14px; border-radius:var(--r); font-size:14px; margin-bottom:14px; border:1px solid}
+.banner.ok{background:var(--ok-soft); border-color:var(--ok-line); color:var(--ok)}
+.banner.info{background:var(--surface); border-color:var(--line); color:var(--ink-2)}
+.banner.bad{background:var(--no-soft); border-color:var(--no-line); color:var(--no)}
+
+/* ============================================================
+   3 — Anmeldung
+   ============================================================ */
+.login{min-height:100dvh; display:grid; place-items:center; padding:22px}
+.login-card{width:100%; max-width:390px; padding:28px 24px 24px}
+.mark{display:flex; align-items:baseline; gap:9px; margin-bottom:22px}
+.mark .dot{width:11px; height:11px; border-radius:50%; background:var(--accent); flex:none; transform:translateY(-2px)}
+.mark h1{font-size:26px}
+.mark p{margin:2px 0 0; font-size:13px; color:var(--ink-2)}
+.switch-link{background:none; border:none; color:var(--ink-2); font-size:13px; text-decoration:underline; padding:6px 0}
+.switch-link:hover{color:var(--ink)}
+.boot{min-height:100dvh; display:grid; place-items:center; color:var(--ink-3); font-size:14px; padding:24px; text-align:center}
+
+/* ============================================================
+   4 — Kopfzeile
+   ============================================================ */
+header.top{position:sticky; top:0; z-index:30; background:var(--surface); border-bottom:1px solid var(--line)}
+.top-in{display:flex; align-items:center; gap:10px; padding:9px 0; min-height:52px}
+.who{font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:0}
+.who span{display:block; font-size:12px; font-weight:500; color:var(--ink-2); letter-spacing:0}
+.sync{font-size:12px; font-weight:600; color:var(--ink-3); white-space:nowrap}
+.sync.saving{color:var(--accent)}
+.sync.bad{color:var(--no)}
+.tabs{display:flex; gap:4px; padding:0 0 8px; overflow-x:auto; scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:none; background:transparent; color:var(--ink-2); font-weight:600; font-size:14px;
+  padding:7px 12px; border-radius:8px; white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--surface-2); color:var(--ink)}
+main{padding:16px 0 110px}
+
+/* ============================================================
+   5 — Monatsleiste
+   ============================================================ */
+.monthbar{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap}
+.mnav{display:flex; align-items:center; gap:8px; min-width:0}
+.mnav .m{font-size:20px; font-weight:700; letter-spacing:-.02em; white-space:nowrap}
+.arrow{flex:none; width:38px; height:38px; padding:0; border-radius:9px; font-size:17px}
+.macts{display:flex; gap:8px; margin-left:auto}
+
+/* ============================================================
+   6 — Mitarbeiterkalender
+   ============================================================ */
+.cal{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px}
+.cal > *{min-width:0}
+.cal .wd{text-align:center; font-size:12px; font-weight:600; color:var(--ink-2); padding-bottom:2px}
+.day{aspect-ratio:1/1; border:1px solid var(--line); background:var(--surface); border-radius:var(--r);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  font-weight:600; font-size:16px; padding:0; overflow:hidden; transition:transform .08s}
+.day:active{transform:scale(.96)}
+.day.empty{border:none; background:transparent}
+.day.closed{background:var(--surface-2); color:var(--ink-3); border-style:dashed; cursor:default}
+.day.off{background:var(--no-soft); border-color:var(--no-line); color:var(--no)}
+.day.off .num{text-decoration:line-through}
+.day.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.day .sub{font-size:10px; font-weight:600; color:var(--ink-3); line-height:1.1}
+.day.off .sub{color:var(--no); font-size:15px; font-weight:700}
+.hint{margin:16px 0 0; font-size:14px; color:var(--ink-2)}
+.legend{display:flex; gap:16px; flex-wrap:wrap; margin:12px 0 0; font-size:13px; color:var(--ink-2)}
+.legend i{width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:-1px}
+
+.sticky-bar{position:fixed; left:0; right:0; bottom:0; z-index:40;
+  background:var(--surface); border-top:1px solid var(--line);
+  padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom))}
+.sticky-in{max-width:1240px; margin:0 auto; display:flex; align-items:center; gap:12px}
+
+/* ============================================================
+   7 — Planung
+   ============================================================ */
+.checklist{margin-bottom:12px; padding:12px 14px}
+.checklist summary{display:flex; align-items:center; gap:8px; flex-wrap:wrap; cursor:pointer; list-style:none}
+.checklist summary::-webkit-details-marker{display:none}
+.checklist .caret{margin-left:auto; color:var(--ink-3); font-size:13px}
+.checklist[open] .caret::after{content:"▲"}
+.checklist:not([open]) .caret::after{content:"▼"}
+.checklist ul{list-style:none; margin:11px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:7px}
+.checklist li{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600;
+  padding:5px 10px; border-radius:999px; background:var(--surface-2); color:var(--ink-2)}
+.checklist li.yes{background:var(--ok-soft); color:var(--ok)}
+
+.planhead{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px}
+.daystrip{display:flex; gap:5px; overflow-x:auto; padding:2px 2px 10px; scrollbar-width:thin}
+.ds{flex:none; width:32px; height:32px; border-radius:8px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink-2); font-size:13px; font-weight:600; padding:0}
+.ds.part{border-color:var(--accent); color:var(--ink)}
+.ds.full{background:var(--ok-soft); border-color:var(--ok-line); color:var(--ok)}
+.ds.rest{background:transparent; border-style:dashed; color:var(--ink-3)}
+
+.board{display:flex; gap:12px; align-items:stretch; overflow-x:auto;
+  padding:2px 2px 16px; margin:0;
+  scroll-snap-type:x proximity; scroll-padding-left:2px;
+  -webkit-overflow-scrolling:touch}
+.col{flex:0 0 248px; max-width:86vw; scroll-snap-align:start; display:flex; flex-direction:column;
+  background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden}
+.col.full{border-color:var(--ok-line)}
+.col.rest{opacity:.62}
+.colhead{padding:10px 12px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px}
+.col.full .colhead{background:var(--ok-soft); border-bottom-color:var(--ok-line)}
+.colhead .d{font-weight:700; font-size:15px}
+.colhead .d span{color:var(--ink-2); font-weight:600}
+.check{margin-left:auto; width:22px; height:22px; border-radius:50%; background:var(--ok); color:#fff;
+  display:grid; place-items:center; font-size:13px; flex:none}
+.colbody{padding:10px 12px 12px; flex:1; display:flex; flex-direction:column}
+.colbody > .btn{align-self:flex-start}
+.notewrap{margin-top:auto; padding-top:4px}
+
+.slot{border:1px dashed var(--line); border-radius:var(--r); padding:8px 10px; margin-bottom:7px;
+  background:var(--bg); display:flex; flex-direction:column; gap:6px}
+.slot.filled{border-style:solid; background:var(--surface)}
+.slot.over{border-color:var(--accent); background:var(--accent-soft)}
+.slot.armed{border-color:var(--accent)}
+.slot.conflict{border-color:var(--no); background:var(--no-soft)}
+.slot-top{display:flex; align-items:baseline; gap:8px}
+.slot-top .t{font-weight:700; font-size:14px; letter-spacing:-.01em; flex:1; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.slot-top .n{font-size:12px; color:var(--ink-2); font-weight:600; white-space:nowrap; flex:none}
+.slot-bot{display:flex; align-items:center; gap:6px; min-height:30px}
+.slot-bot .free{flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--ink-3)}
+.slot.armed .slot-bot .free{color:var(--accent)}
+.who-chip{background:var(--accent); color:var(--accent-ink); font-weight:700; font-size:13px;
+  padding:6px 9px; border-radius:8px; flex:0 1 auto; min-width:0; max-width:100%; margin-right:auto;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left}
+.who-chip.is-sl{box-shadow:inset 0 0 0 2px var(--ok)}
+.who-chip.clash{background:var(--no); color:#fff}
+.slbtn{border:1px solid var(--line); background:var(--surface-2); color:var(--ink-3);
+  font-size:11px; font-weight:700; padding:5px 6px; border-radius:7px; line-height:1; flex:none}
+.slbtn.on{background:var(--ok); border-color:var(--ok); color:#fff}
+.iconbtn{border:none; background:transparent; color:var(--ink-3); font-size:16px; padding:2px 4px; line-height:1; flex:none}
+.iconbtn:hover{color:var(--ink)}
+.iconbtn.x:hover{color:var(--no)}
+
+.slot-edit{display:grid; gap:7px; padding:9px 10px; border:1px solid var(--accent);
+  border-radius:var(--r); margin-bottom:7px; background:var(--surface); overflow:hidden}
+.slot-edit .two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:7px}
+.slot-edit input{padding:7px 8px; font-size:13px; border:1px solid var(--line); border-radius:8px;
+  background:var(--bg); width:100%; min-width:0; max-width:100%; text-align:center}
+.slot-edit input[data-edit="label"]{text-align:left}
+input[type="time"]{
+  -webkit-appearance:none; appearance:none;
+  min-width:0; width:100%; max-width:100%; text-align:center;
+}
+input[type="time"]::-webkit-date-and-time-value{text-align:center; margin:0}
+input[type="time"]::-webkit-calendar-picker-indicator{display:none}
+
+.grouplbl{font-size:12px; font-weight:700; color:var(--ink-3); margin:12px 0 7px}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+  padding:6px 10px; border-radius:999px; font-size:13px; font-weight:600}
+.chip:hover{border-color:var(--ink-3)}
+.chip.sel{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.chip.pending::after{content:"?"; margin-left:5px; color:var(--ink-3); font-weight:700}
+.chip.sel.pending::after{color:var(--accent-ink); opacity:.7}
+.chip.used{opacity:.38; text-decoration:line-through}
+.chip.drag{opacity:.5}
+.noteinput{width:100%; border:1px solid var(--line); border-radius:var(--r); padding:8px 10px;
+  font-size:13px; background:var(--bg); resize:vertical; min-height:38px}
+.empty-note{font-size:13px; color:var(--ink-3); padding:6px 0}
+
+/* ============================================================
+   8 — Listen, Team, Einstellungen
+   ============================================================ */
+.panel{padding:16px; margin-bottom:14px}
+.panel h2{font-size:17px; margin-bottom:4px}
+.panel > p{margin:0 0 14px; color:var(--ink-2); font-size:14px}
+.list{list-style:none; margin:0; padding:0}
+.list li{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line)}
+.list li:last-child{border-bottom:none}
+.list .nm{font-weight:600}
+.status{font-size:12px; font-weight:700; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-2)}
+.status.yes{background:var(--ok-soft); color:var(--ok)}
+
+.team-list li{display:grid; grid-template-columns:minmax(0,1fr) 84px auto auto; gap:10px; align-items:center}
+.team-list li.off{opacity:.5}
+.team-list .status{text-align:center; width:100%}
+.team-flags{display:flex; gap:14px; flex-wrap:wrap}
+.team-list .lim{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-2); cursor:pointer; white-space:nowrap}
+.team-list .lim input{width:16px; height:16px; accent-color:var(--accent); flex:none; margin:0}
+.team-list .acts{display:flex; gap:7px; justify-content:flex-end}
+
+.paylist li{align-items:baseline; flex-wrap:wrap}
+.paylist .nm{min-width:92px}
+.paylist .num{font-size:13px; color:var(--ink-2)}
+.paylist .pay{font-weight:700; min-width:88px; text-align:right; white-space:nowrap}
+.paylist li.over{background:var(--no-soft); border-radius:8px; padding-left:10px; padding-right:10px; border-bottom-color:transparent}
+.paylist li.over .pay{color:var(--no)}
+.paylist .slh{color:var(--ok); font-weight:700}
+.paylist .flag{display:inline-block; margin-left:8px; font-size:11px; font-weight:700;
+  color:#fff; background:var(--no); padding:2px 6px; border-radius:999px; vertical-align:1px}
+
+.tpl{border:1px solid var(--line); border-radius:var(--r); padding:10px 12px; margin-bottom:8px}
+.tpl .hd{font-weight:700; margin-bottom:6px; font-size:14px}
+.tpl .line{display:grid; grid-template-columns:minmax(0,1fr) 188px 32px;
+  gap:6px; align-items:center; margin-bottom:8px}
+.tpl .times{display:grid; grid-template-columns:1fr 1fr; gap:6px; min-width:0}
+.tpl input{padding:6px 8px; font-size:13px; border:1px solid var(--line); border-radius:8px; background:var(--bg); min-width:0; width:100%}
+.tpl .rm{width:30px; height:30px; padding:0; flex:none; border-radius:8px;
+  border:1px solid var(--line); background:var(--surface); color:var(--ink-3);
+  font-size:15px; line-height:1; display:inline-flex; align-items:center; justify-content:center}
+.tpl .rm:hover{border-color:var(--no-line); color:var(--no)}
+.switchrow{display:flex; align-items:center; gap:10px; padding:10px 0}
+.switchrow input{width:18px; height:18px; accent-color:var(--accent); flex:none}
+.two-col{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+
+/* ============================================================
+   9 — Dienstplan für Mitarbeiter
+   ============================================================ */
+.plan-day{border:1px solid var(--line); border-radius:var(--r); padding:11px 13px; margin-bottom:8px; background:var(--surface)}
+.plan-day.mine{border-color:var(--accent); background:var(--accent-soft)}
+.plan-day .hd{font-weight:700; margin-bottom:5px}
+.plan-day .sh{display:flex; justify-content:space-between; gap:12px; font-size:14px; padding:2px 0}
+.plan-day .sh .me{color:var(--accent); font-weight:700}
+.plan-day .cm{font-size:13px; color:var(--ink-2); margin-top:6px; font-style:italic}
+
+/* ============================================================
+   10 — Dialog und Druckvorschau
+   ============================================================ */
+.overlay{position:fixed; inset:0; z-index:60; background:rgba(8,10,14,.6); display:flex; padding:16px; overflow:auto}
+.dialog{max-width:400px; margin:auto; padding:22px; width:100%}
+.dialog p{margin:0 0 18px; font-size:15px}
+.dialog .row{justify-content:flex-end}
+.sheetwrap{max-width:780px; margin:auto; width:100%}
+.sheetbar{display:flex; gap:8px; align-items:center; margin-bottom:10px}
+.sheetbar .t{color:#fff; font-weight:700; flex:1}
+.sheet{background:#fff; color:#15181d; padding:24px; border-radius:12px}
+.sheet h1{font-size:20px; margin:0 0 2px; letter-spacing:-.02em; color:#15181d}
+.sheet .pd-sub{font-size:12px; color:#5b6069; margin:0 0 16px}
+
+/* Die Tabellendarstellung wird erzwungen, damit keine Regel der App sie aushebeln kann */
+.sheet table{display:table; width:100%; border-collapse:collapse; table-layout:fixed; margin:0}
+.sheet thead{display:table-header-group}
+.sheet tbody{display:table-row-group}
+.sheet tr{display:table-row}
+.sheet th, .sheet td{
+  display:table-cell; vertical-align:top; text-align:left;
+  aspect-ratio:auto; border-radius:0; background:none; box-shadow:none;
+}
+.sheet th{font-size:11px; font-weight:700; color:#5b6069; padding:0 8px 6px; border-bottom:1px solid #8d949c}
+.sheet td{font-size:13px; font-weight:400; padding:5px 8px; word-break:break-word; color:#15181d}
+.sheet tr.pd-start > td{border-top:1px solid #dcdfe4}
+.sheet tr.pd-first > td{border-top:none}
+.sheet td.pd-day{font-weight:700; white-space:nowrap}
+.sheet tr.pd-we td.pd-day{border-left:3px solid #15181d; padding-left:5px}
+.sheet td.pd-time{white-space:nowrap; color:#4a4f57}
+.sheet td.pd-who{font-weight:600}
+.sheet td.pd-rest{color:#8a8f97; font-style:italic}
+.sheet td.pd-note{color:#5b6069; font-style:italic; font-size:12px; padding-top:0}
+.sheet .pd-open{color:#9aa0a8; font-weight:500}
+.sheet .pd-sl{display:inline-block; margin-left:5px; padding:0 4px; border:1px solid #15181d;
+  border-radius:3px; font-size:10px; font-weight:700; vertical-align:1px}
+.sheet .pd-sum{margin-top:16px; padding-top:10px; border-top:1px solid #dcdfe4; font-size:12px; color:#3a3e45}
+.sheet .pd-sum b{color:#15181d}
+.sheet .pd-sum span{display:inline-block; margin:0 14px 4px 0}
+
+/* ============================================================
+   11 — Kleine Bildschirme
+   ============================================================ */
+@media (max-width:760px){
+  .macts{width:100%; margin-left:0}
+  .macts .btn{flex:1; padding:9px 6px; font-size:13px}
+  .mnav{flex:1}
+  .mnav .m{font-size:19px; flex:1; text-align:center}
+  .panel{padding:14px}
+  .board{padding:2px var(--pad) 16px; margin:0 calc(-1 * var(--pad)); scroll-padding-left:var(--pad)}
+  .daystrip{margin:0 calc(-1 * var(--pad)); padding:2px var(--pad) 10px}
+  .team-list li{grid-template-columns:minmax(0,1fr) 84px; row-gap:8px}
+  .team-flags{grid-column:1 / -1}
+  .team-list .acts{grid-column:1 / -1; justify-content:flex-start}
+  .two-col{grid-template-columns:1fr}
+  .tpl .line{grid-template-columns:minmax(0,1fr) 32px; row-gap:6px}
+  .tpl .times{grid-column:1 / -1}
+  .paylist .pay{min-width:0}
+  .sync{display:none}
+  main{padding-bottom:120px}
+}
+
+/* ============================================================
+   12 — Druck
+   ============================================================ */
+#printRoot{display:none}
+@media print{
+  header.top, .sticky-bar, main, .login, .overlay, .boot{display:none!important}
+  body{background:#fff; color:#000}
+  #printRoot{display:block!important}
+  #printRoot .sheet{padding:0; border-radius:0}
+  #printRoot .sheet h1{font-size:15pt}
+  #printRoot .sheet .pd-sub{font-size:8.5pt; margin-bottom:4mm}
+  #printRoot .sheet th{font-size:7.5pt; padding:0 2mm 1.5mm}
+  #printRoot .sheet td{font-size:8.5pt; padding:1mm 2mm}
+  #printRoot .sheet td.pd-note{font-size:7.5pt}
+  #printRoot .sheet .pd-sl{font-size:7pt}
+  #printRoot .sheet .pd-sum{font-size:8pt; margin-top:4mm; padding-top:2mm}
+  #printRoot tr{break-inside:avoid; page-break-inside:avoid}
+  @page{size:A4 portrait; margin:12mm}
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="boot">Wird geladen…</div></div>
+<div id="printRoot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+"use strict";
+
+/* ============================================================
+   HIER EINTRAGEN
+   Beide Werte stehen im Supabase-Projekt unter Project Settings,
+   API. Der anon key ist öffentlich, das ist so vorgesehen:
+   geschützt wird in der Datenbank, nicht in dieser Datei.
+   ============================================================ */
+const SUPABASE_URL = "https://ldtudrdedvgroxpinsew.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_UM3VJ8ya07n8WMKR5hc76Q_0xbaGla-";
+/* ========================================================== */
+
+const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const WD_SHORT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+const THEME_KEY = "rennbahn_theme";
+
+/* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
+   Supabase liefert die Daten je nach Linkart im Anker oder als Parameter. */
+const linkHash  = new URLSearchParams(location.hash.replace(/^#/, ""));
+const linkQuery = new URLSearchParams(location.search);
+const linkType    = linkHash.get("type") || linkQuery.get("type") || "";
+const linkAccess  = linkHash.get("access_token");
+const linkRefresh = linkHash.get("refresh_token");
+const linkCode    = linkQuery.get("code");
+const linkError   = linkHash.get("error_description") || linkQuery.get("error_description")
+                 || linkHash.get("error") || linkQuery.get("error");
+const SETUP_KEY = "rennbahn_setup_offen";
+let linkHandled = false;   // der Anhang wird genau einmal ausgewertet
+
+/* Projektadresse säubern: Leerzeichen, Schrägstriche am Ende und ein
+   versehentlich mitkopierter Pfad fallen weg. Übrig bleibt der reine Host. */
+function apiBase(u){
+  let s = String(u || "").trim();
+  if(!s) return "";
+  if(!/^https?:\/\//i.test(s)) s = "https://" + s;
+  try{ const p = new URL(s); return p.protocol + "//" + p.host; }
+  catch(e){ return s.replace(/\/+$/, ""); }
+}
+const API_URL = apiBase(SUPABASE_URL);
+const API_KEY = String(SUPABASE_ANON_KEY).trim();
+
+/* detectSessionInUrl bleibt aus: die Auswertung macht consumeLink() selbst,
+   sonst rennt der Start gegen eine noch nicht fertige Sitzung. */
+const sb = window.supabase.createClient(API_URL, API_KEY, {
+  auth: {detectSessionInUrl:false, persistSession:true, autoRefreshToken:true, flowType:"implicit"}
+});
+
+/* ============================================================
+   Zustand
+   ============================================================ */
+let me = null;             // {id, name, role}
+let people = [];           // [{id, name, role, active, exempt}]
+let templates = {};        // {wochentag: [{label, start, end}]}
+let config = {wage:0, wageSL:0, limit:0, limitOn:true};
+let month = null;          // {ym, exists, published, days:{}, avail:{}}
+let pending = null;
+let dragData = null;
+
+const ui = {
+  screen: "boot",          // boot | auth | onboard | app | error
+  bootMsg: "",
+  monthKey: "",
+  adminTab: "plan",
+  empTab: "avail",
+  authMode: "login",       // login | reset
+  authError: "", authInfo: "", authDetail: "",
+  formError: "", formInfo: "",
+  selection: null,
+  editingShift: null,
+  sheetOpen: false,
+  checkOpen: true,
+  jumpTo: null,
+  sync: ""
+};
+
+/* ============================================================
+   Kleine Helfer
+   ============================================================ */
+const esc = s => String(s == null ? "" : s)
+  .replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const eur = n => n.toLocaleString("de-DE",{minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
+const dec = (n, f) => n.toLocaleString("de-DE",
+  {minimumFractionDigits: f === undefined ? 1 : f, maximumFractionDigits: f === undefined ? 1 : f});
+const feldWert = (form, name) => {
+  const el = form.querySelector('[name="' + name + '"]');
+  return el ? el.value : "";
+};
+const toNum = v => { const x = parseFloat(String(v).replace(/\s/g,"").replace(",",".")); return isNaN(x) ? 0 : x; };
+
+function monthKey(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0"); }
+function parseKey(k){ const p = k.split("-"); return {y:Number(p[0]), m:Number(p[1])-1}; }
+function monthLabel(k){ const p = parseKey(k); return MONTHS[p.m] + " " + p.y; }
+function daysInMonth(k){ const p = parseKey(k); return new Date(p.y, p.m+1, 0).getDate(); }
+function weekdayOf(k, day){ const p = parseKey(k); return new Date(p.y, p.m, day).getDay(); }
+function shiftMonth(k, delta){ const p = parseKey(k); return monthKey(new Date(p.y, p.m+delta, 1)); }
+function isToday(k, day){ const t = new Date(); return monthKey(t) === k && t.getDate() === day; }
+
+function hoursOf(sh){
+  const a = sh.start.split(":").map(Number);
+  const b = sh.end.split(":").map(Number);
+  let mins = (b[0]*60 + b[1]) - (a[0]*60 + a[1]);
+  if(mins <= 0) mins += 24*60;
+  return mins/60;
+}
+const isAdmin = () => !!me && me.role === "admin";
+const personName = id => { const p = people.find(x => x.id === id); return p ? p.name : "?"; };
+const teamList = () => people.filter(p => p.active && p.schedulable);
+
+/* Ruhetag, solange das Büro den Monat noch nicht angelegt hat */
+const closedByTemplate = wd => !(templates[wd] && templates[wd].length);
+
+function availOf(userId){
+  if(!month.avail[userId]) month.avail[userId] = {off:[], confirmed:false};
+  return month.avail[userId];
+}
+const isOff = (userId, day) => availOf(userId).off.indexOf(day) >= 0;
+const dayComplete = d => !d.closed && d.shifts.length > 0 && d.shifts.every(s => s.emp);
+
+function payroll(userId){
+  let shifts = 0, h = 0, hSL = 0;
+  Object.keys(month.days).forEach(key => month.days[key].shifts.forEach(s => {
+    if(s.emp !== userId) return;
+    shifts++;
+    if(s.sl) hSL += hoursOf(s); else h += hoursOf(s);
+  }));
+  const pay = h * config.wage + hSL * config.wageSL;
+  const p = people.find(x => x.id === userId);
+  const applies = config.limitOn && !!p && !p.exempt;
+  return {shifts, h, hSL, hours:h+hSL, pay, applies, over: applies && pay > config.limit};
+}
+
+function monthStats(){
+  let open = 0, done = 0, slots = 0, filled = 0, conflicts = 0;
+  Object.keys(month.days).forEach(key => {
+    const d = month.days[key];
+    if(d.closed) return;
+    open++;
+    if(dayComplete(d)) done++;
+    d.shifts.forEach(s => {
+      slots++;
+      if(s.emp){ filled++; if(isOff(s.emp, Number(key))) conflicts++; }
+    });
+  });
+  const team = teamList();
+  return {
+    open, done, slots, filled, conflicts,
+    conf: team.filter(p => availOf(p.id).confirmed).length,
+    over: team.filter(p => payroll(p.id).over).length,
+    total: team.length
+  };
+}
+
+/* ============================================================
+   Datenbank
+   ============================================================ */
+function setSync(kind){
+  ui.sync = kind;
+  const el = document.querySelector(".sync");
+  if(!el) return;
+  el.className = "sync " + (kind === "saving" || kind === "load" ? "saving" : kind === "bad" ? "bad" : "");
+  el.textContent = kind === "load" ? "Lädt…"
+    : kind === "saving" ? "Speichert…"
+    : kind === "bad" ? "Nicht gespeichert" : "";
+}
+
+/* Jede Schreiboperation läuft hier durch */
+async function write(builder){
+  setSync("saving");
+  const res = await builder;
+  if(res && res.error){
+    console.error(res.error);
+    setSync("bad");
+    ui.formError = "Nicht gespeichert: " + res.error.message;
+    render();
+    return false;
+  }
+  setSync("ok");
+  return true;
+}
+
+async function loadProfile(){
+  const {data: sess} = await sb.auth.getSession();
+  if(!sess || !sess.session) return null;
+  const uid = sess.session.user.id;
+  const {data, error} = await sb.from("profiles").select("id,name,role,active").eq("id", uid).maybeSingle();
+  if(error){ console.error(error); ui.bootMsg = "Profil konnte nicht geladen werden: " + error.message; return null; }
+  return data;
+}
+
+async function loadAll(depth){
+  const ym = ui.monthKey;
+  const admin = isAdmin();
+
+  const r = await Promise.all([
+    sb.from("profiles").select("id,name,role,active,schedulable").order("name"),
+    sb.from("shift_templates").select("weekday,pos,label,starts,ends").order("weekday").order("pos"),
+    sb.from("months").select("ym,published").eq("ym", ym).maybeSingle(),
+    sb.from("days").select("ym,day,closed,note").eq("ym", ym),
+    sb.from("shifts").select("id,ym,day,pos,label,starts,ends,assignee,is_lead").eq("ym", ym).order("pos"),
+    admin ? sb.from("availability").select("user_id,off_days,confirmed").eq("ym", ym)
+          : sb.from("availability").select("user_id,off_days,confirmed").eq("ym", ym).eq("user_id", me.id),
+    admin ? sb.from("settings").select("wage,wage_lead,limit_amount,limit_on").eq("id", 1).maybeSingle()
+          : Promise.resolve({data:null}),
+    admin ? sb.from("payroll_flags").select("user_id,exempt") : Promise.resolve({data:[]})
+  ]);
+
+  const bad = r.find(x => x && x.error);
+  if(bad){ console.error(bad.error); ui.formError = "Laden fehlgeschlagen: " + bad.error.message; }
+
+  const flags = {};
+  (r[7].data || []).forEach(f => { flags[f.user_id] = f.exempt; });
+  people = (r[0].data || []).map(p => Object.assign({}, p, {exempt: !!flags[p.id]}));
+
+  templates = {};
+  (r[1].data || []).forEach(t => {
+    (templates[t.weekday] = templates[t.weekday] || []).push({label:t.label, start:t.starts, end:t.ends});
+  });
+  for(let wd = 0; wd < 7; wd++) templates[wd] = templates[wd] || [];
+
+  if(r[6].data){
+    config = {
+      wage: Number(r[6].data.wage),
+      wageSL: Number(r[6].data.wage_lead),
+      limit: Number(r[6].data.limit_amount),
+      limitOn: r[6].data.limit_on
+    };
+  }
+
+  month = {ym, exists: !!r[2].data, published: r[2].data ? r[2].data.published : false, days:{}, avail:{}};
+  (r[3].data || []).forEach(d => { month.days[d.day] = {closed:d.closed, comment:d.note, shifts:[]}; });
+  (r[4].data || []).forEach(s => {
+    const d = month.days[s.day];
+    if(d) d.shifts.push({id:s.id, label:s.label, start:s.starts, end:s.ends, emp:s.assignee, sl:s.is_lead, pos:s.pos});
+  });
+  (r[5].data || []).forEach(a => {
+    month.avail[a.user_id] = {off:(a.off_days || []).map(Number), confirmed:a.confirmed};
+  });
+
+  /* Büro öffnet einen noch nicht angelegten Monat: aus den Vorlagen aufbauen */
+  if(admin && !month.exists && !depth){
+    await createMonth(ym);
+    return loadAll(1);
+  }
+}
+
+async function createMonth(ym){
+  setSync("saving");
+  const n = daysInMonth(ym);
+  const days = [], shifts = [];
+  for(let d = 1; d <= n; d++){
+    const tpl = templates[weekdayOf(ym, d)] || [];
+    days.push({ym, day:d, closed: tpl.length === 0, note:""});
+    tpl.forEach((t, i) => shifts.push({ym, day:d, pos:i, label:t.label, starts:t.start, ends:t.end}));
+  }
+  let res = await sb.from("months").insert({ym});
+  if(res.error && res.error.code !== "23505"){ setSync("bad"); ui.formError = res.error.message; return; }
+  res = await sb.from("days").upsert(days, {onConflict:"ym,day", ignoreDuplicates:true});
+  if(res.error){ setSync("bad"); ui.formError = res.error.message; return; }
+  if(shifts.length){
+    res = await sb.from("shifts").insert(shifts);
+    if(res.error){ setSync("bad"); ui.formError = res.error.message; return; }
+  }
+  setSync("ok");
+}
+
+async function reload(){
+  setSync("load");
+  await loadAll(0);
+  setSync("");
+  render();
+}
+
+/* ============================================================
+   Anmeldung
+   ============================================================ */
+function viewAuth(){
+  const reset = ui.authMode === "reset";
+  return `
+  <div class="login"><div class="card login-card">
+    <div class="mark"><span class="dot"></span>
+      <div><h1>Dienstplan</h1><p>Bar Rennbahn Schwabing</p></div>
+    </div>
+    <form class="stack" data-form="${reset ? "reset" : "login"}">
+      <div>
+        <label class="lbl" for="f-mail">E-Mail-Adresse</label>
+        <input class="field" id="f-mail" name="email" type="email" autocomplete="username" inputmode="email">
+      </div>
+      ${reset ? "" : `
+      <div>
+        <label class="lbl" for="f-pw">Passwort</label>
+        <input class="field" id="f-pw" name="pw" type="password" autocomplete="current-password">
+      </div>`}
+      ${ui.authError ? `<p class="err">${esc(ui.authError)}</p>` : ""}
+      ${ui.authDetail ? `<p class="tiny muted" style="margin:-8px 0 0">${esc(ui.authDetail)}</p>` : ""}
+      ${ui.authInfo ? `<p class="okmsg">${esc(ui.authInfo)}</p>` : ""}
+      <button class="btn primary" type="submit">${reset ? "Link anfordern" : "Anmelden"}</button>
+    </form>
+    <div style="text-align:center; margin-top:6px">
+      <button class="switch-link" data-act="authmode">
+        ${reset ? "Zurück zur Anmeldung" : "Passwort vergessen"}
+      </button>
+    </div>
+    <p class="tiny muted" style="margin:16px 0 0; text-align:center">
+      Noch kein Zugang? Das Büro lädt dich per E-Mail ein.
+    </p>
+  </div></div>`;
+}
+
+function viewOnboard(){
+  return `
+  <div class="login"><div class="card login-card">
+    <div class="mark"><span class="dot"></span>
+      <div><h1>Willkommen</h1><p>Noch zwei Angaben, dann kann es losgehen.</p></div>
+    </div>
+    <form class="stack" data-form="onboard">
+      <div>
+        <label class="lbl" for="o-name">Dein Vorname</label>
+        <input class="field" id="o-name" name="name" autocapitalize="words" value="${esc(me && me.name ? me.name : "")}">
+      </div>
+      <div>
+        <label class="lbl" for="o-pw">Passwort festlegen</label>
+        <input class="field" id="o-pw" name="pw" type="password" autocomplete="new-password">
+      </div>
+      <div>
+        <label class="lbl" for="o-pw2">Passwort wiederholen</label>
+        <input class="field" id="o-pw2" name="pw2" type="password" autocomplete="new-password">
+      </div>
+      ${ui.formError ? `<p class="err">${esc(ui.formError)}</p>` : ""}
+      <button class="btn primary" type="submit">Speichern und starten</button>
+    </form>
+  </div></div>`;
+}
+
+/* ============================================================
+   Gemeinsame Teile
+   ============================================================ */
+function headerBar(title, sub, tabs, activeTab){
+  return `
+  <header class="top"><div class="wrap">
+    <div class="top-in">
+      <div class="who grow">${esc(title)}<span>${esc(sub)}</span></div>
+      <span class="sync"></span>
+      <button class="btn ghost" data-act="theme" title="Hell oder dunkel" aria-label="Hell oder dunkel">◐</button>
+      <button class="btn sm" data-act="logout">Abmelden</button>
+    </div>
+    ${tabs ? `<div class="tabs" role="tablist">${tabs.map(t =>
+      `<button class="tab" role="tab" aria-selected="${t.id === activeTab}" data-act="tab" data-tab="${t.id}">${esc(t.label)}</button>`
+    ).join("")}</div>` : ""}
+  </div></header>`;
+}
+
+function monthBar(actions){
+  return `
+  <div class="monthbar">
+    <div class="mnav">
+      <button class="btn arrow" data-act="month" data-dir="-1" aria-label="Vorheriger Monat">‹</button>
+      <div class="m">${esc(monthLabel(ui.monthKey))}</div>
+      <button class="btn arrow" data-act="month" data-dir="1" aria-label="Nächster Monat">›</button>
+    </div>
+    ${actions ? `<div class="macts">${actions}</div>` : ""}
+  </div>`;
+}
+
+/* ============================================================
+   Mitarbeiteransicht
+   ============================================================ */
+function viewStaff(){
+  const tabs = [{id:"avail", label:"Meine Verfügbarkeit"}];
+  if(month.published) tabs.push({id:"plan", label:"Dienstplan"});
+  tabs.push({id:"account", label:"Mein Konto"});
+  let tab = ui.empTab;
+  if(tab === "plan" && !month.published) tab = "avail";
+  const body = tab === "plan" ? staffPlan() : tab === "account" ? accountPanel() : staffAvail();
+  return headerBar(me.name, "Angemeldet als Mitarbeiter", tabs, tab)
+    + `<main><div class="wrap">${body}</div></main>`;
+}
+
+function staffAvail(){
+  const k = ui.monthKey;
+  const a = availOf(me.id);
+  const n = daysInMonth(k);
+  const lead = (weekdayOf(k, 1) + 6) % 7;
+  const locked = month.published;
+  const shut = d => month.days[d] ? month.days[d].closed : closedByTemplate(weekdayOf(k, d));
+
+  let cells = "";
+  for(let i = 0; i < lead; i++) cells += `<div class="day empty"></div>`;
+  for(let d = 1; d <= n; d++){
+    const closed = shut(d);
+    const off = a.off.indexOf(d) >= 0;
+    const cls = ["day", closed ? "closed" : "", off ? "off" : "", isToday(k, d) ? "today" : ""].filter(Boolean).join(" ");
+    cells += `<button class="${cls}" ${closed || locked ? "disabled" : ""} data-act="toggleoff" data-day="${d}">
+      <span class="num">${d}</span>
+      <span class="sub">${closed ? "zu" : (off ? "×" : WD_SHORT[weekdayOf(k, d)])}</span>
+    </button>`;
+  }
+  const count = a.off.filter(d => !shut(d)).length;
+
+  return monthBar()
+    + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
+    + (locked ? `<div class="banner info">Der Dienstplan für diesen Monat ist freigegeben. Änderungen laufen jetzt übers Büro.</div>` : "")
+    + (a.confirmed && !locked ? `<div class="banner ok">Bestätigt. Bis zur Freigabe kannst du noch etwas ändern.</div>` : "")
+    + `<div class="cal">${["Mo","Di","Mi","Do","Fr","Sa","So"].map(w => `<div class="wd">${w}</div>`).join("")}</div>
+       <div class="cal" style="margin-top:6px">${cells}</div>
+       ${locked ? "" : `<p class="hint">Bitte markiere die Tage, an denen du nicht verfügbar bist.</p>`}
+       <div class="legend">
+         <span><i style="background:var(--no-soft); border:1px solid var(--no-line)"></i>Kann ich nicht</span>
+         <span><i style="background:var(--surface-2); border:1px dashed var(--line)"></i>Ruhetag</span>
+       </div>`
+    + (locked ? "" : `
+      <div class="sticky-bar"><div class="sticky-in">
+        <div class="grow small muted">${count === 0
+          ? "Du kannst diesen Monat an allen Tagen"
+          : count + (count === 1 ? " Tag" : " Tage") + " markiert"}</div>
+        <button class="btn primary" data-act="confirm">${a.confirmed ? "Änderung bestätigen" : "Bestätigen"}</button>
+      </div></div>`);
+}
+
+function staffPlan(){
+  const k = ui.monthKey;
+  const n = daysInMonth(k);
+  let mine = 0, hrs = 0, out = "";
+  for(let d = 1; d <= n; d++){
+    const day = month.days[d];
+    if(!day || day.closed) continue;
+    const has = day.shifts.some(s => s.emp === me.id);
+    if(has) day.shifts.forEach(s => { if(s.emp === me.id){ mine++; hrs += hoursOf(s); } });
+    out += `<div class="plan-day ${has ? "mine" : ""}">
+      <div class="hd">${WD_LONG[weekdayOf(k, d)]}, ${d}. ${MONTHS[parseKey(k).m]}</div>
+      ${day.shifts.map(s => `<div class="sh"><b>${esc(s.label)}</b>
+        <span class="${s.emp === me.id ? "me" : ""}">${s.emp ? esc(personName(s.emp)) + (s.sl ? " (SL)" : "") : "offen"} · ${s.start}–${s.end}</span>
+      </div>`).join("")}
+      ${day.comment ? `<div class="cm">${esc(day.comment)}</div>` : ""}
+    </div>`;
+  }
+  return monthBar()
+    + `<div class="banner ok">Deine Schichten: <b>${mine}</b> · rund <b>${dec(hrs)}</b> Stunden</div>`
+    + out;
+}
+
+function accountPanel(){
+  return `
+  <div class="card panel">
+    <h2>Mein Konto</h2>
+    <p>Angemeldet als ${esc(me.name)}.</p>
+    <form class="stack" data-form="account" style="max-width:360px">
+      <div>
+        <label class="lbl" for="a-name">Vorname</label>
+        <input class="field" id="a-name" name="name" value="${esc(me.name)}" autocapitalize="words">
+      </div>
+      <div>
+        <label class="lbl" for="a-pw">Neues Passwort</label>
+        <input class="field" id="a-pw" name="pw" type="password" autocomplete="new-password" placeholder="leer lassen, um es zu behalten">
+      </div>
+      ${ui.formError ? `<p class="err">${esc(ui.formError)}</p>` : ""}
+      ${ui.formInfo ? `<p class="okmsg">${esc(ui.formInfo)}</p>` : ""}
+      <button class="btn primary" type="submit">Speichern</button>
+    </form>
+  </div>`;
+}
+
+/* ============================================================
+   Adminansicht
+   ============================================================ */
+function viewAdmin(){
+  const tabs = [
+    {id:"plan", label:"Planung"},
+    {id:"team", label:"Team"},
+    {id:"settings", label:"Einstellungen"},
+    {id:"account", label:"Mein Konto"}
+  ];
+  const body = ui.adminTab === "team" ? adminTeam()
+    : ui.adminTab === "settings" ? adminSettings()
+    : ui.adminTab === "account" ? accountPanel()
+    : adminPlan();
+  return headerBar("Büro", "Angemeldet als " + me.name, tabs, ui.adminTab)
+    + `<main><div class="wrap">${body}</div></main>`;
+}
+
+function adminPlan(){
+  const k = ui.monthKey;
+  const st = monthStats();
+  const n = daysInMonth(k);
+
+  const actions = `
+    <button class="btn" data-act="suggest">Vorschlag</button>
+    <button class="btn" data-act="print">Drucken</button>
+    <button class="btn ${month.published ? "" : "primary"}" data-act="publish">${month.published ? "Zurücknehmen" : "Freigeben"}</button>`;
+
+  const checklist = `
+  <details class="card checklist" ${ui.checkOpen ? "open" : ""}>
+    <summary>
+      <b>Eintragungen</b>
+      <span class="muted small">${st.conf} von ${st.total} bestätigt</span>
+      ${st.conf === st.total && st.total > 0 ? `<span class="pill done">vollständig</span>` : ""}
+      <span class="caret"></span>
+    </summary>
+    <ul>${teamList().map(p => {
+      const a = availOf(p.id);
+      const cnt = a.off.filter(d => month.days[d] && !month.days[d].closed).length;
+      return `<li class="${a.confirmed ? "yes" : ""}">${a.confirmed ? "✓" : "○"} ${esc(p.name)}${
+        a.confirmed ? ` <span class="tiny" style="opacity:.7">${cnt}</span>` : ""}</li>`;
+    }).join("") || `<li>Noch niemand im Team</li>`}</ul>
+  </details>`;
+
+  let strip = "", cols = "";
+  for(let d = 1; d <= n; d++){
+    const day = month.days[d];
+    if(!day) continue;
+    const filled = day.shifts.filter(s => s.emp).length;
+    const cls = day.closed ? "rest" : dayComplete(day) ? "full" : filled ? "part" : "";
+    strip += `<button class="ds ${cls}" data-act="goday" data-day="${d}" title="${WD_SHORT[weekdayOf(k, d)]} ${d}.">${d}</button>`;
+    cols += dayColumn(d);
+  }
+
+  return monthBar(actions)
+    + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
+    + (month.published ? `<div class="banner ok">Freigegeben — alle Mitarbeiter sehen den Plan in der App.</div>` : "")
+    + (st.total === 0 ? `<div class="banner info">Noch wird niemand eingeplant. Lade unter <b>Team</b> Leute ein
+        oder setze dort bei jemandem das Häkchen „wird eingeplant".</div>` : "")
+    + checklist
+    + `<div class="planhead">
+        <span class="pill ${st.done === st.open && st.open > 0 ? "done" : ""}"><b>${st.done}</b> von ${st.open} Tagen fertig</span>
+        <span class="pill"><b>${st.filled}</b> von ${st.slots} Schichten besetzt</span>
+        ${st.over ? `<span class="pill warn"><b>${st.over}</b> über der Grenze</span>` : ""}
+        ${st.conflicts ? `<span class="pill warn"><b>${st.conflicts}</b> trotz Absage eingeteilt</span>` : ""}
+       </div>`
+    + `<div class="daystrip">${strip}</div>`
+    + `<div class="board" id="board">${cols}</div>`
+    + payPanel();
+}
+
+function dayColumn(d){
+  const k = ui.monthKey;
+  const day = month.days[d];
+  const wd = weekdayOf(k, d);
+
+  if(day.closed){
+    return `<div class="col rest" data-col="${d}">
+      <div class="colhead"><div class="d">${WD_SHORT[wd]} <span>${d}.</span></div></div>
+      <div class="colbody">
+        <div class="empty-note">Ruhetag</div>
+        <button class="btn sm" data-act="openday" data-day="${d}">Tag öffnen</button>
+      </div>
+    </div>`;
+  }
+
+  const armed = !!ui.selection && ui.selection.day === d;
+
+  const shifts = day.shifts.map(s => {
+    if(ui.editingShift === s.id){
+      return `<div class="slot-edit">
+        <input data-edit="label" value="${esc(s.label)}" placeholder="Bezeichnung">
+        <div class="two">
+          <input data-edit="start" type="time" value="${s.start}">
+          <input data-edit="end" type="time" value="${s.end}">
+        </div>
+        <div class="row">
+          <button class="btn sm primary" data-act="saveshift" data-day="${d}" data-shift="${s.id}">Übernehmen</button>
+          <div class="grow"></div>
+          <button class="btn sm danger" data-act="delshift" data-day="${d}" data-shift="${s.id}">Löschen</button>
+        </div>
+      </div>`;
+    }
+    const conflict = s.emp && isOff(s.emp, d);
+    return `<div class="slot ${s.emp ? "filled" : ""} ${armed && !s.emp ? "armed" : ""} ${conflict ? "conflict" : ""}"
+        data-day="${d}" data-shift="${s.id}">
+      <div class="slot-top">
+        <span class="t">${esc(s.label)}</span>
+        <span class="n">${s.start}–${s.end}</span>
+      </div>
+      <div class="slot-bot">
+        ${s.emp ? `
+          <span class="who-chip ${s.sl ? "is-sl" : ""} ${conflict ? "clash" : ""}" draggable="true"
+            data-from="${d}:${s.id}" data-emp="${s.emp}"
+            title="${conflict ? "Hat für diesen Tag abgesagt" : ""}">${esc(personName(s.emp))}</span>
+          <button class="slbtn ${s.sl ? "on" : ""}" data-act="togglesl" data-day="${d}" data-shift="${s.id}"
+            title="Schichtleitung" aria-pressed="${!!s.sl}">SL</button>
+          <button class="iconbtn x" data-act="clear" data-day="${d}" data-shift="${s.id}" aria-label="Freimachen">×</button>`
+        : `
+          <span class="free">${armed ? "antippen zum Einsetzen" : "frei"}</span>
+          <button class="iconbtn" data-act="editshift" data-day="${d}" data-shift="${s.id}" aria-label="Schicht bearbeiten">✎</button>`}
+      </div>
+    </div>`;
+  }).join("");
+
+  const busy = day.shifts.filter(s => s.emp).map(s => s.emp);
+  const team = teamList();
+  const free = team.filter(p => !isOff(p.id, d));
+  const away = team.filter(p => isOff(p.id, d));
+
+  const chips = free.map(p => {
+    const used = busy.indexOf(p.id) >= 0;
+    const sel = armed && ui.selection.empId === p.id;
+    const open = !availOf(p.id).confirmed;
+    return `<button class="chip ${used ? "used" : ""} ${sel ? "sel" : ""} ${open ? "pending" : ""}"
+      draggable="${!used}" data-emp="${p.id}" data-day="${d}" data-act="pick">${esc(p.name)}</button>`;
+  }).join("");
+
+  return `<div class="col ${dayComplete(day) ? "full" : ""}" data-col="${d}">
+    <div class="colhead">
+      <div class="d">${WD_SHORT[wd]} <span>${d}.</span></div>
+      ${dayComplete(day) ? `<span class="check">✓</span>` : ""}
+    </div>
+    <div class="colbody">
+      ${shifts || `<div class="empty-note">Keine Schichten</div>`}
+      <button class="btn sm" data-act="addshift" data-day="${d}">+ Schicht</button>
+      <div class="grouplbl">Kann an diesem Tag</div>
+      <div class="chips">${chips || `<span class="empty-note">Niemand verfügbar</span>`}</div>
+      ${away.length ? `<div class="tiny muted" style="margin-top:7px">Kann nicht: ${away.map(p => esc(p.name)).join(", ")}</div>` : ""}
+      <div class="notewrap">
+        <div class="grouplbl">Notiz</div>
+        <textarea class="noteinput" data-note="${d}" rows="1" placeholder="Besonderheiten...">${esc(day.comment)}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function payPanel(){
+  const rows = teamList()
+    .map(p => Object.assign({name:p.name}, payroll(p.id)))
+    .sort((a, b) => b.pay - a.pay);
+  return `<div class="card panel" style="margin-top:16px">
+    <h2>Verteilung und Lohn</h2>
+    <p>${dec(config.wage,2)} € pro Stunde, als Schichtleitung ${dec(config.wageSL,2)} €${
+      config.limitOn ? ` · Grenze ${dec(config.limit,2)} € im Monat` : " · Grenze wird nicht überwacht"}.
+      Diese Übersicht sieht nur das Büro.</p>
+    <ul class="list paylist">${rows.map(r => `<li class="${r.over ? "over" : ""}">
+      <span class="nm">${esc(r.name)}${r.over ? `<span class="flag">über Grenze</span>` : ""}</span>
+      <div class="grow"></div>
+      <span class="num">${r.shifts} Schichten · ${dec(r.hours)} Std.${
+        r.hSL ? ` · <span class="slh">${dec(r.hSL)} Std. SL</span>` : ""}${
+        r.applies ? "" : ` · <span class="tiny">ohne Grenze</span>`}</span>
+      <span class="pay">${eur(r.pay)}</span>
+    </li>`).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
+  </div>`;
+}
+
+function adminTeam(){
+  return `
+  <div class="card panel">
+    <h2>Team</h2>
+    <p>Neue Leute lädst du im Supabase-Dashboard ein: Authentication, Users, Invite user.
+       Das geht bewusst nicht aus der App heraus — dafür wäre ein Schlüssel nötig, der im Browser nichts zu suchen hat.
+       Nach der Einladung legt die Person Vorname und Passwort selbst fest und erscheint hier.</p>
+    <ul class="list team-list">${people.map(p => {
+      const self = p.id === me.id;
+      return `<li class="${p.active ? "" : "off"}">
+      <span class="nm">${esc(p.name)}${self ? ` <span class="tiny muted">(du)</span>` : ""}${
+        p.role === "admin" ? ` <span class="status adm">Büro</span>` : ""}</span>
+      <span class="status ${!p.schedulable || !p.active ? "" : availOf(p.id).confirmed ? "yes" : ""}">${
+        !p.active ? "inaktiv" : !p.schedulable ? "—" : availOf(p.id).confirmed ? "bestätigt" : "offen"}</span>
+      <span class="team-flags">
+        <label class="lim"><input type="checkbox" data-act="toggleplan" data-emp="${p.id}" ${p.schedulable ? "checked" : ""}> wird eingeplant</label>
+        ${config.limitOn
+          ? `<label class="lim"><input type="checkbox" data-act="toggleexempt" data-emp="${p.id}" ${p.exempt ? "checked" : ""}> ohne Grenze</label>`
+          : ""}
+      </span>
+      <span class="acts">
+        ${p.active && p.schedulable && availOf(p.id).confirmed ? `<button class="btn sm" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : ""}
+        ${self ? "" : `<button class="btn sm" data-act="askrole" data-emp="${p.id}">${
+          p.role === "admin" ? "Büro entziehen" : "Zu Büro machen"}</button>`}
+        ${self ? "" : `<button class="btn sm ${p.active ? "danger" : ""}" data-act="toggleactive" data-emp="${p.id}">${p.active ? "Deaktivieren" : "Aktivieren"}</button>`}
+      </span>
+    </li>`;}).join("") || `<li class="muted">Noch niemand eingeladen.</li>`}</ul>
+    <p class="tiny muted" style="margin:14px 0 0">
+      <b>Büro</b> gibt Zugriff auf Planung, Löhne und Freigabe. Den eigenen Bürozugang kannst du dir nicht
+      entziehen, und der letzte verbliebene bleibt bestehen — sonst käme niemand mehr an die Planung.
+      <b>Wird eingeplant</b> entscheidet unabhängig davon, ob jemand im Dienstplan auftaucht.
+      <b>Deaktivieren</b> nimmt jemanden ganz heraus; endgültig gelöscht wird ein Konto im Supabase-Dashboard.
+    </p>
+  </div>`;
+}
+
+function adminSettings(){
+  return `
+  <div class="card panel">
+    <h2>Löhne und Grenze</h2>
+    <p>Grundlage für die Lohnvorschau. Nur das Büro kann diese Werte lesen und ändern.</p>
+    <div class="two-col">
+      <div><label class="lbl" for="w-n">Stundenlohn</label>
+        <input class="field" id="w-n" inputmode="decimal" data-cfg="wage" value="${dec(config.wage,2)}"></div>
+      <div><label class="lbl" for="w-s">Stundenlohn Schichtleitung</label>
+        <input class="field" id="w-s" inputmode="decimal" data-cfg="wageSL" value="${dec(config.wageSL,2)}"></div>
+    </div>
+    <div class="switchrow" style="margin-top:8px">
+      <input type="checkbox" id="lim-on" data-act="togglelimiton" ${config.limitOn ? "checked" : ""}>
+      <label for="lim-on">Grenze überwachen und beim Überschreiten rot markieren</label>
+    </div>
+    ${config.limitOn ? `
+      <div style="max-width:240px">
+        <label class="lbl" for="w-l">Grenze pro Monat</label>
+        <input class="field" id="w-l" inputmode="decimal" data-cfg="limit" value="${dec(config.limit,2)}">
+      </div>
+      <p class="tiny muted" style="margin:10px 0 0">Einzelne Personen nimmst du unter Team von der Grenze aus.</p>` : ""}
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" data-act="savesettings">Übernehmen</button>
+      ${ui.formInfo ? `<span class="okmsg">${esc(ui.formInfo)}</span>` : ""}
+    </div>
+  </div>
+
+  <div class="card panel">
+    <h2>Standardschichten</h2>
+    <p>Gilt für Monate, die noch nicht angelegt wurden. Einzelne Tage änderst du in der Planung.</p>
+    ${[1,2,3,4,5,6,0].map(wd => `
+      <div class="tpl">
+        <div class="hd">${WD_LONG[wd]}</div>
+        ${(templates[wd] || []).map((s, i) => `
+          <div class="line">
+            <input data-tpl="${wd}" data-i="${i}" data-f="label" value="${esc(s.label)}" aria-label="Bezeichnung">
+            <span class="times">
+              <input data-tpl="${wd}" data-i="${i}" data-f="start" type="time" value="${s.start}" aria-label="Beginn">
+              <input data-tpl="${wd}" data-i="${i}" data-f="end" type="time" value="${s.end}" aria-label="Ende">
+            </span>
+            <button class="rm" data-act="tpldel" data-wd="${wd}" data-i="${i}" aria-label="Schicht entfernen" title="Schicht entfernen">×</button>
+          </div>`).join("") || `<div class="empty-note">Ruhetag</div>`}
+        <button class="btn sm" data-act="tpladd" data-wd="${wd}">+ Schicht</button>
+      </div>`).join("")}
+    <button class="btn primary" data-act="savetpl" style="margin-top:6px">Vorlagen speichern</button>
+  </div>
+
+  <div class="card panel">
+    <h2>${esc(monthLabel(ui.monthKey))}</h2>
+    <p>Zuteilungen leeren behält Schichten und Eintragungen. Zurücksetzen baut den Monat neu aus den Vorlagen auf.</p>
+    <div class="row">
+      <button class="btn" data-act="clearmonth">Zuteilungen leeren</button>
+      <button class="btn danger" data-act="resetmonth">Monat zurücksetzen</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   Dialog und Druckvorschau
+   ============================================================ */
+function ask(text, okLabel, cb){ pending = {text, okLabel, cb}; render(); }
+
+function viewDialog(){
+  if(!pending) return "";
+  return `<div class="overlay"><div class="card dialog">
+    <p>${esc(pending.text)}</p>
+    <div class="row">
+      <button class="btn" data-act="dlg-no">Abbrechen</button>
+      <button class="btn primary" data-act="dlg-yes">${esc(pending.okLabel)}</button>
+    </div>
+  </div></div>`;
+}
+
+function viewSheet(){
+  if(!ui.sheetOpen) return "";
+  return `<div class="overlay"><div class="sheetwrap">
+    <div class="sheetbar">
+      <span class="t">Druckvorschau</span>
+      <button class="btn" data-act="sheet-print">Drucken</button>
+      <button class="btn" data-act="sheet-close">Schließen</button>
+    </div>
+    <div class="sheet">${buildPrint()}</div>
+  </div></div>`;
+}
+
+function buildPrint(){
+  const k = ui.monthKey;
+  const n = daysInMonth(k);
+  let rows = "", first = true;
+
+  for(let d = 1; d <= n; d++){
+    const day = month.days[d];
+    if(!day) continue;
+    const wd = weekdayOf(k, d);
+    const we = (wd === 5 || wd === 6) ? " pd-we" : "";
+    const tag = WD_SHORT[wd] + " " + d + ".";
+    const head = "pd-start" + (first ? " pd-first" : "") + we;
+    first = false;
+
+    if(day.closed || !day.shifts.length){
+      rows += `<tr class="${head}"><td class="pd-day">${tag}</td>`
+        + `<td class="pd-rest" colspan="2">${day.closed ? "Ruhetag" : "keine Schichten"}</td></tr>`;
+      continue;
+    }
+
+    const span = day.shifts.length + (day.comment ? 1 : 0);
+    day.shifts.forEach((sh, i) => {
+      rows += `<tr class="${i === 0 ? head : we.trim()}">`
+        + (i === 0 ? `<td class="pd-day" rowspan="${span}">${tag}</td>` : "")
+        + `<td class="pd-time">${sh.start}–${sh.end}</td>`
+        + `<td class="pd-who">${sh.emp
+            ? esc(personName(sh.emp)) + (sh.sl ? `<span class="pd-sl">SL</span>` : "")
+            : `<span class="pd-open">offen</span>`}</td></tr>`;
+    });
+    if(day.comment) rows += `<tr class="${we.trim()}"><td class="pd-note" colspan="2">${esc(day.comment)}</td></tr>`;
+  }
+
+  const sum = teamList().map(p => {
+    const c = payroll(p.id).shifts;
+    return c ? `<span>${esc(p.name)}: ${c}</span>` : "";
+  }).join("");
+
+  const html = `
+    <h1>Dienstplan ${esc(monthLabel(k))}</h1>
+    <p class="pd-sub">Bar Rennbahn Schwabing · Stand ${new Date().toLocaleDateString("de-DE")}</p>
+    <table>
+      <colgroup><col style="width:64px"><col style="width:106px"><col></colgroup>
+      <thead><tr><th>Tag</th><th>Zeit</th><th>Wer</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="pd-sum"><b>Schichten je Person:</b> ${sum || "noch nichts verteilt"}
+      <br>SL = Schichtleitung</div>`;
+
+  document.getElementById("printRoot").innerHTML = `<div class="sheet">${html}</div>`;
+  return html;
+}
+
+/* ============================================================
+   Planungslogik
+   ============================================================ */
+async function assign(day, shiftId, userId){
+  const d = month.days[day];
+  if(!d) return;
+  const freed = d.shifts.filter(s => s.emp === userId && s.id !== shiftId);
+  freed.forEach(s => { s.emp = null; s.sl = false; });
+  const sh = d.shifts.find(s => s.id === shiftId);
+  if(sh) sh.emp = userId;
+  ui.selection = null;
+  render();
+
+  for(const s of freed) await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("id", s.id));
+  if(sh) await write(sb.from("shifts").update({assignee:userId}).eq("id", shiftId));
+}
+
+async function suggestFill(){
+  const acc = {};
+  teamList().forEach(p => { acc[p.id] = payroll(p.id).pay; });
+  const changes = [];
+
+  Object.keys(month.days).map(Number).sort((a, b) => a - b).forEach(d => {
+    const day = month.days[d];
+    if(day.closed) return;
+    day.shifts.forEach(sh => {
+      if(sh.emp) return;
+      const busy = day.shifts.filter(s => s.emp).map(s => s.emp);
+      const cost = hoursOf(sh) * (sh.sl ? config.wageSL : config.wage);
+      const pool = teamList().filter(p => {
+        if(isOff(p.id, d) || busy.indexOf(p.id) >= 0) return false;
+        if(config.limitOn && !p.exempt && acc[p.id] + cost > config.limit) return false;
+        return true;
+      });
+      if(!pool.length) return;
+      pool.sort((a, b) => acc[a.id] - acc[b.id]);
+      sh.emp = pool[0].id;
+      acc[pool[0].id] += cost;
+      changes.push({id:sh.id, assignee:sh.emp});
+    });
+  });
+
+  render();
+  for(const c of changes) await write(sb.from("shifts").update({assignee:c.assignee}).eq("id", c.id));
+}
+
+/* ============================================================
+   Klicks
+   ============================================================ */
+async function handleClick(e){
+  const el = e.target.closest("[data-act]");
+  if(!el) return;
+  const act = el.dataset.act;
+  const day = Number(el.dataset.day);
+  const k = ui.monthKey;
+
+  switch(act){
+    case "dlg-no": pending = null; render(); return;
+    case "dlg-yes": { const p = pending; pending = null; render(); if(p) await p.cb(); return; }
+    case "sheet-close": ui.sheetOpen = false; render(); return;
+    case "sheet-print": buildPrint(); try{ window.print(); }catch(err){} return;
+
+    case "authmode":
+      ui.authMode = ui.authMode === "reset" ? "login" : "reset";
+      ui.authError = ""; ui.authInfo = ""; ui.authDetail = ""; render(); return;
+    case "logout": await sb.auth.signOut(); return;
+    case "theme": toggleTheme(); return;
+    case "tab":
+      if(isAdmin()) ui.adminTab = el.dataset.tab; else ui.empTab = el.dataset.tab;
+      ui.selection = null; ui.formError = ""; ui.formInfo = ""; render(); return;
+    case "month":
+      ui.monthKey = shiftMonth(k, Number(el.dataset.dir));
+      ui.selection = null; ui.formError = "";
+      await reload(); return;
+
+    /* Mitarbeiter */
+    case "toggleoff": {
+      const a = availOf(me.id);
+      const i = a.off.indexOf(day);
+      if(i >= 0) a.off.splice(i, 1); else a.off.push(day);
+      a.off.sort((x, y) => x - y);
+      a.confirmed = false;
+      render();
+      await write(sb.from("availability").upsert(
+        {ym:k, user_id:me.id, off_days:a.off, confirmed:false}, {onConflict:"ym,user_id"}));
+      return;
+    }
+    case "confirm": {
+      const a = availOf(me.id);
+      a.confirmed = true;
+      render();
+      await write(sb.from("availability").upsert(
+        {ym:k, user_id:me.id, off_days:a.off, confirmed:true, confirmed_at:new Date().toISOString()},
+        {onConflict:"ym,user_id"}));
+      return;
+    }
+
+    /* Planung */
+    case "pick": {
+      if(el.classList.contains("used")) return;
+      const empId = el.dataset.emp;
+      ui.selection = (ui.selection && ui.selection.day === day && ui.selection.empId === empId)
+        ? null : {day, empId};
+      render(); return;
+    }
+    case "clear": {
+      const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
+      if(sh){ sh.emp = null; sh.sl = false; }
+      render();
+      await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("id", el.dataset.shift));
+      return;
+    }
+    case "togglesl": {
+      const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
+      if(!sh || !sh.emp) return;
+      sh.sl = !sh.sl;
+      render();
+      await write(sb.from("shifts").update({is_lead:sh.sl}).eq("id", sh.id));
+      return;
+    }
+    case "editshift": ui.editingShift = el.dataset.shift; render(); return;
+    case "saveshift": {
+      const box = el.closest(".slot-edit");
+      const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
+      if(sh && box){
+        sh.label = box.querySelector('[data-edit="label"]').value.trim() || "Schicht";
+        sh.start = box.querySelector('[data-edit="start"]').value || sh.start;
+        sh.end   = box.querySelector('[data-edit="end"]').value || sh.end;
+        ui.editingShift = null;
+        render();
+        await write(sb.from("shifts").update({label:sh.label, starts:sh.start, ends:sh.end}).eq("id", sh.id));
+      } else { ui.editingShift = null; render(); }
+      return;
+    }
+    case "delshift": {
+      const d = month.days[day];
+      const sh = d.shifts.find(s => s.id === el.dataset.shift);
+      if(!sh) return;
+      const id = sh.id;
+      let txt = "Die Schicht " + sh.label + " am " + day + ". wirklich löschen?";
+      if(sh.emp) txt += " " + personName(sh.emp) + " ist dafür eingeteilt.";
+      if(d.shifts.length === 1) txt += " Der Tag wird damit zum Ruhetag.";
+      ask(txt, "Löschen", async () => {
+        d.shifts = d.shifts.filter(s => s.id !== id);
+        ui.editingShift = null;
+        const nowClosed = d.shifts.length === 0;
+        if(nowClosed) d.closed = true;
+        render();
+        await write(sb.from("shifts").delete().eq("id", id));
+        if(nowClosed) await write(sb.from("days").update({closed:true}).eq("ym", k).eq("day", day));
+      });
+      return;
+    }
+    case "addshift": {
+      const d = month.days[day];
+      const last = d.shifts[d.shifts.length - 1];
+      setSync("saving");
+      const {data, error} = await sb.from("shifts").insert({
+        ym:k, day, pos:d.shifts.length, label:"Zusatzschicht",
+        starts:last ? last.start : "18:00", ends:last ? last.end : "02:00"
+      }).select().single();
+      if(error){ setSync("bad"); ui.formError = "Nicht gespeichert: " + error.message; render(); return; }
+      setSync("ok");
+      d.shifts.push({id:data.id, label:data.label, start:data.starts, end:data.ends, emp:null, sl:false, pos:data.pos});
+      ui.editingShift = data.id;
+      render(); return;
+    }
+    case "openday": {
+      const d = month.days[day];
+      d.closed = false;
+      render();
+      await write(sb.from("days").update({closed:false}).eq("ym", k).eq("day", day));
+      if(!d.shifts.length){
+        const {data, error} = await sb.from("shifts")
+          .insert({ym:k, day, pos:0, label:"Schicht", starts:"18:00", ends:"02:00"}).select().single();
+        if(!error) d.shifts.push({id:data.id, label:data.label, start:data.starts, end:data.ends, emp:null, sl:false, pos:0});
+      }
+      render(); return;
+    }
+    case "goday": ui.jumpTo = day; render(); return;
+
+    case "suggest":
+      ask("Offene Schichten automatisch besetzen? Bereits verteilte Schichten bleiben unverändert.",
+        "Vorschlag erstellen", suggestFill);
+      return;
+    case "print": ui.sheetOpen = true; render(); return;
+    case "publish": {
+      if(month.published){
+        month.published = false; render();
+        await write(sb.from("months").update({published:false}).eq("ym", k));
+        return;
+      }
+      const st = monthStats();
+      const go = async () => {
+        month.published = true; render();
+        await write(sb.from("months").update({published:true}).eq("ym", k));
+      };
+      if(st.filled < st.slots){
+        ask("Es sind noch " + (st.slots - st.filled) + " Schichten offen. Trotzdem freigeben?", "Freigeben", go);
+        return;
+      }
+      await go(); return;
+    }
+
+    /* Team */
+    case "askrole": {
+      const p = people.find(x => x.id === el.dataset.emp);
+      if(!p || p.id === me.id) return;
+      const zu = p.role === "admin" ? "staff" : "admin";
+      ask(zu === "admin"
+        ? esc(p.name) + " den Bürozugang geben? Damit sieht die Person Planung, Löhne und Freigabe."
+        : esc(p.name) + " den Bürozugang entziehen? Die Person sieht danach nur noch den eigenen Kalender.",
+        zu === "admin" ? "Zugang geben" : "Zugang entziehen",
+        async () => {
+          p.role = zu;
+          render();
+          await write(sb.from("profiles").update({role:zu}).eq("id", p.id));
+        });
+      return;
+    }
+    case "toggleactive": {
+      const p = people.find(x => x.id === el.dataset.emp);
+      if(!p) return;
+      p.active = !p.active;
+      render();
+      await write(sb.from("profiles").update({active:p.active}).eq("id", p.id));
+      return;
+    }
+    case "toggleplan": {
+      const p = people.find(x => x.id === el.dataset.emp);
+      if(!p) return;
+      p.schedulable = !p.schedulable;
+      render();
+      await write(sb.from("profiles").update({schedulable:p.schedulable}).eq("id", p.id));
+      return;
+    }
+    case "toggleexempt": {
+      const p = people.find(x => x.id === el.dataset.emp);
+      if(!p) return;
+      p.exempt = !p.exempt;
+      render();
+      await write(sb.from("payroll_flags").upsert({user_id:p.id, exempt:p.exempt}, {onConflict:"user_id"}));
+      return;
+    }
+    case "reopen": {
+      const id = el.dataset.emp;
+      availOf(id).confirmed = false;
+      render();
+      await write(sb.from("availability").update({confirmed:false}).eq("ym", k).eq("user_id", id));
+      return;
+    }
+
+    /* Einstellungen */
+    case "togglelimiton":
+      config.limitOn = !config.limitOn; render();
+      await write(sb.from("settings").update({limit_on:config.limitOn}).eq("id", 1));
+      return;
+    case "savesettings": {
+      ui.formInfo = "";
+      const ok = await write(sb.from("settings").update({
+        wage:config.wage, wage_lead:config.wageSL, limit_amount:config.limit, limit_on:config.limitOn
+      }).eq("id", 1));
+      if(ok) ui.formInfo = "Gespeichert.";
+      render(); return;
+    }
+    case "tpladd":
+      (templates[Number(el.dataset.wd)] = templates[Number(el.dataset.wd)] || [])
+        .push({label:"Schicht", start:"18:00", end:"02:00"});
+      render(); return;
+    case "tpldel": {
+      const wd = Number(el.dataset.wd), i = Number(el.dataset.i);
+      const row = (templates[wd] || [])[i];
+      if(!row) return;
+      ask("Die Schicht " + row.label + " am " + WD_LONG[wd] + " aus der Vorlage entfernen? "
+        + "Wirksam wird das erst mit \u201eVorlagen speichern\u201c, bereits angelegte Monate bleiben unberührt.",
+        "Entfernen", () => { templates[wd].splice(i, 1); render(); });
+      return;
+    }
+    case "savetpl": {
+      const rows = [];
+      for(let wd = 0; wd < 7; wd++){
+        (templates[wd] || []).forEach((s, i) =>
+          rows.push({weekday:wd, pos:i, label:s.label, starts:s.start, ends:s.end}));
+      }
+      setSync("saving");
+      const del = await sb.from("shift_templates").delete().gte("weekday", 0);
+      if(del.error){ setSync("bad"); ui.formError = del.error.message; render(); return; }
+      if(rows.length){
+        const ins = await sb.from("shift_templates").insert(rows);
+        if(ins.error){ setSync("bad"); ui.formError = ins.error.message; render(); return; }
+      }
+      setSync("ok");
+      ui.formInfo = "Vorlagen gespeichert.";
+      render(); return;
+    }
+    case "clearmonth":
+      ask("Alle Zuteilungen in " + monthLabel(k) + " leeren? Schichten und Eintragungen bleiben.", "Leeren", async () => {
+        await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("ym", k));
+        await reload();
+      });
+      return;
+    case "resetmonth":
+      ask(monthLabel(k) + " zurücksetzen? Schichten und Zuteilungen werden neu aus den Vorlagen aufgebaut.", "Zurücksetzen", async () => {
+        await write(sb.from("months").delete().eq("ym", k));
+        await reload();
+      });
+      return;
+  }
+}
+
+/* Antippen statt ziehen */
+function handleSlotTap(e){
+  if(!ui.selection) return;
+  if(e.target.closest("[data-act]")) return;
+  const slot = e.target.closest(".slot");
+  if(!slot) return;
+  const day = Number(slot.dataset.day);
+  if(day !== ui.selection.day) return;
+  assign(day, slot.dataset.shift, ui.selection.empId);
+}
+
+/* ============================================================
+   Ziehen und Ablegen
+   ============================================================ */
+function onDragStart(e){
+  const chip = e.target.closest("[draggable='true']");
+  if(!chip) return;
+  dragData = {empId: chip.dataset.emp, from: chip.dataset.from || null};
+  chip.classList.add("drag");
+  try{
+    e.dataTransfer.setData("text/plain", chip.dataset.emp);
+    e.dataTransfer.effectAllowed = "move";
+  }catch(err){}
+}
+function onDragEnd(){
+  document.querySelectorAll(".drag").forEach(el => el.classList.remove("drag"));
+  document.querySelectorAll(".slot.over").forEach(el => el.classList.remove("over"));
+  dragData = null;
+}
+function onDragOver(e){
+  if(!dragData || !e.target.closest(".slot")) return;
+  e.preventDefault();
+  e.target.closest(".slot").classList.add("over");
+}
+function onDragLeave(e){
+  const slot = e.target.closest(".slot");
+  if(slot) slot.classList.remove("over");
+}
+async function onDrop(e){
+  const slot = e.target.closest(".slot");
+  if(!slot || !dragData) return;
+  e.preventDefault();
+  const day = Number(slot.dataset.day);
+  const empId = dragData.empId;
+  const from = dragData.from;
+  dragData = null;
+  if(from && Number(from.split(":")[0]) !== day) return;   // nur innerhalb eines Tages
+  if(isOff(empId, day)) return;
+  await assign(day, slot.dataset.shift, empId);
+}
+
+/* ============================================================
+   Formulare
+   ============================================================ */
+async function onSubmit(e){
+  const form = e.target.closest("form");
+  if(!form) return;
+  e.preventDefault();
+  const kind = form.dataset.form;
+
+  if(kind === "login"){
+    ui.authError = ""; ui.authInfo = ""; ui.authDetail = "";
+    const {error} = await sb.auth.signInWithPassword({
+      email: feldWert(form, "email").trim(), password: feldWert(form, "pw")
+    });
+    if(error){ ui.authError = "Anmeldung fehlgeschlagen. Prüfe E-Mail-Adresse und Passwort."; render(); return; }
+    await boot();
+    return;
+  }
+
+  if(kind === "reset"){
+    ui.authError = ""; ui.authInfo = ""; ui.authDetail = "";
+    const {error} = await sb.auth.resetPasswordForEmail(feldWert(form, "email").trim(),
+      {redirectTo: location.origin + location.pathname});
+    if(error) ui.authError = error.message;
+    else ui.authInfo = "Wenn es zu dieser Adresse ein Konto gibt, ist die Mail unterwegs.";
+    render(); return;
+  }
+
+  if(kind === "onboard"){
+    ui.formError = "";
+    const name = feldWert(form, "name").trim();
+    const pw = feldWert(form, "pw"), pw2 = feldWert(form, "pw2");
+    if(!name){ ui.formError = "Bitte trag deinen Vornamen ein."; render(); return; }
+    if(pw.length < 8){ ui.formError = "Das Passwort braucht mindestens acht Zeichen."; render(); return; }
+    if(pw !== pw2){ ui.formError = "Die beiden Passwörter stimmen nicht überein."; render(); return; }
+    const up = await sb.auth.updateUser({password: pw});
+    if(up.error){ ui.formError = up.error.message; render(); return; }
+    const pr = await sb.from("profiles").update({name}).eq("id", me.id);
+    if(pr.error){ ui.formError = pr.error.message; render(); return; }
+    me.name = name;
+    setupDone();
+    ui.screen = "app";
+    ui.monthKey = ui.monthKey || monthKey(new Date());
+    await reload();
+    return;
+  }
+
+  if(kind === "account"){
+    ui.formError = ""; ui.formInfo = "";
+    const name = feldWert(form, "name").trim();
+    const pw = feldWert(form, "pw");
+    if(!name){ ui.formError = "Der Vorname darf nicht leer sein."; render(); return; }
+    if(pw && pw.length < 8){ ui.formError = "Das Passwort braucht mindestens acht Zeichen."; render(); return; }
+    if(pw){
+      const up = await sb.auth.updateUser({password: pw});
+      if(up.error){ ui.formError = up.error.message; render(); return; }
+    }
+    const pr = await sb.from("profiles").update({name}).eq("id", me.id);
+    if(pr.error){ ui.formError = pr.error.message; render(); return; }
+    me.name = name;
+    const p = people.find(x => x.id === me.id);
+    if(p) p.name = name;
+    ui.formInfo = pw ? "Name und Passwort gespeichert." : "Name gespeichert.";
+    render(); return;
+  }
+}
+
+/* Eingaben ohne Neuzeichnen übernehmen, sonst springt der Cursor */
+let noteTimer = null;
+function onInput(e){
+  const t = e.target;
+
+  if(t.dataset.note !== undefined){
+    const day = Number(t.dataset.note);
+    month.days[day].comment = t.value;
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => {
+      write(sb.from("days").update({note: month.days[day].comment}).eq("ym", ui.monthKey).eq("day", day));
+    }, 700);
+    return;
+  }
+  if(t.dataset.cfg){ config[t.dataset.cfg] = toNum(t.value); return; }
+  if(t.dataset.tpl !== undefined && t.dataset.f){
+    const arr = templates[Number(t.dataset.tpl)];
+    const row = arr && arr[Number(t.dataset.i)];
+    if(row) row[t.dataset.f] = t.value;
+  }
+}
+
+/* ============================================================
+   Zeichnen
+   ============================================================ */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme");
+  const darkPreferred = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = cur === "dark" ? "light" : cur === "light" ? "dark" : (darkPreferred ? "light" : "dark");
+  document.documentElement.setAttribute("data-theme", next);
+  try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
+}
+
+function render(){
+  const app = document.getElementById("app");
+  const board = document.getElementById("board");
+  const keepScroll = board ? board.scrollLeft : 0;
+
+  if(ui.screen === "error"){ app.innerHTML = `<div class="boot">${esc(ui.bootMsg)}</div>`; return; }
+  if(ui.screen === "boot"){ app.innerHTML = `<div class="boot">Wird geladen…</div>`; return; }
+  if(ui.screen === "auth"){ app.innerHTML = viewAuth(); return; }
+  if(ui.screen === "onboard"){ app.innerHTML = viewOnboard(); return; }
+  if(!month){ app.innerHTML = `<div class="boot">Wird geladen…</div>`; return; }
+
+  app.innerHTML = isAdmin()
+    ? viewAdmin() + viewSheet() + viewDialog()
+    : viewStaff() + viewDialog();
+
+  setSync(ui.sync);
+
+  const fresh = document.getElementById("board");
+  if(fresh){
+    if(ui.jumpTo){
+      const col = fresh.querySelector('.col[data-col="' + ui.jumpTo + '"]');
+      ui.jumpTo = null;
+      if(col){
+        const left = col.offsetLeft - fresh.offsetLeft;
+        try{ fresh.scrollTo({left, behavior:"smooth"}); }
+        catch(e){ fresh.scrollLeft = left; }
+      }
+    } else if(keepScroll){
+      fresh.scrollLeft = keepScroll;          // hart, sonst wandert die Ansicht sichtbar
+    }
+  }
+  const details = app.querySelector(".checklist");
+  if(details) details.addEventListener("toggle", () => { ui.checkOpen = details.open; });
+}
+
+/* ============================================================
+   Start
+   ============================================================ */
+function cleanUrl(){
+  try{ history.replaceState({}, document.title, location.pathname); }catch(e){}
+}
+
+/* Einladungs- oder Wiederherstellungslink in eine Sitzung verwandeln.
+   Jeder Fehlweg endet mit einer Meldung, die sagt, was zu tun ist. */
+async function consumeLink(){
+  if(linkHandled) return;   // sonst wird ein alter Anhang nach jeder Anmeldung erneut geprüft
+  linkHandled = true;
+
+  const scheitern = (text, detail) => {
+    ui.authError = text;
+    ui.authDetail = detail || "";
+    setupDone();
+    cleanUrl();
+  };
+
+  if(linkError){
+    scheitern("Dieser Link ist nicht mehr gültig. Einladungs- und Passwortlinks lassen sich nur einmal öffnen. "
+      + "Melde dich unten mit E-Mail und Passwort an oder fordere über \u201ePasswort vergessen\u201c einen neuen Link an.",
+      "Rückmeldung des Servers: " + linkError);
+    return;
+  }
+
+  if(linkType === "invite" || linkType === "recovery"){
+    try{ localStorage.setItem(SETUP_KEY, "1"); }catch(e){}
+  }
+
+  if(linkAccess && linkRefresh){
+    const {error} = await sb.auth.setSession({access_token:linkAccess, refresh_token:linkRefresh});
+    if(error) scheitern("Der Link konnte nicht eingelöst werden. Melde dich unten mit E-Mail und Passwort an "
+      + "oder fordere einen neuen Link an.", error.message);
+    else cleanUrl();
+    return;
+  }
+
+  if(linkCode){
+    const {error} = await sb.auth.exchangeCodeForSession(linkCode);
+    if(error) scheitern("Dieser Link lässt sich nur in dem Browser öffnen, in dem er angefordert wurde. "
+      + "Melde dich unten mit E-Mail und Passwort an oder fordere hier einen neuen Link an.", error.message);
+    else cleanUrl();
+    return;
+  }
+
+  /* Bruchstück eines Links: etwas war dabei, aber nicht genug */
+  if(linkType || linkAccess || linkRefresh){
+    scheitern("Der Link war unvollständig — das passiert, wenn eine Mail-App ihn kürzt oder vorab öffnet. "
+      + "Melde dich unten mit E-Mail und Passwort an oder fordere einen neuen Link an.",
+      "im Link enthalten: " + [linkType && "type", linkAccess && "access_token", linkRefresh && "refresh_token"]
+        .filter(Boolean).join(", "));
+  }
+}
+
+function setupOpen(){
+  try{ return localStorage.getItem(SETUP_KEY) === "1"; }catch(e){ return false; }
+}
+function setupDone(){
+  try{ localStorage.removeItem(SETUP_KEY); }catch(e){}
+}
+
+/* Prüft vor allem anderen, ob Adresse und Schlüssel überhaupt stimmen.
+   Ohne das enden Tippfehler in kryptischen Meldungen mitten im Ablauf. */
+async function probe(){
+  if(!API_URL) return "In der Datei fehlt die SUPABASE_URL.";
+  if(API_KEY.length < 30) return "Der SUPABASE_ANON_KEY sieht unvollständig aus.";
+  let res;
+  try{
+    res = await fetch(API_URL + "/auth/v1/health", {headers:{apikey:API_KEY}});
+  }catch(e){
+    return "Unter " + API_URL + " ist kein Supabase-Projekt erreichbar. "
+      + "Prüfe die Project URL in der index.html.";
+  }
+  if(res.ok) return "";
+  if(res.status === 401 || res.status === 403)
+    return "Adresse erreichbar, aber der SUPABASE_ANON_KEY wird abgelehnt. "
+      + "Hol ihn nochmal aus Project Settings, API.";
+  return "Der Server unter " + API_URL + " antwortet mit Status " + res.status
+    + ". Prüfe die Project URL in der index.html.";
+}
+
+async function boot(){
+  ui.screen = "boot"; render();
+
+  const trouble = await probe();
+  if(trouble){ ui.bootMsg = trouble; ui.screen = "error"; render(); return; }
+
+  await consumeLink();
+
+  const profile = await loadProfile();
+  if(!profile){
+    ui.screen = ui.bootMsg ? "error" : "auth";
+    render(); return;
+  }
+  me = profile;
+
+  /* Nach Einladung oder Zurücksetzen zuerst Vorname und Passwort festlegen */
+  if(setupOpen() || !me.name){
+    ui.screen = "onboard"; render(); return;
+  }
+
+  ui.screen = "app";
+  ui.monthKey = ui.monthKey || monthKey(new Date());
+  await reload();
+}
+
+try{
+  const th = localStorage.getItem(THEME_KEY);
+  if(th) document.documentElement.setAttribute("data-theme", th);
+}catch(e){}
+
+ui.monthKey = monthKey(new Date());
+ui.checkOpen = window.innerWidth > 760;
+
+document.addEventListener("click", e => { handleClick(e); handleSlotTap(e); });
+document.addEventListener("submit", onSubmit);
+document.addEventListener("input", onInput);
+document.addEventListener("dragstart", onDragStart);
+document.addEventListener("dragend", onDragEnd);
+document.addEventListener("dragover", onDragOver);
+document.addEventListener("dragleave", onDragLeave);
+document.addEventListener("drop", onDrop);
+
+sb.auth.onAuthStateChange(event => {
+  if(event === "SIGNED_OUT"){
+    me = null; month = null; people = [];
+    setupDone();
+    ui.screen = "auth"; ui.authError = ""; ui.authInfo = ""; ui.authDetail = "";
+    render();
+  }
+});
+
+if(SUPABASE_URL.indexOf("DEIN-PROJEKT") >= 0){
+  document.getElementById("app").innerHTML =
+    `<div class="boot">Bitte oben im Quelltext SUPABASE_URL und SUPABASE_ANON_KEY eintragen.</div>`;
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
