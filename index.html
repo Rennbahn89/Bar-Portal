@@ -428,6 +428,7 @@ const linkCode    = linkQuery.get("code");
 const linkError   = linkHash.get("error_description") || linkQuery.get("error_description")
                  || linkHash.get("error") || linkQuery.get("error");
 const SETUP_KEY = "rennbahn_setup_offen";
+let linkHandled = false;   // der Anhang wird genau einmal ausgewertet
 
 /* Projektadresse säubern: Leerzeichen, Schrägstriche am Ende und ein
    versehentlich mitkopierter Pfad fallen weg. Übrig bleibt der reine Host. */
@@ -444,7 +445,7 @@ const API_KEY = String(SUPABASE_ANON_KEY).trim();
 /* detectSessionInUrl bleibt aus: die Auswertung macht consumeLink() selbst,
    sonst rennt der Start gegen eine noch nicht fertige Sitzung. */
 const sb = window.supabase.createClient(API_URL, API_KEY, {
-  auth: {detectSessionInUrl:false, persistSession:true, autoRefreshToken:true}
+  auth: {detectSessionInUrl:false, persistSession:true, autoRefreshToken:true, flowType:"implicit"}
 });
 
 /* ============================================================
@@ -465,7 +466,7 @@ const ui = {
   adminTab: "plan",
   empTab: "avail",
   authMode: "login",       // login | reset
-  authError: "", authInfo: "",
+  authError: "", authInfo: "", authDetail: "",
   formError: "", formInfo: "",
   selection: null,
   editingShift: null,
@@ -483,6 +484,10 @@ const esc = s => String(s == null ? "" : s)
 const eur = n => n.toLocaleString("de-DE",{minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
 const dec = (n, f) => n.toLocaleString("de-DE",
   {minimumFractionDigits: f === undefined ? 1 : f, maximumFractionDigits: f === undefined ? 1 : f});
+const feldWert = (form, name) => {
+  const el = form.querySelector('[name="' + name + '"]');
+  return el ? el.value : "";
+};
 const toNum = v => { const x = parseFloat(String(v).replace(/\s/g,"").replace(",",".")); return isNaN(x) ? 0 : x; };
 
 function monthKey(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0"); }
@@ -689,6 +694,7 @@ function viewAuth(){
         <input class="field" id="f-pw" name="pw" type="password" autocomplete="current-password">
       </div>`}
       ${ui.authError ? `<p class="err">${esc(ui.authError)}</p>` : ""}
+      ${ui.authDetail ? `<p class="tiny muted" style="margin:-8px 0 0">${esc(ui.authDetail)}</p>` : ""}
       ${ui.authInfo ? `<p class="okmsg">${esc(ui.authInfo)}</p>` : ""}
       <button class="btn primary" type="submit">${reset ? "Link anfordern" : "Anmelden"}</button>
     </form>
@@ -1270,7 +1276,7 @@ async function handleClick(e){
 
     case "authmode":
       ui.authMode = ui.authMode === "reset" ? "login" : "reset";
-      ui.authError = ""; ui.authInfo = ""; render(); return;
+      ui.authError = ""; ui.authInfo = ""; ui.authDetail = ""; render(); return;
     case "logout": await sb.auth.signOut(); return;
     case "theme": toggleTheme(); return;
     case "tab":
@@ -1577,9 +1583,9 @@ async function onSubmit(e){
   const kind = form.dataset.form;
 
   if(kind === "login"){
-    ui.authError = ""; ui.authInfo = "";
+    ui.authError = ""; ui.authInfo = ""; ui.authDetail = "";
     const {error} = await sb.auth.signInWithPassword({
-      email: form.email.value.trim(), password: form.pw.value
+      email: feldWert(form, "email").trim(), password: feldWert(form, "pw")
     });
     if(error){ ui.authError = "Anmeldung fehlgeschlagen. Prüfe E-Mail-Adresse und Passwort."; render(); return; }
     await boot();
@@ -1587,8 +1593,8 @@ async function onSubmit(e){
   }
 
   if(kind === "reset"){
-    ui.authError = ""; ui.authInfo = "";
-    const {error} = await sb.auth.resetPasswordForEmail(form.email.value.trim(),
+    ui.authError = ""; ui.authInfo = ""; ui.authDetail = "";
+    const {error} = await sb.auth.resetPasswordForEmail(feldWert(form, "email").trim(),
       {redirectTo: location.origin + location.pathname});
     if(error) ui.authError = error.message;
     else ui.authInfo = "Wenn es zu dieser Adresse ein Konto gibt, ist die Mail unterwegs.";
@@ -1597,8 +1603,8 @@ async function onSubmit(e){
 
   if(kind === "onboard"){
     ui.formError = "";
-    const name = form.name.value.trim();
-    const pw = form.pw.value, pw2 = form.pw2.value;
+    const name = feldWert(form, "name").trim();
+    const pw = feldWert(form, "pw"), pw2 = feldWert(form, "pw2");
     if(!name){ ui.formError = "Bitte trag deinen Vornamen ein."; render(); return; }
     if(pw.length < 8){ ui.formError = "Das Passwort braucht mindestens acht Zeichen."; render(); return; }
     if(pw !== pw2){ ui.formError = "Die beiden Passwörter stimmen nicht überein."; render(); return; }
@@ -1616,8 +1622,8 @@ async function onSubmit(e){
 
   if(kind === "account"){
     ui.formError = ""; ui.formInfo = "";
-    const name = form.name.value.trim();
-    const pw = form.pw.value;
+    const name = feldWert(form, "name").trim();
+    const pw = feldWert(form, "pw");
     if(!name){ ui.formError = "Der Vorname darf nicht leer sein."; render(); return; }
     if(pw && pw.length < 8){ ui.formError = "Das Passwort braucht mindestens acht Zeichen."; render(); return; }
     if(pw){
@@ -1709,28 +1715,52 @@ function cleanUrl(){
   try{ history.replaceState({}, document.title, location.pathname); }catch(e){}
 }
 
-/* Einladungs- oder Wiederherstellungslink in eine Sitzung verwandeln */
+/* Einladungs- oder Wiederherstellungslink in eine Sitzung verwandeln.
+   Jeder Fehlweg endet mit einer Meldung, die sagt, was zu tun ist. */
 async function consumeLink(){
-  if(linkError){
-    ui.authError = "Dieser Link ist nicht mehr gültig: " + linkError
-      + ". Fordere unten über \u201ePasswort vergessen\u201c einen neuen an.";
+  if(linkHandled) return;   // sonst wird ein alter Anhang nach jeder Anmeldung erneut geprüft
+  linkHandled = true;
+
+  const scheitern = (text, detail) => {
+    ui.authError = text;
+    ui.authDetail = detail || "";
+    setupDone();
     cleanUrl();
+  };
+
+  if(linkError){
+    scheitern("Dieser Link ist nicht mehr gültig. Einladungs- und Passwortlinks lassen sich nur einmal öffnen. "
+      + "Melde dich unten mit E-Mail und Passwort an oder fordere über \u201ePasswort vergessen\u201c einen neuen Link an.",
+      "Rückmeldung des Servers: " + linkError);
     return;
   }
+
   if(linkType === "invite" || linkType === "recovery"){
     try{ localStorage.setItem(SETUP_KEY, "1"); }catch(e){}
   }
+
   if(linkAccess && linkRefresh){
     const {error} = await sb.auth.setSession({access_token:linkAccess, refresh_token:linkRefresh});
-    if(error) ui.authError = "Der Link konnte nicht eingelöst werden: " + error.message;
-    cleanUrl();
+    if(error) scheitern("Der Link konnte nicht eingelöst werden. Melde dich unten mit E-Mail und Passwort an "
+      + "oder fordere einen neuen Link an.", error.message);
+    else cleanUrl();
     return;
   }
+
   if(linkCode){
     const {error} = await sb.auth.exchangeCodeForSession(linkCode);
-    if(error) ui.authError = "Der Link konnte nicht eingelöst werden: " + error.message;
-    cleanUrl();
+    if(error) scheitern("Dieser Link lässt sich nur in dem Browser öffnen, in dem er angefordert wurde. "
+      + "Melde dich unten mit E-Mail und Passwort an oder fordere hier einen neuen Link an.", error.message);
+    else cleanUrl();
     return;
+  }
+
+  /* Bruchstück eines Links: etwas war dabei, aber nicht genug */
+  if(linkType || linkAccess || linkRefresh){
+    scheitern("Der Link war unvollständig — das passiert, wenn eine Mail-App ihn kürzt oder vorab öffnet. "
+      + "Melde dich unten mit E-Mail und Passwort an oder fordere einen neuen Link an.",
+      "im Link enthalten: " + [linkType && "type", linkAccess && "access_token", linkRefresh && "refresh_token"]
+        .filter(Boolean).join(", "));
   }
 }
 
@@ -1807,7 +1837,7 @@ sb.auth.onAuthStateChange(event => {
   if(event === "SIGNED_OUT"){
     me = null; month = null; people = [];
     setupDone();
-    ui.screen = "auth"; ui.authError = ""; ui.authInfo = "";
+    ui.screen = "auth"; ui.authError = ""; ui.authInfo = ""; ui.authDetail = "";
     render();
   }
 });
