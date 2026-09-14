@@ -191,7 +191,7 @@ main{padding:16px 0 110px}
   padding:2px 2px 16px; margin:0;
   scroll-snap-type:x proximity; scroll-padding-left:2px; scroll-behavior:smooth;
   -webkit-overflow-scrolling:touch}
-.col{flex:0 0 282px; scroll-snap-align:start; display:flex; flex-direction:column;
+.col{flex:0 0 248px; max-width:86vw; scroll-snap-align:start; display:flex; flex-direction:column;
   background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden}
 .col.full{border-color:var(--ok-line)}
 .col.rest{opacity:.62}
@@ -206,18 +206,23 @@ main{padding:16px 0 110px}
 .notewrap{margin-top:auto; padding-top:4px}
 
 .slot{border:1px dashed var(--line); border-radius:var(--r); padding:8px 10px; margin-bottom:7px;
-  background:var(--bg); min-height:56px; display:flex; align-items:center; gap:8px}
+  background:var(--bg); display:flex; flex-direction:column; gap:6px}
 .slot.filled{border-style:solid; background:var(--surface)}
 .slot.over{border-color:var(--accent); background:var(--accent-soft)}
 .slot.armed{border-color:var(--accent)}
 .slot.conflict{border-color:var(--no); background:var(--no-soft)}
-.slot-meta{flex:1; min-width:0}
-.slot-meta .t{font-weight:700; font-size:14px; letter-spacing:-.01em}
-.slot-meta .n{font-size:12px; color:var(--ink-2); font-weight:600}
+.slot-top{display:flex; align-items:baseline; gap:8px}
+.slot-top .t{font-weight:700; font-size:14px; letter-spacing:-.01em; flex:1; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.slot-top .n{font-size:12px; color:var(--ink-2); font-weight:600; white-space:nowrap; flex:none}
+.slot-bot{display:flex; align-items:center; gap:6px; min-height:30px}
+.slot-bot .free{flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--ink-3)}
+.slot.armed .slot-bot .free{color:var(--accent)}
 .who-chip{background:var(--accent); color:var(--accent-ink); font-weight:700; font-size:13px;
-  padding:5px 9px; border-radius:8px; max-width:96px; overflow:hidden;
-  text-overflow:ellipsis; white-space:nowrap; flex:none}
+  padding:6px 9px; border-radius:8px; flex:1; min-width:0; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; text-align:left}
 .who-chip.is-sl{box-shadow:inset 0 0 0 2px var(--ok)}
+.who-chip.clash{background:var(--no); color:#fff}
 .slbtn{border:1px solid var(--line); background:var(--surface-2); color:var(--ink-3);
   font-size:11px; font-weight:700; padding:5px 6px; border-radius:7px; line-height:1; flex:none}
 .slbtn.on{background:var(--ok); border-color:var(--ok); color:#fff}
@@ -279,6 +284,10 @@ main{padding:16px 0 110px}
 .tpl .hd{font-weight:700; margin-bottom:6px; font-size:14px}
 .tpl .line{display:grid; grid-template-columns:1fr auto auto auto; gap:6px; align-items:center; margin-bottom:6px}
 .tpl input{padding:6px 8px; font-size:13px; border:1px solid var(--line); border-radius:8px; background:var(--bg); min-width:0; width:100%}
+.tpl .rm{width:30px; height:30px; padding:0; flex:none; border-radius:8px;
+  border:1px solid var(--line); background:var(--surface); color:var(--ink-3);
+  font-size:15px; line-height:1; display:inline-flex; align-items:center; justify-content:center}
+.tpl .rm:hover{border-color:var(--no-line); color:var(--no)}
 .switchrow{display:flex; align-items:center; gap:10px; padding:10px 0}
 .switchrow input{width:18px; height:18px; accent-color:var(--accent); flex:none}
 .two-col{display:grid; grid-template-columns:1fr 1fr; gap:12px}
@@ -327,7 +336,6 @@ main{padding:16px 0 110px}
   .mnav .m{font-size:19px; flex:1; text-align:center}
   .panel{padding:14px}
   .board{padding:2px var(--pad) 16px; margin:0 calc(-1 * var(--pad)); scroll-padding-left:var(--pad)}
-  .col{flex:0 0 84vw}
   .daystrip{margin:0 calc(-1 * var(--pad)); padding:2px var(--pad) 10px}
   .team-list li{grid-template-columns:minmax(0,1fr) 84px; row-gap:8px}
   .team-flags{grid-column:1 / -1}
@@ -376,8 +384,8 @@ main{padding:16px 0 110px}
    API. Der anon key ist öffentlich, das ist so vorgesehen:
    geschützt wird in der Datenbank, nicht in dieser Datei.
    ============================================================ */
-const SUPABASE_URL = "https://ldtudrdedvgroxpinsew.supabase.co/";
-const SUPABASE_ANON_KEY = "sb_publishable_UM3VJ8ya07n8WMKR5hc76Q_0xbaGla-";
+const SUPABASE_URL = "https://DEIN-PROJEKT.supabase.co";
+const SUPABASE_ANON_KEY = "DEIN-ANON-KEY";
 /* ========================================================== */
 
 const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
@@ -925,16 +933,22 @@ function dayColumn(d){
     const conflict = s.emp && isOff(s.emp, d);
     return `<div class="slot ${s.emp ? "filled" : ""} ${armed && !s.emp ? "armed" : ""} ${conflict ? "conflict" : ""}"
         data-day="${d}" data-shift="${s.id}">
-      <div class="slot-meta">
-        <div class="t">${esc(s.label)}</div>
-        <div class="n">${s.start}–${s.end}${conflict ? " · hat abgesagt" : ""}</div>
+      <div class="slot-top">
+        <span class="t">${esc(s.label)}</span>
+        <span class="n">${s.start}–${s.end}</span>
       </div>
-      ${s.emp ? `
-        <span class="who-chip ${s.sl ? "is-sl" : ""}" draggable="true" data-from="${d}:${s.id}" data-emp="${s.emp}">${esc(personName(s.emp))}</span>
-        <button class="slbtn ${s.sl ? "on" : ""}" data-act="togglesl" data-day="${d}" data-shift="${s.id}"
-          title="Schichtleitung" aria-pressed="${!!s.sl}">SL</button>
-        <button class="iconbtn x" data-act="clear" data-day="${d}" data-shift="${s.id}" aria-label="Freimachen">×</button>`
-      : `<button class="iconbtn" data-act="editshift" data-day="${d}" data-shift="${s.id}" aria-label="Schicht bearbeiten">✎</button>`}
+      <div class="slot-bot">
+        ${s.emp ? `
+          <span class="who-chip ${s.sl ? "is-sl" : ""} ${conflict ? "clash" : ""}" draggable="true"
+            data-from="${d}:${s.id}" data-emp="${s.emp}"
+            title="${conflict ? "Hat für diesen Tag abgesagt" : ""}">${esc(personName(s.emp))}</span>
+          <button class="slbtn ${s.sl ? "on" : ""}" data-act="togglesl" data-day="${d}" data-shift="${s.id}"
+            title="Schichtleitung" aria-pressed="${!!s.sl}">SL</button>
+          <button class="iconbtn x" data-act="clear" data-day="${d}" data-shift="${s.id}" aria-label="Freimachen">×</button>`
+        : `
+          <span class="free">${armed ? "antippen zum Einsetzen" : "frei"}</span>
+          <button class="iconbtn" data-act="editshift" data-day="${d}" data-shift="${s.id}" aria-label="Schicht bearbeiten">✎</button>`}
+      </div>
     </div>`;
   }).join("");
 
@@ -1061,7 +1075,7 @@ function adminSettings(){
             <input data-tpl="${wd}" data-i="${i}" data-f="label" value="${esc(s.label)}">
             <input data-tpl="${wd}" data-i="${i}" data-f="start" type="time" value="${s.start}">
             <input data-tpl="${wd}" data-i="${i}" data-f="end" type="time" value="${s.end}">
-            <button class="btn sm ghost" data-act="tpldel" data-wd="${wd}" data-i="${i}" aria-label="Entfernen">×</button>
+            <button class="rm" data-act="tpldel" data-wd="${wd}" data-i="${i}" aria-label="Schicht entfernen" title="Schicht entfernen">×</button>
           </div>`).join("") || `<div class="empty-note">Ruhetag</div>`}
         <button class="btn sm" data-act="tpladd" data-wd="${wd}">+ Schicht</button>
       </div>`).join("")}
@@ -1275,14 +1289,22 @@ async function handleClick(e){
     }
     case "delshift": {
       const d = month.days[day];
-      const id = el.dataset.shift;
-      d.shifts = d.shifts.filter(s => s.id !== id);
-      ui.editingShift = null;
-      const nowClosed = d.shifts.length === 0;
-      if(nowClosed) d.closed = true;
-      render();
-      await write(sb.from("shifts").delete().eq("id", id));
-      if(nowClosed) await write(sb.from("days").update({closed:true}).eq("ym", k).eq("day", day));
+      const sh = d.shifts.find(s => s.id === el.dataset.shift);
+      if(!sh) return;
+      const id = sh.id;
+      let txt = "Die Schicht " + sh.label + " am " + day + ". wirklich löschen?";
+      if(sh.emp) txt += " " + personName(sh.emp) + " ist dafür eingeteilt.";
+      if(d.shifts.length === 1) txt += " Der Tag wird damit zum Ruhetag.";
+      ask(txt, "Löschen", async () => {
+        d.shifts = d.shifts.filter(s => s.id !== id);
+        ui.editingShift = null;
+        const nowClosed = d.shifts.length === 0;
+        if(nowClosed) d.closed = true;
+        render();
+        await write(sb.from("shifts").delete().eq("id", id));
+        if(nowClosed) await write(sb.from("days").update({closed:true}).eq("ym", k).eq("day", day));
+        render();
+      });
       return;
     }
     case "addshift": {
@@ -1395,9 +1417,15 @@ async function handleClick(e){
       (templates[Number(el.dataset.wd)] = templates[Number(el.dataset.wd)] || [])
         .push({label:"Schicht", start:"18:00", end:"02:00"});
       render(); return;
-    case "tpldel":
-      templates[Number(el.dataset.wd)].splice(Number(el.dataset.i), 1);
-      render(); return;
+    case "tpldel": {
+      const wd = Number(el.dataset.wd), i = Number(el.dataset.i);
+      const row = (templates[wd] || [])[i];
+      if(!row) return;
+      ask("Die Schicht " + row.label + " am " + WD_LONG[wd] + " aus der Vorlage entfernen? "
+        + "Wirksam wird das erst mit \u201eVorlagen speichern\u201c, bereits angelegte Monate bleiben unberührt.",
+        "Entfernen", () => { templates[wd].splice(i, 1); render(); });
+      return;
+    }
     case "savetpl": {
       const rows = [];
       for(let wd = 0; wd < 7; wd++){
