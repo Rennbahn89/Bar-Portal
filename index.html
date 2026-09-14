@@ -1040,12 +1040,14 @@ function adminTeam(){
     <p>Neue Leute lädst du im Supabase-Dashboard ein: Authentication, Users, Invite user.
        Das geht bewusst nicht aus der App heraus — dafür wäre ein Schlüssel nötig, der im Browser nichts zu suchen hat.
        Nach der Einladung legt die Person Vorname und Passwort selbst fest und erscheint hier.</p>
-    <ul class="list team-list">${people.map(p => `<li class="${p.active ? "" : "off"}">
-      <span class="nm">${esc(p.name)}${p.id === me.id ? ` <span class="tiny muted">(du)</span>` : ""}</span>
+    <ul class="list team-list">${people.map(p => {
+      const self = p.id === me.id;
+      return `<li class="${p.active ? "" : "off"}">
+      <span class="nm">${esc(p.name)}${self ? ` <span class="tiny muted">(du)</span>` : ""}${
+        p.role === "admin" ? ` <span class="status adm">Büro</span>` : ""}</span>
       <span class="status ${!p.schedulable || !p.active ? "" : availOf(p.id).confirmed ? "yes" : ""}">${
         !p.active ? "inaktiv" : !p.schedulable ? "—" : availOf(p.id).confirmed ? "bestätigt" : "offen"}</span>
       <span class="team-flags">
-        <label class="lim"><input type="checkbox" data-act="togglerole" data-emp="${p.id}" ${p.role === "admin" ? "checked" : ""}> Büro</label>
         <label class="lim"><input type="checkbox" data-act="toggleplan" data-emp="${p.id}" ${p.schedulable ? "checked" : ""}> wird eingeplant</label>
         ${config.limitOn
           ? `<label class="lim"><input type="checkbox" data-act="toggleexempt" data-emp="${p.id}" ${p.exempt ? "checked" : ""}> ohne Grenze</label>`
@@ -1053,15 +1055,16 @@ function adminTeam(){
       </span>
       <span class="acts">
         ${p.active && p.schedulable && availOf(p.id).confirmed ? `<button class="btn sm" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : ""}
-        ${p.id === me.id ? "" : `<button class="btn sm ${p.active ? "danger" : ""}" data-act="toggleactive" data-emp="${p.id}">${p.active ? "Deaktivieren" : "Aktivieren"}</button>`}
+        ${self ? "" : `<button class="btn sm" data-act="askrole" data-emp="${p.id}">${
+          p.role === "admin" ? "Büro entziehen" : "Zu Büro machen"}</button>`}
+        ${self ? "" : `<button class="btn sm ${p.active ? "danger" : ""}" data-act="toggleactive" data-emp="${p.id}">${p.active ? "Deaktivieren" : "Aktivieren"}</button>`}
       </span>
-    </li>`).join("") || `<li class="muted">Noch niemand eingeladen.</li>`}</ul>
+    </li>`;}).join("") || `<li class="muted">Noch niemand eingeladen.</li>`}</ul>
     <p class="tiny muted" style="margin:14px 0 0">
-      <b>Büro</b> gibt Zugriff auf Planung, Löhne und Freigabe.
-      <b>Wird eingeplant</b> entscheidet getrennt davon, ob jemand im Dienstplan auftaucht —
-      ein reiner Bürozugang steht damit weder in der Checkliste noch bei den verfügbaren Leuten.
-      <b>Deaktivieren</b> nimmt jemanden ganz heraus, der Zugang bleibt bestehen;
-      endgültig gelöscht wird das Konto im Supabase-Dashboard.
+      <b>Büro</b> gibt Zugriff auf Planung, Löhne und Freigabe. Den eigenen Bürozugang kannst du dir nicht
+      entziehen, und der letzte verbliebene bleibt bestehen — sonst käme niemand mehr an die Planung.
+      <b>Wird eingeplant</b> entscheidet unabhängig davon, ob jemand im Dienstplan auftaucht.
+      <b>Deaktivieren</b> nimmt jemanden ganz heraus; endgültig gelöscht wird ein Konto im Supabase-Dashboard.
     </p>
   </div>`;
 }
@@ -1408,12 +1411,19 @@ async function handleClick(e){
     }
 
     /* Team */
-    case "togglerole": {
+    case "askrole": {
       const p = people.find(x => x.id === el.dataset.emp);
-      if(!p) return;
-      p.role = p.role === "admin" ? "staff" : "admin";
-      render();
-      await write(sb.from("profiles").update({role:p.role}).eq("id", p.id));
+      if(!p || p.id === me.id) return;
+      const zu = p.role === "admin" ? "staff" : "admin";
+      ask(zu === "admin"
+        ? esc(p.name) + " den Bürozugang geben? Damit sieht die Person Planung, Löhne und Freigabe."
+        : esc(p.name) + " den Bürozugang entziehen? Die Person sieht danach nur noch den eigenen Kalender.",
+        zu === "admin" ? "Zugang geben" : "Zugang entziehen",
+        async () => {
+          p.role = zu;
+          render();
+          await write(sb.from("profiles").update({role:zu}).eq("id", p.id));
+        });
       return;
     }
     case "toggleactive": {
