@@ -297,6 +297,12 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .pcard .ph{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px}
 .pcard .ph .n{font-weight:700; font-size:16px}
 .pswitches{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+.hourlimit{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:9px; padding:8px 10px;
+  border:1px solid var(--line); border-radius:9px; background:var(--bg)}
+.hourlimit .lbl{margin:0; color:var(--ink); white-space:nowrap}
+.hourlimit .field{width:88px; padding:7px 9px; background:var(--surface)}
+.hourlimit .unit{font-size:13px; font-weight:600; color:var(--ink-2)}
+.hourlimit .hint-inline{font-size:12px; color:var(--ink-3); flex:1; min-width:180px}
 .renameform{display:flex; align-items:center; gap:6px; flex:1; min-width:0}
 .renameform input{flex:1; min-width:0; padding:6px 9px; font-size:15px; font-weight:600;
   border:1px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink)}
@@ -446,7 +452,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "15.09.2026 um 20:27 Uhr";
+const PATCH_AM  = "15.09.2026 um 22:39 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -484,7 +490,7 @@ const sb = window.supabase.createClient(API_URL, API_KEY, {
    Zustand
    ============================================================ */
 let me = null;             // {id, name, role}
-let people = [];           // [{id, name, role, active, schedulable, can_lead, minijob}]
+let people = [];           // [{id, name, role, active, schedulable, can_lead, minijob, maxHours}]
 let templates = {};        // {wochentag: [{label, start, end}]}
 let config = {wage:0, wageSL:0, limit:0, limitOn:true};
 let month = null;          // {ym, exists, published, days:{}, avail:{}}
@@ -561,10 +567,17 @@ function payroll(userId){
     shifts++;
     if(s.sl) hSL += hoursOf(s); else h += hoursOf(s);
   }));
+  const hours = h + hSL;
   const pay = h * config.wage + hSL * config.wageSL;
   const p = people.find(x => x.id === userId);
-  const applies = config.limitOn && !!p && p.minijob;
-  return {shifts, h, hSL, hours:h+hSL, pay, applies, over: applies && pay > config.limit};
+  const euroApplies = config.limitOn && !!p && p.minijob;
+  const hourLimit = p && !p.minijob && Number(p.maxHours) > 0 ? Number(p.maxHours) : null;
+  const overEuro = euroApplies && pay > config.limit;
+  const overHours = hourLimit !== null && hours > hourLimit;
+  return {
+    shifts, h, hSL, hours, pay, hourLimit,
+    applies:euroApplies || hourLimit !== null, overEuro, overHours, over:overEuro || overHours
+  };
 }
 
 function monthStats(){
@@ -640,16 +653,22 @@ async function loadAll(depth){
           : sb.from("availability").select("user_id,off_days,confirmed").eq("ym", ym).eq("user_id", me.id),
     admin ? sb.from("settings").select("wage,wage_lead,limit_amount,limit_on").eq("id", 1).maybeSingle()
           : Promise.resolve({data:null}),
-    admin ? sb.from("payroll_flags").select("user_id,minijob") : Promise.resolve({data:[]})
+    admin ? sb.from("payroll_flags").select("*") : Promise.resolve({data:[]})
   ]);
 
   const bad = r.find(x => x && x.error);
   if(bad){ console.error(bad.error); ui.formError = "Laden fehlgeschlagen: " + bad.error.message; }
 
   const flags = {};
-  (r[7].data || []).forEach(f => { flags[f.user_id] = f.minijob; });
+  (r[7].data || []).forEach(f => {
+    flags[f.user_id] = {
+      minijob: !!f.minijob,
+      maxHours: f.max_hours == null || Number(f.max_hours) <= 0 ? null : Number(f.max_hours)
+    };
+  });
   people = (r[0].data || []).map(p => Object.assign({}, p, {
-    minijob: flags[p.id] === undefined ? true : !!flags[p.id]
+    minijob: flags[p.id] === undefined ? true : flags[p.id].minijob,
+    maxHours: flags[p.id] === undefined ? null : flags[p.id].maxHours
   }));
 
   templates = {};
@@ -1062,27 +1081,27 @@ function dayColumn(d){
 function payPanel(){
   const team = teamList();
   const zeilen = team.map(p => Object.assign({minijob:p.minijob, name:p.name}, payroll(p.id)));
-  /* Minijob-Kräfte zuerst, denn nur bei ihnen ist die Grenze zu beachten */
+  /* Minijob-Kräfte zuerst; danach Beschäftigte mit individueller Stundengrenze. */
   const rows = zeilen.filter(r => r.minijob).sort((a, b) => b.pay - a.pay)
     .concat(zeilen.filter(r => !r.minijob).sort((a, b) => b.hours - a.hours));
 
   const einleitung = config.limitOn
     ? `Bei Minijob gilt eine Grenze von ${dec(config.limit,2)} € — bei ${dec(config.wage,2)} € pro Stunde
-       und ${dec(config.wageSL,2)} € als Schichtleitung.`
-    : `Die Verdienstgrenze wird derzeit nicht überwacht. ${dec(config.wage,2)} € pro Stunde,
-       ${dec(config.wageSL,2)} € als Schichtleitung.`;
+       und ${dec(config.wageSL,2)} € als Schichtleitung. Für Nicht-Minijobber gilt die unter Team hinterlegte monatliche Stundengrenze.`
+    : `Die Minijob-Verdienstgrenze wird derzeit nicht überwacht. Individuelle Stundengrenzen von Nicht-Minijobbern
+       werden unabhängig davon überwacht.`;
 
   return `<div class="card panel" style="margin-top:16px">
     <h2>Stunden- und Schichtverteilung</h2>
     <p>Anzeige über verteilte Stunden und Schichten. ${einleitung}
        Diese Übersicht sieht nur der Administrator.</p>
     <ul class="list paylist">${rows.map(r => `<li class="${r.over ? "over" : ""}">
-      <span class="nm">${esc(r.name)}${r.over ? `<span class="flag">über Grenze</span>` : ""}</span>
+      <span class="nm">${esc(r.name)}${r.over ? `<span class="flag">${r.overHours ? "über Stundenlimit" : "über Minijob-Grenze"}</span>` : ""}</span>
       <div class="grow"></div>
       <span class="num">${r.shifts} Schichten · ${dec(r.hours)} Std.${
         r.hSL ? ` · <span class="slh">${dec(r.hSL)} Std. SL</span>` : ""}</span>
       ${r.minijob ? `<span class="pay">${eur(r.pay)}</span>`
-                  : `<span class="pay fest">Festanstellung</span>`}
+                  : `<span class="pay fest">${r.hourLimit !== null ? `max. ${dec(r.hourLimit)} Std.` : "kein Stundenlimit"}</span>`}
     </li>`).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
   </div>`;
 }
@@ -1130,9 +1149,16 @@ function adminTeam(){
           ${sw("Admin", "askrole", p.id, p.role === "admin", self, self ? "Den eigenen Adminzugang kannst du dir nicht entziehen" : "")}
           ${sw("Wird eingeplant", "toggleplan", p.id, p.schedulable, false, "")}
           ${sw("Schichtleiter", "togglelead", p.id, p.can_lead, false, "Kommt als Schichtleitung in Frage")}
-          ${sw("Minijob", "toggleminijob", p.id, p.minijob, !config.limitOn,
-               config.limitOn ? "Verdienstgrenze wird für diese Person überwacht" : "Die Grenzüberwachung ist in den Einstellungen abgeschaltet")}
+          ${sw("Minijob", "toggleminijob", p.id, p.minijob, false,
+               config.limitOn ? "Verdienstgrenze wird für diese Person überwacht" : "Minijob-Kennzeichnung; die Verdienstgrenze ist in den Einstellungen abgeschaltet")}
         </div>
+        ${!p.minijob ? `<div class="hourlimit">
+          <label class="lbl" for="mh-${p.id}">Max. Stunden/Monat</label>
+          <input class="field" id="mh-${p.id}" inputmode="decimal" data-maxhours="${p.id}"
+            value="${p.maxHours == null ? "" : esc(dec(p.maxHours))}" placeholder="z. B. 80" aria-label="Maximale Stunden pro Monat">
+          <span class="unit">Std.</span>
+          <span class="hint-inline">Warnung und Vorschlag berücksichtigen diese Höchstgrenze. Leer = kein Stundenlimit.</span>
+        </div>` : ""}
       </div>`;
     }).join("") || `<p class="muted">Noch niemand eingeladen.</p>`}
 
@@ -1143,7 +1169,8 @@ function adminTeam(){
       entziehen, und der letzte verbliebene bleibt bestehen. <b>Wird eingeplant</b> entscheidet, ob jemand im
       Dienstplan auftaucht. <b>Schichtleiter</b> entscheidet, wer die Schichtleitung übernehmen darf — nur diese
       Leute lassen sich im Plan mit SL kennzeichnen. <b>Minijob</b> an heißt, die Verdienstgrenze wird für diese
-      Person überwacht.
+      Person überwacht. Ist <b>Minijob</b> aus, erscheint stattdessen die individuelle Höchstzahl an Arbeitsstunden
+      pro Monat; sie wird in der Planung überwacht und vom automatischen Vorschlag nicht überschritten.
     </p>
   </div>`;
 }
@@ -1313,21 +1340,27 @@ async function assign(day, shiftId, userId){
 
 async function suggestFill(){
   const acc = {};
-  teamList().forEach(p => { acc[p.id] = payroll(p.id).pay; });
+  teamList().forEach(p => {
+    const x = payroll(p.id);
+    acc[p.id] = {pay:x.pay, hours:x.hours};
+  });
   const changes = [];
 
-  const kosten = (sh, alsLeitung) => hoursOf(sh) * (alsLeitung ? config.wageSL : config.wage);
+  const dauer = sh => hoursOf(sh);
+  const kosten = (sh, alsLeitung) => dauer(sh) * (alsLeitung ? config.wageSL : config.wage);
   const passt = (p, tag, sh, alsLeitung) => {
     if(isOff(p.id, tag)) return false;
     if(month.days[tag].shifts.some(s => s.emp === p.id)) return false;
-    if(config.limitOn && p.minijob && acc[p.id] + kosten(sh, alsLeitung) > config.limit) return false;
+    if(config.limitOn && p.minijob && acc[p.id].pay + kosten(sh, alsLeitung) > config.limit) return false;
+    if(!p.minijob && Number(p.maxHours) > 0 && acc[p.id].hours + dauer(sh) > Number(p.maxHours)) return false;
     return true;
   };
-  const guenstigste = liste => liste.slice().sort((a, b) => acc[a.id] - acc[b.id])[0];
+  const guenstigste = liste => liste.slice().sort((a, b) => acc[a.id].pay - acc[b.id].pay)[0];
   const setzen = (sh, p, alsLeitung) => {
     sh.emp = p.id;
     sh.sl = !!alsLeitung;
-    acc[p.id] += kosten(sh, alsLeitung);
+    acc[p.id].hours += dauer(sh);
+    acc[p.id].pay += kosten(sh, alsLeitung);
     changes.push({id:sh.id, assignee:p.id, is_lead:sh.sl});
   };
 
@@ -1776,6 +1809,7 @@ async function onSubmit(e){
 
 /* Eingaben ohne Neuzeichnen übernehmen, sonst springt der Cursor */
 let noteTimer = null;
+const maxHoursTimers = {};
 function onInput(e){
   const t = e.target;
 
@@ -1786,6 +1820,21 @@ function onInput(e){
     noteTimer = setTimeout(() => {
       write(sb.from("days").update({note: month.days[day].comment}).eq("ym", ui.monthKey).eq("day", day));
     }, 700);
+    return;
+  }
+  if(t.dataset.maxhours !== undefined){
+    const p = people.find(x => x.id === t.dataset.maxhours);
+    if(!p) return;
+    const raw = String(t.value || "").trim();
+    const normalized = raw.replace(/\s/g, "").replace(",", ".");
+    const value = raw === "" ? null : Number(normalized);
+    if(value !== null && (!Number.isFinite(value) || value <= 0)) return;
+    p.maxHours = value;
+    clearTimeout(maxHoursTimers[p.id]);
+    maxHoursTimers[p.id] = setTimeout(async () => {
+      const ok = await write(sb.from("payroll_flags").update({max_hours:p.maxHours}).eq("user_id", p.id));
+      if(ok) setSync("ok");
+    }, 600);
     return;
   }
   if(t.dataset.cfg){ config[t.dataset.cfg] = toNum(t.value); return; }
