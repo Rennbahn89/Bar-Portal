@@ -314,7 +314,8 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .paylist .pay{font-weight:700; min-width:88px; text-align:right; white-space:nowrap}
 .paylist li.over{background:var(--no-soft); border-radius:8px; padding-left:10px; padding-right:10px; border-bottom-color:transparent}
 .paylist li.over .pay{color:var(--no)}
-.paylist .slh{color:var(--ok); font-weight:700}
+.paylist .hours{font-weight:700; color:var(--ink)}
+.paylist .slh{color:inherit; font-weight:400}
 .paylist .fest{font-weight:600; font-size:12px; color:var(--ink-3)}
 .paylist .flag{display:inline-block; margin-left:8px; font-size:11px; font-weight:700;
   color:#fff; background:var(--no); padding:2px 6px; border-radius:999px; vertical-align:1px}
@@ -1098,8 +1099,8 @@ function payPanel(){
     <ul class="list paylist">${rows.map(r => `<li class="${r.over ? "over" : ""}">
       <span class="nm">${esc(r.name)}${r.over ? `<span class="flag">${r.overHours ? "über Stundenlimit" : "über Minijob-Grenze"}</span>` : ""}</span>
       <div class="grow"></div>
-      <span class="num">${r.shifts} Schichten · ${dec(r.hours)} Std.${
-        r.hSL ? ` · <span class="slh">${dec(r.hSL)} Std. SL</span>` : ""}</span>
+      <span class="num">${r.shifts} Schichten · <span class="hours">${dec(r.hours)} Std.</span>${
+        r.hSL ? ` <span class="slh">(davon ${dec(r.hSL)} Std. SL)</span>` : ""}</span>
       ${r.minijob ? `<span class="pay">${eur(r.pay)}</span>`
                   : `<span class="pay fest">${r.hourLimit !== null ? `max. ${dec(r.hourLimit)} Std.` : "kein Stundenlimit"}</span>`}
     </li>`).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
