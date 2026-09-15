@@ -271,29 +271,36 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .status{font-size:12px; font-weight:700; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-2)}
 .status.yes{background:var(--ok-soft); color:var(--ok)}
 
-/* Schalter — überall gleich, mit großer Trefferfläche für den Daumen */
-.sw{display:flex; align-items:center; gap:12px; justify-content:space-between;
-  padding:9px 0; cursor:pointer; min-height:42px; user-select:none}
-.sw > span.sw-t{font-size:14px; font-weight:600; min-width:0}
+/* Schalter — überall gleich, als kompakte Pille mit großer Trefferfläche */
+.sw{display:inline-flex; align-items:center; gap:10px; flex:0 0 auto;
+  padding:6px 12px; min-height:40px; cursor:pointer; user-select:none;
+  border:1px solid var(--line); border-radius:999px; background:var(--surface);
+  transition:border-color .12s}
+.sw:hover{border-color:var(--ink-3)}
+.sw:has(input:checked){border-color:var(--accent)}
+.sw:has(input:disabled){cursor:not-allowed; opacity:.55}
+.sw:has(input:disabled):hover{border-color:var(--line)}
+.sw > span.sw-t{font-size:13px; font-weight:600; white-space:nowrap}
 .sw input{position:absolute; opacity:0; width:0; height:0; pointer-events:none}
-.sw-b{flex:none; width:44px; height:26px; border-radius:999px; position:relative;
+.sw-b{flex:none; width:38px; height:22px; border-radius:999px; position:relative;
   background:var(--surface-2); border:1px solid var(--line); transition:background .15s, border-color .15s}
-.sw-b::after{content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%;
+.sw-b::after{content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
   background:#fff; box-shadow:0 1px 3px rgba(10,14,20,.35); transition:transform .15s}
 .sw input:checked + .sw-b{background:var(--accent); border-color:var(--accent)}
-.sw input:checked + .sw-b::after{transform:translateX(18px)}
-.sw input:disabled + .sw-b{opacity:.35}
-.sw input:disabled ~ span.sw-t, .sw:has(input:disabled){cursor:not-allowed}
+.sw input:checked + .sw-b::after{transform:translateX(16px)}
+.sw input:disabled + .sw-b{opacity:.45}
 .sw input:focus-visible + .sw-b{outline:2px solid var(--accent); outline-offset:3px}
 
 /* Eine Karte je Person */
-.pcard{border:1px solid var(--line); border-radius:var(--r); padding:12px 14px; margin-bottom:10px}
+.pcard{border:1px solid var(--line); border-radius:var(--r); padding:11px 13px; margin-bottom:9px}
 .pcard.off{opacity:.55}
 .pcard .ph{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px}
 .pcard .ph .n{font-weight:700; font-size:16px}
-.pswitches{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:0 26px}
-.pswitches .sw + .sw{border-top:1px solid var(--line)}
-@media (min-width:620px){ .pswitches .sw:nth-child(2){border-top:none} }
+.pswitches{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+.renameform{display:flex; align-items:center; gap:6px; flex:1; min-width:0}
+.renameform input{flex:1; min-width:0; padding:6px 9px; font-size:15px; font-weight:600;
+  border:1px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink)}
+.renameform input:focus{outline:none; box-shadow:0 0 0 3px var(--accent-soft)}
 
 .paylist li{align-items:baseline; flex-wrap:wrap}
 .paylist .nm{min-width:92px}
@@ -381,8 +388,13 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .board{padding:2px var(--pad) 16px; margin:0 calc(-1 * var(--pad)); scroll-padding-left:var(--pad)}
   .daystrip{margin:0 calc(-1 * var(--pad)); padding:2px var(--pad) 10px}
   .two-col{grid-template-columns:1fr}
+  .planhead{flex-direction:column; gap:7px}
+  .planhead .pill{width:100%; justify-content:center}
+  /* Bezeichnung über die volle Breite, darunter Zeiten und Löschknopf bündig */
   .tpl .line{grid-template-columns:minmax(0,1fr) 32px; row-gap:6px}
-  .tpl .times{grid-column:1 / -1}
+  .tpl .line > input[data-f="label"]{grid-column:1 / -1; grid-row:1}
+  .tpl .times{grid-column:1 / 2; grid-row:2}
+  .tpl .rm{grid-column:2 / 3; grid-row:2}
   .paylist .pay{min-width:0}
   .sync{display:none}
   main{padding-bottom:120px}
@@ -433,7 +445,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "15.09.2026 um 19:56 Uhr";
+const PATCH_AM  = "15.09.2026 um 20:17 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -489,6 +501,7 @@ const ui = {
   formError: "", formInfo: "",
   selection: null,
   editingShift: null,
+  renaming: null,            // Person, deren Name gerade geändert wird
   sheetOpen: false,
   checkOpen: true,
   jumpTo: null,
@@ -950,10 +963,8 @@ function adminPlan(){
     + checklist
     + `<div class="planhead">
         <span class="pill ${st.done === st.open && st.open > 0 ? "done" : ""}"><b>${st.done}</b> von ${st.open} Tagen fertig</span>
-        <span class="pill"><b>${st.filled}</b> von ${st.slots} Schichten besetzt</span>
         ${st.over ? `<span class="pill warn"><b>${st.over}</b> über der Grenze</span>` : ""}
         ${st.conflicts ? `<span class="pill warn"><b>${st.conflicts}</b> trotz Absage eingeteilt</span>` : ""}
-        ${st.noLead ? `<span class="pill warn"><b>${st.noLead}</b> Tage ohne Schichtleitung</span>` : ""}
        </div>`
     + `<div class="daystrip">${strip}</div>`
     + `<div class="board" id="board">${cols}</div>`
@@ -1048,22 +1059,25 @@ function dayColumn(d){
 }
 
 function payPanel(){
-  const rows = teamList()
+  const minijobber = teamList().filter(p => p.minijob);
+  const rows = minijobber
     .map(p => Object.assign({name:p.name}, payroll(p.id)))
     .sort((a, b) => b.pay - a.pay);
+  const andere = teamList().length - minijobber.length;
   return `<div class="card panel" style="margin-top:16px">
     <h2>Verteilung und Lohn</h2>
     <p>${dec(config.wage,2)} € pro Stunde, als Schichtleitung ${dec(config.wageSL,2)} €${
       config.limitOn ? ` · Grenze ${dec(config.limit,2)} € im Monat` : " · Grenze wird nicht überwacht"}.
+      Aufgeführt sind nur Minijob-Kräfte, denn nur bei ihnen ist die Grenze zu beachten${
+      andere ? ` — ${andere} weitere ${andere === 1 ? "Person arbeitet" : "Personen arbeiten"} ohne Minijob` : ""}.
       Diese Übersicht sieht nur das Büro.</p>
     <ul class="list paylist">${rows.map(r => `<li class="${r.over ? "over" : ""}">
       <span class="nm">${esc(r.name)}${r.over ? `<span class="flag">über Grenze</span>` : ""}</span>
       <div class="grow"></div>
       <span class="num">${r.shifts} Schichten · ${dec(r.hours)} Std.${
-        r.hSL ? ` · <span class="slh">${dec(r.hSL)} Std. SL</span>` : ""}${
-        r.applies ? "" : ` · <span class="tiny">kein Minijob</span>`}</span>
+        r.hSL ? ` · <span class="slh">${dec(r.hSL)} Std. SL</span>` : ""}</span>
       <span class="pay">${eur(r.pay)}</span>
-    </li>`).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
+    </li>`).join("") || `<li class="muted">Niemand mit Minijob im Team.</li>`}</ul>
   </div>`;
 }
 
@@ -1080,16 +1094,25 @@ function adminTeam(){
     <h2>Team</h2>
     <p>Neue Leute legst du im Supabase-Dashboard an: Authentication, Users — entweder „Invite user“ oder
        „Add user“ mit Startpasswort. Nach der ersten Anmeldung erscheinen sie hier.</p>
+    ${ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : ""}
 
     ${people.map(p => {
       const self = p.id === me.id;
       const a = availOf(p.id);
       return `<div class="pcard ${p.active ? "" : "off"}">
         <div class="ph">
-          <span class="n">${esc(p.name)}</span>
-          ${self ? `<span class="tiny muted">(du)</span>` : ""}
-          ${p.role === "admin" ? `<span class="status adm">Admin</span>` : ""}
-          ${p.can_lead ? `<span class="status">Schichtleiter</span>` : ""}
+          ${ui.renaming === p.id ? `
+            <form class="renameform" data-form="rename" data-emp="${p.id}">
+              <input name="name" value="${esc(p.name)}" autocapitalize="words" aria-label="Name">
+              <button class="btn sm primary" type="submit">Übernehmen</button>
+              <button class="btn sm" type="button" data-act="cancelrename">Abbrechen</button>
+            </form>` : `
+            <span class="n">${esc(p.name)}</span>
+            <button class="iconbtn" data-act="rename" data-emp="${p.id}"
+              aria-label="Namen ändern" title="Namen ändern">✎</button>
+            ${self ? `<span class="tiny muted">(du)</span>` : ""}
+            ${p.role === "admin" ? `<span class="status adm">Admin</span>` : ""}
+            ${p.can_lead ? `<span class="status">Schichtleiter</span>` : ""}`}
           <span class="grow"></span>
           <span class="status ${!p.active || !p.schedulable ? "" : a.confirmed ? "yes" : ""}">${
             !p.active ? "inaktiv" : !p.schedulable ? "nicht im Plan" : a.confirmed ? "bestätigt" : "offen"}</span>
@@ -1109,7 +1132,8 @@ function adminTeam(){
 
     <p class="tiny muted" style="margin:14px 0 0">
       <b>Aktiv</b> aus nimmt jemanden ganz heraus, der Zugang bleibt bestehen; endgültig gelöscht wird ein Konto im
-      Supabase-Dashboard. <b>Admin</b> gibt Zugriff auf Planung, Löhne und Freigabe — den eigenen kannst du dir nicht
+      Supabase-Dashboard. Über das Stiftsymbol änderst du den Namen einer Person — so steht er später im
+      ausgedruckten Dienstplan. <b>Admin</b> gibt Zugriff auf Planung, Löhne und Freigabe — den eigenen kannst du dir nicht
       entziehen, und der letzte verbliebene bleibt bestehen. <b>Wird eingeplant</b> entscheidet, ob jemand im
       Dienstplan auftaucht. <b>Schichtleiter</b> entscheidet, wer die Schichtleitung übernehmen darf — nur diese
       Leute lassen sich im Plan mit SL kennzeichnen. <b>Minijob</b> an heißt, die Verdienstgrenze wird für diese
@@ -1544,6 +1568,8 @@ async function handleClick(e){
       for(const id of weg) await write(sb.from("shifts").update({is_lead:false}).eq("id", id));
       return;
     }
+    case "rename": ui.renaming = el.dataset.emp; ui.formError = ""; render(); return;
+    case "cancelrename": ui.renaming = null; render(); return;
     case "reopen": {
       const id = el.dataset.emp;
       availOf(id).confirmed = false;
@@ -1703,8 +1729,22 @@ async function onSubmit(e){
     me.name = name;
     setupDone();
     ui.screen = "app";
-    ui.monthKey = ui.monthKey || monthKey(new Date());
+    ui.monthKey = monthKey(new Date());
     await reload();
+    return;
+  }
+
+  if(kind === "rename"){
+    const p = people.find(x => x.id === form.dataset.emp);
+    if(!p) return;
+    const name = feldWert(form, "name").trim();
+    if(!name){ ui.formError = "Der Name darf nicht leer sein."; render(); return; }
+    p.name = name;
+    if(p.id === me.id) me.name = name;
+    ui.renaming = null;
+    ui.formError = "";
+    render();
+    await write(sb.from("profiles").update({name}).eq("id", p.id));
     return;
   }
 
@@ -1794,6 +1834,9 @@ function render(){
   }
   const details = app.querySelector(".checklist");
   if(details) details.addEventListener("toggle", () => { ui.checkOpen = details.open; });
+
+  const namensfeld = app.querySelector(".renameform input");
+  if(namensfeld){ namensfeld.focus(); namensfeld.select(); }
 }
 
 /* ============================================================
@@ -1900,7 +1943,7 @@ async function boot(){
   }
 
   ui.screen = "app";
-  ui.monthKey = ui.monthKey || monthKey(new Date());
+  ui.monthKey = monthKey(new Date());   // beim Öffnen immer der laufende Monat
   await reload();
 }
 
