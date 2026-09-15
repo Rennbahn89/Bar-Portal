@@ -309,6 +309,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .paylist li.over{background:var(--no-soft); border-radius:8px; padding-left:10px; padding-right:10px; border-bottom-color:transparent}
 .paylist li.over .pay{color:var(--no)}
 .paylist .slh{color:var(--ok); font-weight:700}
+.paylist .fest{font-weight:600; font-size:12px; color:var(--ink-3)}
 .paylist .flag{display:inline-block; margin-left:8px; font-size:11px; font-weight:700;
   color:#fff; background:var(--no); padding:2px 6px; border-radius:999px; vertical-align:1px}
 
@@ -445,7 +446,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "15.09.2026 um 20:17 Uhr";
+const PATCH_AM  = "15.09.2026 um 20:27 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -1059,25 +1060,30 @@ function dayColumn(d){
 }
 
 function payPanel(){
-  const minijobber = teamList().filter(p => p.minijob);
-  const rows = minijobber
-    .map(p => Object.assign({name:p.name}, payroll(p.id)))
-    .sort((a, b) => b.pay - a.pay);
-  const andere = teamList().length - minijobber.length;
+  const team = teamList();
+  const zeilen = team.map(p => Object.assign({minijob:p.minijob, name:p.name}, payroll(p.id)));
+  /* Minijob-Kräfte zuerst, denn nur bei ihnen ist die Grenze zu beachten */
+  const rows = zeilen.filter(r => r.minijob).sort((a, b) => b.pay - a.pay)
+    .concat(zeilen.filter(r => !r.minijob).sort((a, b) => b.hours - a.hours));
+
+  const einleitung = config.limitOn
+    ? `Bei Minijob gilt eine Grenze von ${dec(config.limit,2)} € — bei ${dec(config.wage,2)} € pro Stunde
+       und ${dec(config.wageSL,2)} € als Schichtleitung.`
+    : `Die Verdienstgrenze wird derzeit nicht überwacht. ${dec(config.wage,2)} € pro Stunde,
+       ${dec(config.wageSL,2)} € als Schichtleitung.`;
+
   return `<div class="card panel" style="margin-top:16px">
-    <h2>Verteilung und Lohn</h2>
-    <p>${dec(config.wage,2)} € pro Stunde, als Schichtleitung ${dec(config.wageSL,2)} €${
-      config.limitOn ? ` · Grenze ${dec(config.limit,2)} € im Monat` : " · Grenze wird nicht überwacht"}.
-      Aufgeführt sind nur Minijob-Kräfte, denn nur bei ihnen ist die Grenze zu beachten${
-      andere ? ` — ${andere} weitere ${andere === 1 ? "Person arbeitet" : "Personen arbeiten"} ohne Minijob` : ""}.
-      Diese Übersicht sieht nur das Büro.</p>
+    <h2>Stunden- und Schichtverteilung</h2>
+    <p>Anzeige über verteilte Stunden und Schichten. ${einleitung}
+       Diese Übersicht sieht nur der Administrator.</p>
     <ul class="list paylist">${rows.map(r => `<li class="${r.over ? "over" : ""}">
       <span class="nm">${esc(r.name)}${r.over ? `<span class="flag">über Grenze</span>` : ""}</span>
       <div class="grow"></div>
       <span class="num">${r.shifts} Schichten · ${dec(r.hours)} Std.${
         r.hSL ? ` · <span class="slh">${dec(r.hSL)} Std. SL</span>` : ""}</span>
-      <span class="pay">${eur(r.pay)}</span>
-    </li>`).join("") || `<li class="muted">Niemand mit Minijob im Team.</li>`}</ul>
+      ${r.minijob ? `<span class="pay">${eur(r.pay)}</span>`
+                  : `<span class="pay fest">Festanstellung</span>`}
+    </li>`).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
   </div>`;
 }
 
