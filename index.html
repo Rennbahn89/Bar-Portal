@@ -143,31 +143,31 @@ main{padding:16px 0 110px}
 /* ============================================================
    6 — Mitarbeiterkalender
    ============================================================ */
-.cal{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px}
-.cal > *{min-width:0}
-.cal .wd{text-align:center; font-size:12px; font-weight:600; color:var(--ink-2); padding-bottom:2px}
-.day{aspect-ratio:1/1; border:1px solid var(--line); background:var(--surface); border-radius:var(--r);
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
-  font-weight:600; font-size:16px; padding:0; overflow:hidden; transition:transform .08s}
-.day:active{transform:scale(.96)}
-.day.empty{border:none; background:transparent}
-.day.closed{background:var(--surface-2); color:var(--ink-3); border-style:dashed; cursor:default}
-.day.off{background:var(--no-soft); border-color:var(--no-line); color:var(--no)}
-.day.off .num{text-decoration:line-through}
-.day.today{box-shadow:inset 0 0 0 2px var(--accent)}
-.day{position:relative}
-.day .cnt{position:absolute; top:3px; right:4px; min-width:16px; padding:0 4px; line-height:15px;
-  border-radius:999px; background:var(--surface); border:1px solid var(--no-line);
-  color:var(--no); font-size:10px; font-weight:700; text-align:center}
-.day .sub{font-size:10px; font-weight:600; color:var(--ink-3); line-height:1.1}
-.day.off .sub{color:var(--no); font-size:15px; font-weight:700}
-.hint{margin:16px 0 0; font-size:14px; color:var(--ink-2)}
-.whonot{margin-top:18px}
-.whonot ul{list-style:none; margin:10px 0 0; padding:0}
-.whonot li{display:flex; gap:12px; padding:7px 0; border-top:1px solid var(--line); font-size:14px}
-.whonot li:first-child{border-top:none}
-.whonot .wd{font-weight:700; white-space:nowrap; min-width:64px}
-.whonot .wn{color:var(--ink-2); min-width:0}
+/* Eine Zeile je Tag: Datum links, wer nicht kann in der Mitte, eigener Zustand rechts */
+.days{display:flex; flex-direction:column; gap:5px}
+.drow{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:9px 11px; min-height:52px; color:inherit; font:inherit;
+  transition:border-color .12s;
+}
+.drow:hover:not(:disabled){border-color:var(--ink-3)}
+.drow:disabled{cursor:default}
+.drow .dt{font-weight:700; white-space:nowrap; width:54px; flex:none; font-size:15px}
+.drow .dt em{font-style:normal; color:var(--ink-2); font-weight:600; font-size:13px}
+.drow .who{flex:1; min-width:0; font-size:13px; font-weight:600; color:var(--no); line-height:1.35}
+.drow .who.frei{color:var(--ink-3); font-weight:500}
+.drow .mark{flex:none; width:26px; height:26px; border-radius:50%; border:1.5px solid var(--line);
+  display:grid; place-items:center; font-size:14px; font-weight:700; color:transparent}
+.drow.off{background:var(--no-soft); border-color:var(--no-line)}
+.drow.off .dt{color:var(--no)}
+.drow.off .mark{background:var(--no); border-color:var(--no); color:#fff}
+.drow.heute{box-shadow:inset 0 0 0 2px var(--accent)}
+.drow.zu{background:var(--surface-2); border-style:dashed; min-height:40px; opacity:.75}
+.drow.zu .dt{color:var(--ink-3)}
+.drow.zu .who{color:var(--ink-3); font-weight:500; font-style:italic}
+.wsep{height:1px; background:var(--line); margin:6px 2px}
+.hint{margin:0 0 12px; font-size:14px; color:var(--ink-2)}
 .legend{display:flex; gap:16px; flex-wrap:wrap; margin:12px 0 0; font-size:13px; color:var(--ink-2)}
 .legend i{width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:-1px}
 
@@ -457,7 +457,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "15.10.2026 um 13:17 Uhr";
+const PATCH_AM  = "15.10.2026 um 13:32 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -833,58 +833,38 @@ function staffAvail(){
   const k = ui.monthKey;
   const a = availOf(me.id);
   const n = daysInMonth(k);
-  const lead = (weekdayOf(k, 1) + 6) % 7;
   const locked = month.published;
   const shut = d => month.days[d] ? month.days[d].closed : closedByTemplate(weekdayOf(k, d));
 
-  let cells = "";
-  for(let i = 0; i < lead; i++) cells += `<div class="day empty"></div>`;
+  let zeilen = "";
   for(let d = 1; d <= n; d++){
+    const wd = weekdayOf(k, d);
+    if(wd === 1 && d > 1) zeilen += `<div class="wsep"></div>`;
     const closed = shut(d);
     const off = a.off.indexOf(d) >= 0;
-    const cls = ["day", closed ? "closed" : "", off ? "off" : "", isToday(k, d) ? "today" : ""].filter(Boolean).join(" ");
     const weg = closed ? [] : andereWeg(d);
-    cells += `<button class="${cls}" ${closed || locked ? "disabled" : ""} data-act="toggleoff" data-day="${d}"
-      ${weg.length ? `title="Kann nicht: ${esc(weg.map(p => p.name).join(", "))}"` : ""}>
-      ${weg.length ? `<span class="cnt">${weg.length}</span>` : ""}
-      <span class="num">${d}</span>
-      <span class="sub">${closed ? "zu" : (off ? "×" : WD_SHORT[weekdayOf(k, d)])}</span>
+    const cls = ["drow", closed ? "zu" : "", off ? "off" : "", isToday(k, d) ? "heute" : ""]
+      .filter(Boolean).join(" ");
+    zeilen += `<button class="${cls}" ${closed || locked ? "disabled" : ""}
+        data-act="toggleoff" data-day="${d}">
+      <span class="dt">${WD_SHORT[wd]} <em>${d}.</em></span>
+      <span class="who ${weg.length ? "" : "frei"}">${
+        closed ? "Ruhetag" : weg.length ? esc(weg.map(p => p.name).join(", ")) : "alle können"}</span>
+      ${closed ? "" : `<span class="mark">×</span>`}
     </button>`;
   }
   const count = a.off.filter(d => !shut(d)).length;
-
-  const tage = [];
-  for(let d = 1; d <= n; d++){
-    if(shut(d)) continue;
-    const weg = andereWeg(d);
-    if(weg.length) tage.push({d, weg});
-  }
-  const wernicht = tage.length ? `
-    <details class="card fold whonot" open>
-      <summary>
-        <b>Wer kann wann nicht</b>
-        <span class="muted small">${tage.length} ${tage.length === 1 ? "Tag" : "Tage"}</span>
-        <span class="caret"></span>
-      </summary>
-      <ul>${tage.map(t => `<li>
-        <span class="wd">${WD_SHORT[weekdayOf(k, t.d)]} ${t.d}.</span>
-        <span class="wn">${esc(t.weg.map(p => p.name).join(", "))}</span>
-      </li>`).join("")}</ul>
-    </details>` : "";
 
   return monthBar()
     + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
     + (locked ? `<div class="banner info">Der Dienstplan für diesen Monat ist freigegeben. Änderungen laufen jetzt übers Büro.</div>` : "")
     + (a.confirmed && !locked ? `<div class="banner ok">Bestätigt. Bis zur Freigabe kannst du noch etwas ändern.</div>` : "")
-    + `<div class="cal">${["Mo","Di","Mi","Do","Fr","Sa","So"].map(w => `<div class="wd">${w}</div>`).join("")}</div>
-       <div class="cal" style="margin-top:6px">${cells}</div>
-       ${locked ? "" : `<p class="hint">Bitte markiere die Tage, an denen du nicht verfügbar bist.</p>`}
+    + (locked ? "" : `<p class="hint">Tippe die Tage an, an denen du nicht verfügbar bist. In der Mitte steht, wer schon abgesagt hat.</p>`)
+    + `<div class="days">${zeilen}</div>
        <div class="legend">
-         <span><i style="background:var(--no-soft); border:1px solid var(--no-line)"></i>Kann ich nicht</span>
+         <span><i style="background:var(--no-soft); border:1px solid var(--no-line)"></i>Ich kann nicht</span>
          <span><i style="background:var(--surface-2); border:1px dashed var(--line)"></i>Ruhetag</span>
-         <span><i style="background:var(--surface); border:1px solid var(--no-line)"></i>Zahl: so viele andere können nicht</span>
-       </div>
-       ${wernicht}`
+       </div>`
     + (locked ? "" : `
       <div class="sticky-bar"><div class="sticky-in">
         <div class="grow small muted">${count === 0
