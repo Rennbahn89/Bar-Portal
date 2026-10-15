@@ -155,17 +155,18 @@ main{padding:16px 0 110px}
 .drow:disabled{cursor:default}
 .drow .dt{font-weight:700; white-space:nowrap; width:54px; flex:none; font-size:15px}
 .drow .dt em{font-style:normal; color:var(--ink-2); font-weight:600; font-size:13px}
-.drow .who{flex:1; min-width:0; font-size:13px; font-weight:600; color:var(--no); line-height:1.35}
-.drow .who.frei{color:var(--ink-3); font-weight:500}
-.drow .mark{flex:none; width:26px; height:26px; border-radius:50%; border:1.5px solid var(--line);
+/* eigene Klassennamen, damit keine Regel aus Kopfzeile oder Anmeldung hereinwirkt */
+.drow .wer{flex:1; min-width:0; font-size:13px; font-weight:600; color:var(--no); line-height:1.35}
+.drow .wer.frei{color:var(--ink-3); font-weight:500}
+.drow .kreuz{flex:none; width:26px; height:26px; border-radius:50%; border:1.5px solid var(--line);
   display:grid; place-items:center; font-size:14px; font-weight:700; color:transparent}
 .drow.off{background:var(--no-soft); border-color:var(--no-line)}
 .drow.off .dt{color:var(--no)}
-.drow.off .mark{background:var(--no); border-color:var(--no); color:#fff}
+.drow.off .kreuz{background:var(--no); border-color:var(--no); color:#fff}
 .drow.heute{box-shadow:inset 0 0 0 2px var(--accent)}
 .drow.zu{background:var(--surface-2); border-style:dashed; min-height:40px; opacity:.75}
 .drow.zu .dt{color:var(--ink-3)}
-.drow.zu .who{color:var(--ink-3); font-weight:500; font-style:italic}
+.drow.zu .wer{color:var(--ink-3); font-weight:500; font-style:italic}
 .wsep{height:1px; background:var(--line); margin:6px 2px}
 .hint{margin:0 0 12px; font-size:14px; color:var(--ink-2)}
 .legend{display:flex; gap:16px; flex-wrap:wrap; margin:12px 0 0; font-size:13px; color:var(--ink-2)}
@@ -323,19 +324,13 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .pcard + .grp{margin-top:18px}
 .grp::after{content:""; height:1px; flex:1; background:var(--line)}
 
-/* Reihenfolge ändern: Griff zum Ziehen, Pfeile zum Tippen */
+/* Reihenfolge ändern: am Griff ziehen */
 .grip{flex:none; cursor:grab; color:var(--ink-3); font-size:15px; line-height:1;
-  padding:3px 2px; touch-action:none; user-select:none}
+  padding:4px 3px; margin-left:-3px; user-select:none}
 .grip:active{cursor:grabbing}
 .grip:hover{color:var(--ink-2)}
-/* Am Touchgerät gibt es kein Ziehen, dort zählen nur die Pfeile */
+/* Am Touchgerät gibt es kein Ziehen — dort sortiert allein die Gruppierung */
 @media (hover:none){ .grip{display:none} }
-.ord{flex:none; display:flex; align-items:center; gap:1px; margin:0 2px 0 -4px}
-.ord .iconbtn{font-size:10px; padding:0; width:28px; height:28px; border-radius:8px;
-  display:flex; align-items:center; justify-content:center}
-.ord .iconbtn:hover:not(:disabled){background:var(--surface-2)}
-.iconbtn:disabled{opacity:.25; cursor:default}
-.iconbtn:disabled:hover{color:var(--ink-3)}
 .pcard.dragging{opacity:.4}
 .pcard.dropbefore{box-shadow:inset 0 3px 0 0 var(--accent)}
 .pcard.dropafter{box-shadow:inset 0 -3px 0 0 var(--accent)}
@@ -345,19 +340,22 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   border:1px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink)}
 .renameform input:focus{outline:none; box-shadow:0 0 0 3px var(--accent-soft)}
 
-.paylist li{align-items:baseline; flex-wrap:wrap}
-.paylist .nm{min-width:92px}
-.paylist .num{font-size:13px; color:var(--ink-2)}
-.paylist .pay{font-weight:700; min-width:88px; text-align:right; white-space:nowrap}
-.paylist li.over{background:var(--no-soft); border-radius:8px; padding-left:10px; padding-right:10px; border-bottom-color:transparent}
-.paylist li.over .pay{color:var(--no)}
-.paylist .flag.offen{background:var(--accent); color:var(--accent-ink)}
+/* Immer zwei Zeilen je Person: oben der Name, unten links die Schichten
+   und rechts der Betrag. So rutscht nie etwas unter den Namen. */
+.paylist li{display:block; padding:9px 0}
+.paylist .nm{display:block; font-weight:700; font-size:15px}
+.paylist .det{display:flex; align-items:baseline; gap:12px; margin-top:1px}
+.paylist .num{flex:1; min-width:0; font-size:13px; color:var(--ink-2)}
+.paylist .pay{flex:none; margin-left:auto; font-weight:700; text-align:right; white-space:nowrap}
 .paylist .slh{color:var(--ok); font-weight:700}
 .paylist .fest{font-weight:600; font-size:12px; color:var(--ink-3)}
 .paylist .pay.lo{color:var(--accent)}
-.paylist .flag.lo{background:var(--accent); color:var(--accent-ink)}
+.paylist li.over{background:var(--no-soft); border-radius:8px; padding:9px 10px;
+  border-bottom-color:transparent}
+.paylist li.over .pay{color:var(--no)}
 .paylist .flag{display:inline-block; margin-left:8px; font-size:11px; font-weight:700;
   color:#fff; background:var(--no); padding:2px 6px; border-radius:999px; vertical-align:1px}
+.paylist .flag.lo{background:var(--accent); color:var(--accent-ink)}
 
 .tpl{border:1px solid var(--line); border-radius:var(--r); padding:10px 12px; margin-bottom:8px}
 .tpl .hd{font-weight:700; margin-bottom:6px; font-size:14px}
@@ -442,9 +440,6 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .tpl .line > input[data-f="label"]{grid-column:1 / -1; grid-row:1}
   .tpl .times{grid-column:1 / 2; grid-row:2}
   .tpl .rm{grid-column:2 / 3; grid-row:2}
-  .paylist .pay{min-width:0}
-  .ord{margin-left:-6px}
-  .ord .iconbtn{width:30px; height:30px}
   .sync{display:none}
   main{padding-bottom:120px}
 }
@@ -494,7 +489,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "15.10.2026 um 14:55 Uhr";
+const PATCH_AM  = "15.10.2026 um 18:10 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -532,7 +527,9 @@ const sb = window.supabase.createClient(API_URL, API_KEY, {
    Zustand
    ============================================================ */
 let me = null;             // {id, name, role}
-let people = [];           // [{id, name, role, active, schedulable, can_lead, minijob}]
+/* [{id, name, role, active, schedulable, can_lead, minijob, soll, pos}] —
+   minijob, soll und pos sieht nur das Büro; die Liste ist stets sortiert */
+let people = [];
 let templates = {};        // {wochentag: [{label, start, end}]}
 let config = {wage:0, wageSL:0, limit:0, limitOn:true};
 let month = null;          // {ym, exists, published, days:{}, avail:{}}
@@ -631,24 +628,6 @@ async function writePos(liste){
   for(const p of liste) await write(sb.from("profiles").update({sort_pos:p.pos}).eq("id", p.id));
 }
 
-/* Eine Person um einen Platz innerhalb ihrer Gruppe bewegen */
-async function movePerson(id, dir){
-  const p = people.find(x => x.id === id);
-  if(!p) return;
-  const dirty = new Set(renumberPeople());
-  const grp = people.filter(x => personRank(x) === personRank(p));
-  const i = grp.indexOf(p), j = i + dir;
-  if(j >= 0 && j < grp.length){
-    const q = grp[j];
-    const t = p.pos; p.pos = q.pos; q.pos = t;
-    dirty.add(p); dirty.add(q);
-    sortPeople();
-  }
-  if(!dirty.size) return;
-  render();
-  await writePos([...dirty]);
-}
-
 /* Person an die Stelle einer anderen ziehen. Nur innerhalb einer
    Gruppe, damit die Einteilung Admin / Fest / Minijob / außen
    nicht durch Ziehen umgangen wird. */
@@ -681,47 +660,44 @@ const hasLead = d => d.shifts.some(s => s.emp && s.sl);
 const dayComplete = d => !d.closed && d.shifts.length > 0 && d.shifts.every(s => s.emp) && hasLead(d);
 const canLead = id => { const p = people.find(x => x.id === id); return !!p && p.can_lead; };
 
+/* Stunden, Lohn und die Lage zur jeweiligen Grenze einer Person.
+   Minijob kennt eine Geldgrenze, Festanstellung ein Stundensoll. */
 function payroll(userId){
-  let shifts = 0, h = 0, hSL = 0;
+  let shifts = 0, hNormal = 0, hSL = 0;
   Object.keys(month.days).forEach(key => month.days[key].shifts.forEach(s => {
     if(s.emp !== userId) return;
     shifts++;
-    if(s.sl) hSL += hoursOf(s); else h += hoursOf(s);
+    if(s.sl) hSL += hoursOf(s); else hNormal += hoursOf(s);
   }));
-  const pay = h * config.wage + hSL * config.wageSL;
-  const p = people.find(x => x.id === userId);
-  const applies = config.limitOn && !!p && p.minijob;
-  const soll = (p && !p.minijob) ? (Number(p.soll) || 0) : 0;
-  const hours = h + hSL;
+  const pay   = hNormal * config.wage + hSL * config.wageSL;
+  const hours = hNormal + hSL;
+  const p     = people.find(x => x.id === userId);
+  const soll  = (p && !p.minijob) ? (Number(p.soll) || 0) : 0;
   return {
-    shifts, h, hSL, hours, pay, applies, soll,
-    over: applies && pay > config.limit,
+    shifts, hSL, hours, pay, soll,
+    over:      config.limitOn && !!p && p.minijob && pay > config.limit,
     ueberSoll: soll > 0 && hours > soll + 0.001,
     unterSoll: soll > 0 && hours < soll - 0.001
   };
 }
 
+/* Zahlen für den Kopf der Planung */
 function monthStats(){
-  let open = 0, done = 0, slots = 0, filled = 0, conflicts = 0, noLead = 0;
+  let open = 0, done = 0, slots = 0, filled = 0, conflicts = 0;
   Object.keys(month.days).forEach(key => {
     const d = month.days[key];
     if(d.closed) return;
     open++;
     if(dayComplete(d)) done++;
-    if(d.shifts.some(s => s.emp) && !hasLead(d)) noLead++;
     d.shifts.forEach(s => {
       slots++;
       if(s.emp){ filled++; if(isOff(s.emp, Number(key))) conflicts++; }
     });
   });
   const team = teamList();
-  const sollLage = team.map(p => payroll(p.id));
   return {
-    open, done, slots, filled, conflicts, noLead,
-    ueberSoll: sollLage.filter(x => x.ueberSoll).length,
-    unterSoll: sollLage.filter(x => x.unterSoll).length,
+    open, done, slots, filled, conflicts,
     conf: team.filter(p => availOf(p.id).confirmed).length,
-    over: team.filter(p => payroll(p.id).over).length,
     total: team.length
   };
 }
@@ -784,10 +760,12 @@ async function loadAll(depth){
 
   const flags = {};
   (r[7].data || []).forEach(f => { flags[f.user_id] = f; });
-  people = (r[0].data || []).map(p => Object.assign({}, p, {
+  people = (r[0].data || []).map(p => ({
+    id: p.id, name: p.name, role: p.role,
+    active: p.active, schedulable: p.schedulable, can_lead: p.can_lead,
     minijob: flags[p.id] ? !!flags[p.id].minijob : true,
-    soll: flags[p.id] ? Number(flags[p.id].target_hours) || 0 : 0,
-    pos: Number(p.sort_pos) || 0
+    soll:    flags[p.id] ? Number(flags[p.id].target_hours) || 0 : 0,
+    pos:     Number(p.sort_pos) || 0
   }));
   sortPeople();
 
@@ -976,9 +954,9 @@ function staffAvail(){
     zeilen += `<button class="${cls}" ${closed || locked ? "disabled" : ""}
         data-act="toggleoff" data-day="${d}">
       <span class="dt">${WD_SHORT[wd]} <em>${d}.</em></span>
-      <span class="who ${weg.length ? "" : "frei"}">${
+      <span class="wer ${weg.length ? "" : "frei"}">${
         closed ? "Ruhetag" : weg.length ? esc(weg.map(p => p.name).join(", ")) : "alle können"}</span>
-      ${closed ? "" : `<span class="mark">×</span>`}
+      ${closed ? "" : `<span class="kreuz">×</span>`}
     </button>`;
   }
   const count = a.off.filter(d => !shut(d)).length;
@@ -1103,14 +1081,13 @@ function adminPlan(){
     + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
     + (month.published ? `<div class="banner ok">Freigegeben — alle Mitarbeiter sehen den Plan in der App.</div>` : "")
     + (st.total === 0 ? `<div class="banner info">Noch wird niemand eingeplant. Lade unter <b>Team</b> Leute ein
-        oder setze dort bei jemandem das Häkchen „wird eingeplant".</div>` : "")
+        oder setze dort bei jemandem den Regler „Wird eingeplant“.</div>` : "")
     + checklist
+    /* Nur der Fortschritt und der echte Planungsfehler. Wie die Stunden
+       und Löhne stehen, zeigt die Übersicht unten. */
     + `<div class="planhead">
         <span class="pill ${st.done === st.open && st.open > 0 ? "done" : ""}"><b>${st.done}</b> von ${st.open} Tagen fertig</span>
-        ${st.over ? `<span class="pill warn"><b>${st.over}</b> über der Grenze</span>` : ""}
         ${st.conflicts ? `<span class="pill warn"><b>${st.conflicts}</b> trotz Absage eingeteilt</span>` : ""}
-        ${st.unterSoll ? `<span class="pill warn"><b>${st.unterSoll}</b> unter den Vertragsstunden</span>` : ""}
-        ${st.ueberSoll ? `<span class="pill warn"><b>${st.ueberSoll}</b> über den Vertragsstunden</span>` : ""}
        </div>`
     + `<div class="daystrip">${strip}</div>`
     + `<div class="board" id="board">${cols}</div>`
@@ -1205,8 +1182,7 @@ function dayColumn(d){
 }
 
 function payPanel(){
-  const team = teamList();
-  const zeilen = team.map(p => Object.assign({minijob:p.minijob, name:p.name}, payroll(p.id)));
+  const zeilen = teamList().map(p => Object.assign({minijob:p.minijob, name:p.name}, payroll(p.id)));
   /* Minijob-Kräfte zuerst, denn nur bei ihnen ist die Geldgrenze zu beachten */
   const rows = zeilen.filter(r => r.minijob).sort((a, b) => b.pay - a.pay)
     .concat(zeilen.filter(r => !r.minijob).sort((a, b) => b.hours - a.hours));
@@ -1217,40 +1193,134 @@ function payPanel(){
     : `Die Verdienstgrenze wird derzeit nicht überwacht. ${dec(config.wage,2)} € pro Stunde,
        ${dec(config.wageSL,2)} € als Schichtleitung.`;
 
-  const rechts = r => {
-    if(r.minijob) return `<span class="pay">${eur(r.pay)}</span>`;
-    if(!r.soll) return `<span class="pay fest">Festanstellung</span>`;
-    return `<span class="pay ${r.ueberSoll ? "" : r.unterSoll ? "lo" : ""}">${dec(r.hours)} / ${dec(r.soll)} Std.</span>`;
+  /* Zeile 1: Name und gegebenenfalls ein Hinweis.
+     Zeile 2: links Schichten und Stunden, rechts Betrag oder Soll. */
+  const hinweis = r =>
+      r.over      ? `<span class="flag">über Grenze</span>`
+    : r.ueberSoll ? `<span class="flag">über Soll</span>`
+    : r.unterSoll ? `<span class="flag lo">fehlen ${dec(r.soll - r.hours)} Std.</span>`
+    : "";
+  /* Bei Festanstellung mit Soll stehen die Stunden schon rechts —
+     dann bleiben sie links weg, sonst wird die Zeile unnötig lang. */
+  const stundenRechts = r => !r.minijob && r.soll > 0;
+  const rechts = r =>
+      r.minijob        ? `<span class="pay">${eur(r.pay)}</span>`
+    : !stundenRechts(r) ? `<span class="pay fest">Festanstellung</span>`
+    : `<span class="pay ${r.unterSoll ? "lo" : ""}">${dec(r.hours)} / ${dec(r.soll)} Std.</span>`;
+
+  const links = r => {
+    const teile = [r.shifts + (r.shifts === 1 ? " Schicht" : " Schichten")];
+    if(!stundenRechts(r)) teile.push(dec(r.hours) + " Std.");
+    if(r.hSL) teile.push(`<span class="slh" title="davon als Schichtleitung">${dec(r.hSL)} Std. SL</span>`);
+    return teile.join(" · ");
   };
-  const kennzeichen = r => {
-    if(r.over) return `<span class="flag">über Grenze</span>`;
-    if(r.ueberSoll) return `<span class="flag">über Soll</span>`;
-    if(r.unterSoll) return `<span class="flag lo">fehlen ${dec(r.soll - r.hours)} Std.</span>`;
-    return "";
-  };
+
+  const zeile = r => `<li class="${r.over || r.ueberSoll ? "over" : ""}">
+      <span class="nm">${esc(r.name)}${hinweis(r)}</span>
+      <span class="det">
+        <span class="num">${links(r)}</span>
+        ${rechts(r)}
+      </span>
+    </li>`;
 
   return `<div class="card panel" style="margin-top:16px">
     <h2>Stunden- und Schichtverteilung</h2>
     <p>Anzeige über verteilte Stunden und Schichten. ${einleitung}
        Bei Festanstellung zählen die Vertragsstunden aus dem Team.
        Diese Übersicht sieht nur der Administrator.</p>
-    <ul class="list paylist">${rows.map(r => `<li class="${r.over || r.ueberSoll ? "over" : ""}">
-      <span class="nm">${esc(r.name)}${kennzeichen(r)}</span>
-      <div class="grow"></div>
-      <span class="num">${r.shifts} Schichten · ${dec(r.hours)} Std.${
-        r.hSL ? ` · <span class="slh">${dec(r.hSL)} Std. SL</span>` : ""}</span>
-      ${rechts(r)}
-    </li>`).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
+    <ul class="list paylist">${
+      rows.map(zeile).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
   </div>`;
 }
 
-function adminTeam(){
-  const sw = (label, act, id, an, aus, titel) => `
+/* Ein Schalter in der Personenkarte */
+function teamSwitch(label, act, id, an, aus, titel){
+  return `
     <label class="sw"${titel ? ` title="${esc(titel)}"` : ""}>
       <span class="sw-t">${esc(label)}</span>
       <input type="checkbox" data-act="${act}" data-emp="${id}" ${an ? "checked" : ""} ${aus ? "disabled" : ""}>
       <span class="sw-b"></span>
     </label>`;
+}
+
+/* Kopfzeile einer Personenkarte: Griff, Name, Kennzeichen, Zustand */
+function personHeader(p, allein){
+  const self  = p.id === me.id;
+  const buero = p.role === "admin";
+  const a     = availOf(p.id);
+
+  const griff = allein ? "" : `<span class="grip" draggable="true" data-drag="person" data-emp="${p.id}"
+      title="Ziehen, um die Reihenfolge innerhalb der Gruppe zu ändern">⠿</span>`;
+
+  const name = ui.renaming === p.id
+    ? `<form class="renameform" data-form="rename" data-emp="${p.id}">
+         <input name="name" value="${esc(p.name)}" autocapitalize="words" aria-label="Name">
+         <button class="btn sm primary" type="submit">Übernehmen</button>
+         <button class="btn sm" type="button" data-act="cancelrename">Abbrechen</button>
+       </form>`
+    : `<span class="n">${esc(p.name)}</span>
+       <button class="iconbtn" data-act="rename" data-emp="${p.id}"
+         aria-label="Namen ändern" title="Namen ändern">✎</button>
+       ${self ? `<span class="tiny muted">(du)</span>` : ""}
+       ${buero ? `<span class="status">Admin</span>` : ""}
+       ${!buero && p.can_lead ? `<span class="status" title="Kommt als Schichtleitung in Frage">SL</span>` : ""}`;
+
+  /* Das Büro steht nicht im Dienstplan, dort wäre ein Zustand sinnlos */
+  const zustand = buero && p.active ? ""
+    : `<span class="status stat ${p.active && p.schedulable && a.confirmed ? "yes" : ""}">${
+        !p.active ? "inaktiv" : !p.schedulable ? "nicht im Plan" : a.confirmed ? "bestätigt" : "offen"}</span>`;
+
+  const wiederOeffnen = p.active && p.schedulable && a.confirmed
+    ? `<button class="btn sm ropen" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : "";
+
+  return `<div class="ph">${griff}${name}<span class="grow"></span>${zustand}${wiederOeffnen}</div>`;
+}
+
+/* Schalter einer Personenkarte. Beim Admin bleiben nur die beiden,
+   die dort überhaupt eine Bedeutung haben. */
+function personSwitches(p){
+  const self = p.id === me.id;
+  const rows = [
+    teamSwitch("Aktiv", "toggleactive", p.id, p.active, self,
+      self ? "Das eigene Konto lässt sich nicht deaktivieren" : ""),
+    teamSwitch("Admin", "askrole", p.id, p.role === "admin", self,
+      self ? "Den eigenen Adminzugang kannst du dir nicht entziehen" : "")
+  ];
+
+  if(p.role !== "admin"){
+    rows.push(teamSwitch("Wird eingeplant", "toggleplan", p.id, p.schedulable, false,
+      "Taucht in der Planung auf"));
+    rows.push(teamSwitch("Schichtleiter", "togglelead", p.id, p.can_lead, false,
+      "Kommt als Schichtleitung in Frage"));
+    rows.push(teamSwitch("Minijob", "toggleminijob", p.id, p.minijob, !config.limitOn,
+      config.limitOn ? "Verdienstgrenze wird für diese Person überwacht"
+                     : "Die Grenzüberwachung ist in den Einstellungen abgeschaltet"));
+    if(!p.minijob) rows.push(`
+      <label class="swnum" title="Stunden, die diese Person im Monat erreichen soll">
+        <span class="t">Vertragsstunden</span>
+        <input type="text" inputmode="decimal" data-soll="${p.id}"
+          value="${p.soll ? dec(p.soll) : ""}" placeholder="0,0" aria-label="Vertragsstunden im Monat">
+        <span class="e">Std./Monat</span>
+      </label>`);
+  }
+  return `<div class="pswitches">${rows.join("")}</div>`;
+}
+
+function adminTeam(){
+  /* Die Liste steht bereits gruppiert da — hier nur noch die Köpfe setzen */
+  const gruppengroesse = {};
+  people.forEach(p => { gruppengroesse[personRank(p)] = (gruppengroesse[personRank(p)] || 0) + 1; });
+
+  let letzterRang = -1;
+  const karten = people.map(p => {
+    const rang = personRank(p);
+    const kopf = rang === letzterRang ? "" : `<p class="grp">${esc(GRUPPEN[rang])}</p>`;
+    letzterRang = rang;
+    return kopf + `<div class="pcard ${p.active ? "" : "off"}" data-drop="person" data-emp="${p.id}">
+        ${personHeader(p, gruppengroesse[rang] < 2)}
+        ${personSwitches(p)}
+      </div>`;
+  }).join("");
 
   return `
   <div class="card panel">
@@ -1259,88 +1329,23 @@ function adminTeam(){
        „Add user“ mit Startpasswort. Nach der ersten Anmeldung erscheinen sie hier.</p>
     ${ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : ""}
 
-    ${(() => {
-      const gruppen = {};
-      people.forEach(p => { (gruppen[personRank(p)] = gruppen[personRank(p)] || []).push(p); });
-      let letzterRang = -1;
-
-      return people.map(p => {
-      const self = p.id === me.id;
-      const a = availOf(p.id);
-      const rang = personRank(p);
-      const gr = gruppen[rang];
-      const i = gr.indexOf(p);
-      const buero = p.role === "admin";
-      const kopf = rang === letzterRang ? "" : `<p class="grp">${esc(GRUPPEN[rang])}</p>`;
-      letzterRang = rang;
-
-      /* Reihenfolge ändern: am Rechner ziehen, am Handy tippen */
-      const ordnen = gr.length < 2 ? "" : `
-          <span class="ord">
-            <span class="grip" draggable="true" data-drag="person" data-emp="${p.id}"
-              title="Ziehen, um die Reihenfolge innerhalb der Gruppe zu ändern">⠿</span>
-            <button class="iconbtn" data-act="moveup" data-emp="${p.id}" ${i === 0 ? "disabled" : ""}
-              aria-label="${esc(p.name)} eine Position nach oben" title="Eine Position nach oben">▲</button>
-            <button class="iconbtn" data-act="movedown" data-emp="${p.id}" ${i === gr.length - 1 ? "disabled" : ""}
-              aria-label="${esc(p.name)} eine Position nach unten" title="Eine Position nach unten">▼</button>
-          </span>`;
-
-      return kopf + `<div class="pcard ${p.active ? "" : "off"}" data-drop="person" data-emp="${p.id}">
-        <div class="ph">
-          ${ordnen}
-          ${ui.renaming === p.id ? `
-            <form class="renameform" data-form="rename" data-emp="${p.id}">
-              <input name="name" value="${esc(p.name)}" autocapitalize="words" aria-label="Name">
-              <button class="btn sm primary" type="submit">Übernehmen</button>
-              <button class="btn sm" type="button" data-act="cancelrename">Abbrechen</button>
-            </form>` : `
-            <span class="n">${esc(p.name)}</span>
-            <button class="iconbtn" data-act="rename" data-emp="${p.id}"
-              aria-label="Namen ändern" title="Namen ändern">✎</button>
-            ${self ? `<span class="tiny muted">(du)</span>` : ""}
-            ${buero ? `<span class="status adm">Admin</span>` : ""}
-            ${!buero && p.can_lead ? `<span class="status sl" title="Kommt als Schichtleitung in Frage">SL</span>` : ""}`}
-          <span class="grow"></span>
-          ${buero && p.active ? "" : `<span class="status stat ${!p.active || !p.schedulable ? "" : a.confirmed ? "yes" : ""}">${
-            !p.active ? "inaktiv" : !p.schedulable ? "nicht im Plan" : a.confirmed ? "bestätigt" : "offen"}</span>`}
-          ${p.active && p.schedulable && a.confirmed
-            ? `<button class="btn sm ropen" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : ""}
-        </div>
-        <div class="pswitches">
-          ${sw("Aktiv", "toggleactive", p.id, p.active, self, self ? "Das eigene Konto lässt sich nicht deaktivieren" : "")}
-          ${sw("Admin", "askrole", p.id, p.role === "admin", self, self ? "Den eigenen Adminzugang kannst du dir nicht entziehen" : "")}
-          ${buero ? "" : `
-          ${sw("Wird eingeplant", "toggleplan", p.id, p.schedulable, false, "")}
-          ${sw("Schichtleiter", "togglelead", p.id, p.can_lead, false, "Kommt als Schichtleitung in Frage")}
-          ${sw("Minijob", "toggleminijob", p.id, p.minijob, !config.limitOn,
-               config.limitOn ? "Verdienstgrenze wird für diese Person überwacht" : "Die Grenzüberwachung ist in den Einstellungen abgeschaltet")}
-          ${p.minijob ? "" : `
-          <label class="swnum" title="Stunden, die diese Person im Monat erreichen soll">
-            <span class="t">Vertragsstunden</span>
-            <input type="text" inputmode="decimal" data-soll="${p.id}" value="${p.soll ? dec(p.soll) : ""}" placeholder="0,0" aria-label="Vertragsstunden im Monat">
-            <span class="e">Std./Monat</span>
-          </label>`}`}
-        </div>
-      </div>`;
-      }).join("");
-    })() || `<p class="muted">Noch niemand eingeladen.</p>`}
+    ${karten || `<p class="muted">Noch niemand eingeladen.</p>`}
 
     <p class="tiny muted" style="margin:14px 0 0">
-      Die Liste ist in vier Blöcke geteilt: Admin, Festangestellte, Minijob und alles, was nicht eingeplant wird.
-      Innerhalb eines Blocks bestimmst du die Reihenfolge selbst — am Rechner mit dem Griff <b>⠿</b> links
-      neben dem Namen, am Handy mit den Pfeilen <b>▲▼</b> rechts. In dieser Reihenfolge stehen die Leute dann
+      Die Liste ist in vier Blöcke geteilt: Admin, Festangestellte, Minijob und alles, was nicht eingeplant
+      wird. Innerhalb eines Blocks kannst du am Rechner die Reihenfolge selbst bestimmen — dazu die Karte am
+      Griff <b>⠿</b> links neben dem Namen an ihren Platz ziehen. In dieser Reihenfolge stehen die Leute dann
       auch in der Auswahlliste beim Planen und in der Liste der Eintragungen.
       <br><br>
       <b>Aktiv</b> aus nimmt jemanden ganz heraus, der Zugang bleibt bestehen; endgültig gelöscht wird ein Konto im
       Supabase-Dashboard. Über das Stiftsymbol änderst du den Namen einer Person — so steht er später im
       ausgedruckten Dienstplan. <b>Admin</b> gibt Zugriff auf Planung, Löhne und Freigabe und nimmt die Person aus dem
-      Dienstplan — den eigenen Zugang kannst du dir nicht
-      entziehen, und der letzte verbliebene bleibt bestehen. <b>Wird eingeplant</b> entscheidet, ob jemand im
-      Dienstplan auftaucht. <b>Schichtleiter</b> entscheidet, wer die Schichtleitung übernehmen darf — nur diese
-      Leute lassen sich im Plan mit SL kennzeichnen. <b>Minijob</b> an heißt, die Verdienstgrenze wird für diese
-      Person überwacht. Ist er aus, trägst du stattdessen die <b>Vertragsstunden</b> ein — die Planung sorgt
-      dafür, dass die Person diese Stunden im Monat erreicht, und warnt, wenn sie darüber hinausgeht.
-      0 heißt: kein Soll hinterlegt.
+      Dienstplan — den eigenen Zugang kannst du dir nicht entziehen, und der letzte verbliebene bleibt bestehen.
+      <b>Wird eingeplant</b> entscheidet, ob jemand im Dienstplan auftaucht. <b>Schichtleiter</b> entscheidet, wer
+      die Schichtleitung übernehmen darf — nur diese Leute lassen sich im Plan mit SL kennzeichnen.
+      <b>Minijob</b> an heißt, die Verdienstgrenze wird für diese Person überwacht. Ist er aus, trägst du
+      stattdessen die <b>Vertragsstunden</b> ein — die Planung sorgt dafür, dass die Person diese Stunden im
+      Monat erreicht, und warnt, wenn sie darüber hinausgeht. 0 heißt: kein Soll hinterlegt.
     </p>
   </div>`;
 }
@@ -1361,7 +1366,7 @@ function adminSettings(){
       <label for="lim-on">Grenze überwachen und beim Überschreiten rot markieren</label>
     </div>
     ${config.limitOn ? `
-      <div style="max-width:240px">
+      <div>
         <label class="lbl" for="w-l">Grenze pro Monat</label>
         <input class="field" id="w-l" inputmode="decimal" data-cfg="limit" value="${dec(config.limit,2)}">
       </div>
@@ -1792,10 +1797,11 @@ async function handleClick(e){
       const p = people.find(x => x.id === el.dataset.emp);
       if(!p || p.id === me.id) return;
       const zu = p.role === "admin" ? "staff" : "admin";
+      /* ask() maskiert selbst — der Name geht hier unverändert hinein */
       ask(zu === "admin"
-        ? esc(p.name) + " den Adminzugang geben? Damit sieht die Person Planung, Löhne und Freigabe "
+        ? p.name + " den Adminzugang geben? Damit sieht die Person Planung, Löhne und Freigabe "
           + "und wird nicht mehr eingeplant. Schon eingetragene Schichten bleiben stehen."
-        : esc(p.name) + " den Adminzugang entziehen? Die Person sieht danach nur noch den eigenen "
+        : p.name + " den Adminzugang entziehen? Die Person sieht danach nur noch den eigenen "
           + "Kalender und wird wieder eingeplant.",
         zu === "admin" ? "Zugang geben" : "Zugang entziehen",
         async () => {
@@ -1850,8 +1856,6 @@ async function handleClick(e){
       for(const id of weg) await write(sb.from("shifts").update({is_lead:false}).eq("id", id));
       return;
     }
-    case "moveup":   await movePerson(el.dataset.emp, -1); return;
-    case "movedown": await movePerson(el.dataset.emp,  1); return;
     case "rename": ui.renaming = el.dataset.emp; ui.formError = ""; render(); return;
     case "cancelrename": ui.renaming = null; render(); return;
     case "reopen": {
@@ -1955,20 +1959,20 @@ function onDragStart(e){
   }catch(err){}
 }
 function onDragEnd(){
-  document.querySelectorAll(".drag").forEach(el => el.classList.remove("drag"));
-  document.querySelectorAll(".slot.over").forEach(el => el.classList.remove("over"));
   dragData = null;
-  ziehenAus();
+  spurenWeg();
 }
 
-/* Ablegemarkierung an den Personenkarten */
+/* Nur die Ablegelinie, die beim Überfahren mitwandert */
 function markenWeg(){
   document.querySelectorAll(".pcard.dropbefore, .pcard.dropafter")
     .forEach(el => el.classList.remove("dropbefore", "dropafter"));
 }
-function ziehenAus(){
+/* Alles, was ein Zug am Bildschirm hinterlässt */
+function spurenWeg(){
   markenWeg();
-  document.querySelectorAll(".pcard.dragging").forEach(el => el.classList.remove("dragging"));
+  document.querySelectorAll(".drag, .slot.over, .pcard.dragging")
+    .forEach(el => el.classList.remove("drag", "over", "dragging"));
 }
 const untereHaelfte = (el, y) => {
   const r = el.getBoundingClientRect();
@@ -2008,7 +2012,7 @@ async function onDrop(e){
 
   if(dragData.art === "person"){
     const karte = zielKarte(e);
-    ziehenAus();
+    spurenWeg();
     if(!karte) return;
     e.preventDefault();
     const von = dragData.empId;
