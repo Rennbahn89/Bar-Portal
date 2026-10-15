@@ -314,6 +314,31 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .pcard.off{opacity:.55}
 .pcard .ph{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px}
 .pcard .ph .n{font-weight:700; font-size:16px}
+/* Zustand und Knopf bleiben rechts, auch wenn die Zeile umbricht */
+.pcard .ph .stat, .pcard .ph .ropen{margin-left:auto}
+
+/* Gruppenkopf in der Teamliste */
+.grp{font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); margin:10px 0 7px; display:flex; align-items:center; gap:9px}
+.pcard + .grp{margin-top:18px}
+.grp::after{content:""; height:1px; flex:1; background:var(--line)}
+
+/* Reihenfolge ändern: Griff zum Ziehen, Pfeile zum Tippen */
+.grip{flex:none; cursor:grab; color:var(--ink-3); font-size:15px; line-height:1;
+  padding:3px 2px; touch-action:none; user-select:none}
+.grip:active{cursor:grabbing}
+.grip:hover{color:var(--ink-2)}
+/* Am Touchgerät gibt es kein Ziehen, dort zählen nur die Pfeile */
+@media (hover:none){ .grip{display:none} }
+.ord{flex:none; display:flex; align-items:center; gap:1px; margin:0 2px 0 -4px}
+.ord .iconbtn{font-size:10px; padding:0; width:28px; height:28px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center}
+.ord .iconbtn:hover:not(:disabled){background:var(--surface-2)}
+.iconbtn:disabled{opacity:.25; cursor:default}
+.iconbtn:disabled:hover{color:var(--ink-3)}
+.pcard.dragging{opacity:.4}
+.pcard.dropbefore{box-shadow:inset 0 3px 0 0 var(--accent)}
+.pcard.dropafter{box-shadow:inset 0 -3px 0 0 var(--accent)}
 .pswitches{display:flex; flex-direction:column; max-width:390px; margin-top:6px}
 .renameform{display:flex; align-items:center; gap:6px; flex:1; min-width:0}
 .renameform input{flex:1; min-width:0; padding:6px 9px; font-size:15px; font-weight:600;
@@ -418,6 +443,8 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .tpl .times{grid-column:1 / 2; grid-row:2}
   .tpl .rm{grid-column:2 / 3; grid-row:2}
   .paylist .pay{min-width:0}
+  .ord{margin-left:-6px}
+  .ord .iconbtn{width:30px; height:30px}
   .sync{display:none}
   main{padding-bottom:120px}
 }
@@ -467,7 +494,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "15.10.2026 um 14:15 Uhr";
+const PATCH_AM  = "15.10.2026 um 14:55 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -562,6 +589,84 @@ function hoursOf(sh){
 const isAdmin = () => !!me && me.role === "admin";
 const personName = id => { const p = people.find(x => x.id === id); return p ? p.name : "?"; };
 const teamList = () => people.filter(p => p.active && p.schedulable);
+
+/* ------------------------------------------------------------
+   Reihenfolge der Teamliste
+
+   Vier feste Gruppen, innerhalb einer Gruppe entscheidet die
+   selbst gewählte Reihenfolge (sort_pos), und solange dort
+   nichts hinterlegt ist, der Name.
+   ------------------------------------------------------------ */
+const GRUPPEN = ["Admin", "Festangestellte", "Minijob", "Nicht eingeplant"];
+
+function personRank(p){
+  if(p.role === "admin") return 0;            // Admin bleibt ganz oben
+  if(!p.active || !p.schedulable) return 3;   // nicht eingeplant oder inaktiv ganz unten
+  if(!p.minijob) return 1;                    // Festangestellte
+  return 2;                                   // Minijob
+}
+
+/* 0 heißt „noch nie von Hand einsortiert“. Solche Leute stehen am Ende
+   ihrer Gruppe, nach Namen sortiert — ein neues Konto wirft damit keine
+   einmal festgelegte Reihenfolge durcheinander. */
+const posOf = p => Number(p.pos) > 0 ? Number(p.pos) : Infinity;
+
+function sortPeople(){
+  people.sort((a, b) =>
+    personRank(a) - personRank(b)
+    || posOf(a) - posOf(b)
+    || String(a.name).localeCompare(String(b.name), "de"));
+}
+
+/* Lückenlos durchnummerieren. Gibt die Personen zurück, deren
+   Nummer sich dabei geändert hat — nur die müssen gespeichert
+   werden. Beim ersten Verschieben ist das die ganze Liste. */
+function renumberPeople(){
+  const geaendert = [];
+  people.forEach((p, i) => { if(p.pos !== i + 1){ p.pos = i + 1; geaendert.push(p); } });
+  return geaendert;
+}
+
+async function writePos(liste){
+  for(const p of liste) await write(sb.from("profiles").update({sort_pos:p.pos}).eq("id", p.id));
+}
+
+/* Eine Person um einen Platz innerhalb ihrer Gruppe bewegen */
+async function movePerson(id, dir){
+  const p = people.find(x => x.id === id);
+  if(!p) return;
+  const dirty = new Set(renumberPeople());
+  const grp = people.filter(x => personRank(x) === personRank(p));
+  const i = grp.indexOf(p), j = i + dir;
+  if(j >= 0 && j < grp.length){
+    const q = grp[j];
+    const t = p.pos; p.pos = q.pos; q.pos = t;
+    dirty.add(p); dirty.add(q);
+    sortPeople();
+  }
+  if(!dirty.size) return;
+  render();
+  await writePos([...dirty]);
+}
+
+/* Person an die Stelle einer anderen ziehen. Nur innerhalb einer
+   Gruppe, damit die Einteilung Admin / Fest / Minijob / außen
+   nicht durch Ziehen umgangen wird. */
+async function dropPerson(dragId, zielId, danach){
+  const p = people.find(x => x.id === dragId);
+  const q = people.find(x => x.id === zielId);
+  if(!p || !q || p === q || personRank(p) !== personRank(q)) return;
+  const dirty = new Set(renumberPeople());
+  const liste = people.slice();
+  liste.splice(liste.indexOf(p), 1);
+  liste.splice(liste.indexOf(q) + (danach ? 1 : 0), 0, p);
+  liste.forEach((x, i) => { if(x.pos !== i + 1){ x.pos = i + 1; dirty.add(x); } });
+  people = liste;
+  sortPeople();
+  if(!dirty.size) return;
+  render();
+  await writePos([...dirty]);
+}
 
 /* Ruhetag, solange das Büro den Monat noch nicht angelegt hat */
 const closedByTemplate = wd => !(templates[wd] && templates[wd].length);
@@ -663,7 +768,7 @@ async function loadAll(depth){
   const admin = isAdmin();
 
   const r = await Promise.all([
-    sb.from("profiles").select("id,name,role,active,schedulable,can_lead").order("name"),
+    sb.from("profiles").select("id,name,role,active,schedulable,can_lead,sort_pos").order("name"),
     sb.from("shift_templates").select("weekday,pos,label,starts,ends").order("weekday").order("pos"),
     sb.from("months").select("ym,published").eq("ym", ym).maybeSingle(),
     sb.from("days").select("ym,day,closed,note").eq("ym", ym),
@@ -681,8 +786,10 @@ async function loadAll(depth){
   (r[7].data || []).forEach(f => { flags[f.user_id] = f; });
   people = (r[0].data || []).map(p => Object.assign({}, p, {
     minijob: flags[p.id] ? !!flags[p.id].minijob : true,
-    soll: flags[p.id] ? Number(flags[p.id].target_hours) || 0 : 0
+    soll: flags[p.id] ? Number(flags[p.id].target_hours) || 0 : 0,
+    pos: Number(p.sort_pos) || 0
   }));
+  sortPeople();
 
   templates = {};
   (r[1].data || []).forEach(t => {
@@ -1152,11 +1259,35 @@ function adminTeam(){
        „Add user“ mit Startpasswort. Nach der ersten Anmeldung erscheinen sie hier.</p>
     ${ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : ""}
 
-    ${people.map(p => {
+    ${(() => {
+      const gruppen = {};
+      people.forEach(p => { (gruppen[personRank(p)] = gruppen[personRank(p)] || []).push(p); });
+      let letzterRang = -1;
+
+      return people.map(p => {
       const self = p.id === me.id;
       const a = availOf(p.id);
-      return `<div class="pcard ${p.active ? "" : "off"}">
+      const rang = personRank(p);
+      const gr = gruppen[rang];
+      const i = gr.indexOf(p);
+      const buero = p.role === "admin";
+      const kopf = rang === letzterRang ? "" : `<p class="grp">${esc(GRUPPEN[rang])}</p>`;
+      letzterRang = rang;
+
+      /* Reihenfolge ändern: am Rechner ziehen, am Handy tippen */
+      const ordnen = gr.length < 2 ? "" : `
+          <span class="ord">
+            <span class="grip" draggable="true" data-drag="person" data-emp="${p.id}"
+              title="Ziehen, um die Reihenfolge innerhalb der Gruppe zu ändern">⠿</span>
+            <button class="iconbtn" data-act="moveup" data-emp="${p.id}" ${i === 0 ? "disabled" : ""}
+              aria-label="${esc(p.name)} eine Position nach oben" title="Eine Position nach oben">▲</button>
+            <button class="iconbtn" data-act="movedown" data-emp="${p.id}" ${i === gr.length - 1 ? "disabled" : ""}
+              aria-label="${esc(p.name)} eine Position nach unten" title="Eine Position nach unten">▼</button>
+          </span>`;
+
+      return kopf + `<div class="pcard ${p.active ? "" : "off"}" data-drop="person" data-emp="${p.id}">
         <div class="ph">
+          ${ordnen}
           ${ui.renaming === p.id ? `
             <form class="renameform" data-form="rename" data-emp="${p.id}">
               <input name="name" value="${esc(p.name)}" autocapitalize="words" aria-label="Name">
@@ -1167,17 +1298,18 @@ function adminTeam(){
             <button class="iconbtn" data-act="rename" data-emp="${p.id}"
               aria-label="Namen ändern" title="Namen ändern">✎</button>
             ${self ? `<span class="tiny muted">(du)</span>` : ""}
-            ${p.role === "admin" ? `<span class="status adm">Admin</span>` : ""}
-            ${p.can_lead ? `<span class="status">Schichtleiter</span>` : ""}`}
+            ${buero ? `<span class="status adm">Admin</span>` : ""}
+            ${!buero && p.can_lead ? `<span class="status sl" title="Kommt als Schichtleitung in Frage">SL</span>` : ""}`}
           <span class="grow"></span>
-          <span class="status ${!p.active || !p.schedulable ? "" : a.confirmed ? "yes" : ""}">${
-            !p.active ? "inaktiv" : !p.schedulable ? "nicht im Plan" : a.confirmed ? "bestätigt" : "offen"}</span>
+          ${buero && p.active ? "" : `<span class="status stat ${!p.active || !p.schedulable ? "" : a.confirmed ? "yes" : ""}">${
+            !p.active ? "inaktiv" : !p.schedulable ? "nicht im Plan" : a.confirmed ? "bestätigt" : "offen"}</span>`}
           ${p.active && p.schedulable && a.confirmed
-            ? `<button class="btn sm" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : ""}
+            ? `<button class="btn sm ropen" data-act="reopen" data-emp="${p.id}">Wieder öffnen</button>` : ""}
         </div>
         <div class="pswitches">
           ${sw("Aktiv", "toggleactive", p.id, p.active, self, self ? "Das eigene Konto lässt sich nicht deaktivieren" : "")}
           ${sw("Admin", "askrole", p.id, p.role === "admin", self, self ? "Den eigenen Adminzugang kannst du dir nicht entziehen" : "")}
+          ${buero ? "" : `
           ${sw("Wird eingeplant", "toggleplan", p.id, p.schedulable, false, "")}
           ${sw("Schichtleiter", "togglelead", p.id, p.can_lead, false, "Kommt als Schichtleitung in Frage")}
           ${sw("Minijob", "toggleminijob", p.id, p.minijob, !config.limitOn,
@@ -1187,15 +1319,22 @@ function adminTeam(){
             <span class="t">Vertragsstunden</span>
             <input type="text" inputmode="decimal" data-soll="${p.id}" value="${p.soll ? dec(p.soll) : ""}" placeholder="0,0" aria-label="Vertragsstunden im Monat">
             <span class="e">Std./Monat</span>
-          </label>`}
+          </label>`}`}
         </div>
       </div>`;
-    }).join("") || `<p class="muted">Noch niemand eingeladen.</p>`}
+      }).join("");
+    })() || `<p class="muted">Noch niemand eingeladen.</p>`}
 
     <p class="tiny muted" style="margin:14px 0 0">
+      Die Liste ist in vier Blöcke geteilt: Admin, Festangestellte, Minijob und alles, was nicht eingeplant wird.
+      Innerhalb eines Blocks bestimmst du die Reihenfolge selbst — am Rechner mit dem Griff <b>⠿</b> links
+      neben dem Namen, am Handy mit den Pfeilen <b>▲▼</b> rechts. In dieser Reihenfolge stehen die Leute dann
+      auch in der Auswahlliste beim Planen und in der Liste der Eintragungen.
+      <br><br>
       <b>Aktiv</b> aus nimmt jemanden ganz heraus, der Zugang bleibt bestehen; endgültig gelöscht wird ein Konto im
       Supabase-Dashboard. Über das Stiftsymbol änderst du den Namen einer Person — so steht er später im
-      ausgedruckten Dienstplan. <b>Admin</b> gibt Zugriff auf Planung, Löhne und Freigabe — den eigenen kannst du dir nicht
+      ausgedruckten Dienstplan. <b>Admin</b> gibt Zugriff auf Planung, Löhne und Freigabe und nimmt die Person aus dem
+      Dienstplan — den eigenen Zugang kannst du dir nicht
       entziehen, und der letzte verbliebene bleibt bestehen. <b>Wird eingeplant</b> entscheidet, ob jemand im
       Dienstplan auftaucht. <b>Schichtleiter</b> entscheidet, wer die Schichtleitung übernehmen darf — nur diese
       Leute lassen sich im Plan mit SL kennzeichnen. <b>Minijob</b> an heißt, die Verdienstgrenze wird für diese
@@ -1654,13 +1793,17 @@ async function handleClick(e){
       if(!p || p.id === me.id) return;
       const zu = p.role === "admin" ? "staff" : "admin";
       ask(zu === "admin"
-        ? esc(p.name) + " den Adminzugang geben? Damit sieht die Person Planung, Löhne und Freigabe."
-        : esc(p.name) + " den Adminzugang entziehen? Die Person sieht danach nur noch den eigenen Kalender.",
+        ? esc(p.name) + " den Adminzugang geben? Damit sieht die Person Planung, Löhne und Freigabe "
+          + "und wird nicht mehr eingeplant. Schon eingetragene Schichten bleiben stehen."
+        : esc(p.name) + " den Adminzugang entziehen? Die Person sieht danach nur noch den eigenen "
+          + "Kalender und wird wieder eingeplant.",
         zu === "admin" ? "Zugang geben" : "Zugang entziehen",
         async () => {
           p.role = zu;
+          p.schedulable = zu !== "admin";          // Büro steht nicht im Dienstplan
+          sortPeople();
           render();
-          await write(sb.from("profiles").update({role:zu}).eq("id", p.id));
+          await write(sb.from("profiles").update({role:zu, schedulable:p.schedulable}).eq("id", p.id));
         });
       return;
     }
@@ -1668,6 +1811,7 @@ async function handleClick(e){
       const p = people.find(x => x.id === el.dataset.emp);
       if(!p) return;
       p.active = !p.active;
+      sortPeople();
       render();
       await write(sb.from("profiles").update({active:p.active}).eq("id", p.id));
       return;
@@ -1676,6 +1820,7 @@ async function handleClick(e){
       const p = people.find(x => x.id === el.dataset.emp);
       if(!p) return;
       p.schedulable = !p.schedulable;
+      sortPeople();
       render();
       await write(sb.from("profiles").update({schedulable:p.schedulable}).eq("id", p.id));
       return;
@@ -1684,6 +1829,7 @@ async function handleClick(e){
       const p = people.find(x => x.id === el.dataset.emp);
       if(!p) return;
       p.minijob = !p.minijob;
+      sortPeople();
       render();
       await write(sb.from("payroll_flags").upsert(
         {user_id:p.id, minijob:p.minijob, target_hours:p.soll || 0}, {onConflict:"user_id"}));
@@ -1704,6 +1850,8 @@ async function handleClick(e){
       for(const id of weg) await write(sb.from("shifts").update({is_lead:false}).eq("id", id));
       return;
     }
+    case "moveup":   await movePerson(el.dataset.emp, -1); return;
+    case "movedown": await movePerson(el.dataset.emp,  1); return;
     case "rename": ui.renaming = el.dataset.emp; ui.formError = ""; render(); return;
     case "cancelrename": ui.renaming = null; render(); return;
     case "reopen": {
@@ -1789,8 +1937,18 @@ function handleSlotTap(e){
 function onDragStart(e){
   const chip = e.target.closest("[draggable='true']");
   if(!chip) return;
-  dragData = {empId: chip.dataset.emp, from: chip.dataset.from || null};
-  chip.classList.add("drag");
+  const art = chip.dataset.drag === "person" ? "person" : "schicht";
+  dragData = {art, empId: chip.dataset.emp, from: chip.dataset.from || null};
+  if(art === "person"){
+    const karte = chip.closest(".pcard");
+    if(karte){
+      /* Die ganze Karte als Schattenbild, nicht nur der kleine Griff */
+      try{ e.dataTransfer.setDragImage(karte, 24, 18); }catch(err){}
+      karte.classList.add("dragging");
+    }
+  } else {
+    chip.classList.add("drag");
+  }
   try{
     e.dataTransfer.setData("text/plain", chip.dataset.emp);
     e.dataTransfer.effectAllowed = "move";
@@ -1800,9 +1958,44 @@ function onDragEnd(){
   document.querySelectorAll(".drag").forEach(el => el.classList.remove("drag"));
   document.querySelectorAll(".slot.over").forEach(el => el.classList.remove("over"));
   dragData = null;
+  ziehenAus();
 }
+
+/* Ablegemarkierung an den Personenkarten */
+function markenWeg(){
+  document.querySelectorAll(".pcard.dropbefore, .pcard.dropafter")
+    .forEach(el => el.classList.remove("dropbefore", "dropafter"));
+}
+function ziehenAus(){
+  markenWeg();
+  document.querySelectorAll(".pcard.dragging").forEach(el => el.classList.remove("dragging"));
+}
+const untereHaelfte = (el, y) => {
+  const r = el.getBoundingClientRect();
+  return r.height > 0 && y > r.top + r.height / 2;
+};
+/* Nur innerhalb derselben Gruppe darf abgelegt werden */
+function zielKarte(e){
+  if(!dragData || dragData.art !== "person") return null;
+  const karte = e.target.closest(".pcard[data-drop='person']");
+  if(!karte || karte.dataset.emp === dragData.empId) return null;
+  const p = people.find(x => x.id === dragData.empId);
+  const q = people.find(x => x.id === karte.dataset.emp);
+  if(!p || !q || personRank(p) !== personRank(q)) return null;
+  return karte;
+}
+
 function onDragOver(e){
-  if(!dragData || !e.target.closest(".slot")) return;
+  if(!dragData) return;
+  if(dragData.art === "person"){
+    const karte = zielKarte(e);
+    if(!karte) return;
+    e.preventDefault();
+    markenWeg();
+    karte.classList.add(untereHaelfte(karte, e.clientY) ? "dropafter" : "dropbefore");
+    return;
+  }
+  if(!e.target.closest(".slot")) return;
   e.preventDefault();
   e.target.closest(".slot").classList.add("over");
 }
@@ -1811,8 +2004,21 @@ function onDragLeave(e){
   if(slot) slot.classList.remove("over");
 }
 async function onDrop(e){
+  if(!dragData) return;
+
+  if(dragData.art === "person"){
+    const karte = zielKarte(e);
+    ziehenAus();
+    if(!karte) return;
+    e.preventDefault();
+    const von = dragData.empId;
+    dragData = null;
+    await dropPerson(von, karte.dataset.emp, untereHaelfte(karte, e.clientY));
+    return;
+  }
+
   const slot = e.target.closest(".slot");
-  if(!slot || !dragData) return;
+  if(!slot) return;
   e.preventDefault();
   const day = Number(slot.dataset.day);
   const empId = dragData.empId;
@@ -1877,6 +2083,7 @@ async function onSubmit(e){
     if(!name){ ui.formError = "Der Name darf nicht leer sein."; render(); return; }
     p.name = name;
     if(p.id === me.id) me.name = name;
+    sortPeople();
     ui.renaming = null;
     ui.formError = "";
     render();
