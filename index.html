@@ -124,8 +124,15 @@ header.top{position:sticky; top:0; z-index:30; background:var(--surface); border
 .sync{font-size:12px; font-weight:600; color:var(--ink-3); white-space:nowrap}
 .sync.saving{color:var(--accent)}
 .sync.bad{color:var(--no)}
-.tabs{display:flex; gap:4px; padding:0 0 8px; overflow-x:auto; scrollbar-width:none}
+.tabs{display:flex; gap:4px; padding:0 0 8px; overflow-x:auto; scrollbar-width:none;
+  /* weicher Rand rechts, solange noch etwas kommt — sonst sieht niemand,
+     dass sich die Leiste schieben lässt */
+  scroll-snap-type:x proximity;
+  mask-image:linear-gradient(to right, #000 calc(100% - 22px), transparent);
+  -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 22px), transparent)}
+.tabs.passt{mask-image:none; -webkit-mask-image:none}
 .tabs::-webkit-scrollbar{display:none}
+.tab{scroll-snap-align:start}
 .tab{border:none; background:transparent; color:var(--ink-2); font-weight:600; font-size:14px;
   padding:7px 12px; border-radius:8px; white-space:nowrap}
 .tab[aria-selected="true"]{background:var(--surface-2); color:var(--ink)}
@@ -422,7 +429,157 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .sheet .pd-sum span{display:inline-block; margin:0 14px 4px 0}
 
 /* ============================================================
-   11 — Kleine Bildschirme
+   11 — Zeiterfassung
+   Zwei Präfixe: ze- für den Mitarbeiter und den Tages-Editor, der
+   in beiden Rollen benutzt wird, za- für das Büro. Zustände stehen
+   als is-* am Elternelement, damit keine fremde Regel hereinwirkt.
+   Alles ist für 390 px gebaut; breiter wird nur ergänzt.
+   ============================================================ */
+.ze-top{padding:12px 14px; margin-bottom:12px}
+.ze-top .ze-state{font-size:15px; font-weight:600}
+.ze-nums{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin-top:10px}
+.ze-num{background:var(--surface-2); border-radius:var(--r); padding:7px 9px; min-width:0}
+.ze-nv{display:block; font-size:17px; font-weight:700; letter-spacing:-.02em; white-space:nowrap}
+.ze-nl{display:block; font-size:11px; font-weight:600; color:var(--ink-2); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+.ze-top .pill{margin-top:10px}
+
+.ze-days{display:flex; flex-direction:column; gap:6px}
+.ze-day{background:var(--surface); border:1px solid var(--line); border-radius:var(--r)}
+.ze-day.is-plan{border-style:dashed; background:transparent}
+.ze-day.is-emp{border-color:var(--ok-line)}
+.ze-day.is-adm{border-color:var(--ok-line); background:var(--ok-soft)}
+.ze-day.is-nowork{opacity:.72}
+.ze-day.is-future{opacity:.5}
+.ze-day.is-chg{box-shadow:inset 3px 0 0 0 var(--accent)}
+.ze-day.is-open{border-color:var(--accent); border-style:solid}
+
+.ze-row{display:flex; align-items:center; gap:8px; padding:0 8px 0 11px}
+.ze-head{flex:1; min-width:0; display:flex; align-items:center; gap:10px; text-align:left;
+  background:none; border:none; color:inherit; font:inherit; padding:7px 0; min-height:56px}
+.ze-head:disabled{cursor:default}
+.ze-dt{flex:none; width:52px; font-weight:700; font-size:15px; white-space:nowrap}
+.ze-dt em{font-style:normal; color:var(--ink-2); font-weight:600; font-size:13px}
+.ze-tx{flex:1; min-width:0}
+.ze-times{display:block; font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ze-times small{font-weight:600; font-size:11.5px; color:var(--ink-2); margin-left:5px}
+.ze-sub{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ze-ok{flex:none; width:44px; height:44px; padding:0; border-radius:50%; font-size:14px; font-weight:700;
+  border:1.5px solid var(--line); background:var(--surface); color:var(--ink-3);
+  display:grid; place-items:center; line-height:1}
+.ze-ok.is-emp{border-color:var(--ok); background:var(--ok); color:var(--surface)}
+.ze-ok.is-adm{border-color:var(--ok-line); background:var(--ok-soft); color:var(--ok); cursor:default}
+.ze-ok:disabled{cursor:default}
+
+.ze-edit{display:grid; gap:10px; padding:11px 12px 12px; border-top:1px solid var(--line)}
+.ze-two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px}
+.ze-t{font-size:16px; padding:10px 8px}
+.ze-line{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.ze-line > .lbl{margin:0; flex:none; min-width:116px}
+.ze-line .btn.sm{min-height:44px; padding:6px 11px}
+.ze-spin{display:flex; align-items:center; gap:6px; margin-left:auto}
+.ze-spinb{flex:none; width:44px; height:44px; padding:0; border-radius:var(--r);
+  border:1px solid var(--line); background:var(--surface); color:var(--ink);
+  font-size:19px; font-weight:700; line-height:1}
+.ze-spinb:disabled{opacity:.35; cursor:not-allowed}
+.ze-spinv{flex:none; width:74px; text-align:center; font-size:16px; font-weight:600; padding:10px 4px;
+  border:1px solid var(--line); border-radius:var(--r); background:var(--bg); color:var(--ink)}
+.ze-spinv:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.ze-mini{font-size:12px; color:var(--ink-3); flex-basis:100%; margin:-4px 0 0}
+.ze-calc{background:var(--surface-2); border-radius:var(--r); padding:9px 11px; font-size:13.5px}
+.ze-calc b{font-size:16px}
+.ze-calc i{display:block; font-style:normal; font-size:12px; color:var(--ink-2); margin-top:2px}
+.ze-warn{display:block; color:var(--no); font-size:12.5px; font-weight:700; margin-top:3px}
+.ze-btns{display:flex; gap:8px}
+.ze-btns .btn{min-height:46px; flex:1; white-space:normal; line-height:1.2}
+.ze-btns .btn.primary{flex:2}
+.ze-diff{font-size:12.5px; line-height:1.45; background:var(--accent-soft); border:1px solid var(--line);
+  border-radius:var(--r); padding:8px 10px}
+.ze-diff b{font-weight:700}
+.ze-anote{font-size:12.5px; color:var(--ink-2); font-style:italic}
+.ze-later{font-size:13px; color:var(--ink-2); padding:10px 2px 2px}
+.ze-add{width:100%; margin-top:10px; min-height:46px}
+.ze-obj{display:grid; gap:8px; margin-bottom:12px; padding:12px 14px}
+.ze-fuss .btn{min-height:46px}
+
+/* ---- Büro ---- */
+.za-steps{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:13px}
+.za-step{border:1px solid var(--line); background:var(--surface); border-radius:var(--r);
+  padding:8px 6px; min-height:54px; color:var(--ink-2); font-size:11.5px; font-weight:600;
+  line-height:1.3; text-align:center; display:flex; flex-direction:column; justify-content:center; gap:1px}
+.za-step b{display:block; color:var(--ink); font-size:13px}
+.za-step[aria-selected="true"]{background:var(--accent-soft); border-color:var(--accent)}
+.za-step.is-done{border-color:var(--ok-line)}
+.za-step.is-done b::after{content:" ✓"; color:var(--ok)}
+
+.za-who{display:flex; flex-direction:column; gap:6px}
+.za-p{display:flex; align-items:center; gap:10px; width:100%; text-align:left; min-height:60px;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:9px 11px; color:inherit; font:inherit}
+.za-p:hover{border-color:var(--ink-3)}
+.za-pt{flex:1; min-width:0}
+.za-pn{display:block; font-weight:700; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.za-pn small{font-weight:600; font-size:12px; color:var(--ink-2)}
+.za-ps{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.za-chip{flex:none; font-size:11.5px; font-weight:700; padding:5px 9px; border-radius:999px;
+  background:var(--surface-2); color:var(--ink-2); white-space:nowrap}
+.za-chip.is-miss{background:var(--no-soft); color:var(--no)}
+.za-chip.is-check{background:var(--accent-soft); color:var(--ink)}
+.za-chip.is-done{background:var(--ok-soft); color:var(--ok)}
+
+.za-phead{display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap}
+.za-pnav{display:flex; align-items:center; gap:8px; flex:1; min-width:0}
+.za-pnav .arrow{width:46px; height:46px}
+.za-pnav .za-pname{flex:1; min-width:0; font-size:17px; font-weight:700; letter-spacing:-.02em;
+  text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.za-psum{flex-basis:100%; font-size:12.5px; color:var(--ink-2)}
+
+.za-rows{display:flex; flex-direction:column; gap:5px}
+.za-row{display:flex; align-items:center; gap:8px; background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--r); padding:5px 7px 5px 11px; min-height:62px}
+.za-row.is-adm{border-color:var(--ok-line); background:var(--ok-soft)}
+.za-row.is-miss{border-style:dashed; flex-wrap:wrap}
+.za-row.is-bad{border-color:var(--no); background:var(--no-soft)}
+.za-rb{flex:1; min-width:0; align-self:stretch; text-align:left; background:none; border:none;
+  color:inherit; font:inherit; padding:6px 0; display:flex; flex-direction:column; justify-content:center}
+.za-rb:disabled{cursor:default}
+.za-rt{display:flex; align-items:baseline; gap:9px}
+.za-rd{flex:none; width:52px; font-weight:700; font-size:14px; white-space:nowrap}
+.za-rm{flex:1; min-width:0; font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.za-rs{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.za-dev{color:var(--accent); font-weight:700}
+.za-ok{flex:none; width:52px; height:52px; padding:0; border-radius:14px; font-size:15px; font-weight:700;
+  border:1.5px solid var(--line); background:var(--surface); color:var(--ink-3);
+  display:grid; place-items:center; line-height:1}
+.za-ok.is-adm{border-color:var(--ok); background:var(--ok); color:var(--surface)}
+.za-ok:disabled{font-size:11px; font-weight:700; color:var(--ink-2); cursor:default; border-style:dashed}
+.za-acts{display:flex; gap:6px; flex:none}
+.za-acts .btn{min-height:44px; padding:6px 10px; font-size:12.5px}
+.za-foot{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px}
+.za-foot .btn{min-height:46px}
+.za-foot .grow{font-size:13px}
+
+.za-sum{margin-top:4px}
+.za-s{border-top:1px solid var(--line); padding:9px 0}
+.za-s:first-child{border-top:none}
+.za-sn{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.za-sn b{font-size:15px}
+.za-sg{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin-top:5px}
+.za-sg span{background:var(--surface-2); border-radius:8px; padding:5px 8px; font-size:12px;
+  color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.za-sg span b{display:block; color:var(--ink); font-size:14.5px}
+.za-sx{display:block; font-size:12px; color:var(--ink-3); margin-top:4px}
+.za-total{border-top:2px solid var(--line); padding-top:9px; margin-top:4px; font-weight:700}
+.za-chk{list-style:none; margin:0 0 14px; padding:0}
+.za-chk li{display:flex; gap:9px; align-items:baseline; padding:5px 0; font-size:14px}
+.za-chk li i{flex:none; font-style:normal; font-weight:700; color:var(--ink-3); width:18px}
+.za-chk li.is-done i{color:var(--ok)}
+.za-chk li span{color:var(--ink-2); font-size:12.5px; display:block}
+.za-csv{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+.za-csv .btn{flex:1; min-height:46px; min-width:140px}
+
+/* ============================================================
+   12 — Kleine Bildschirme
    ============================================================ */
 @media (max-width:760px){
   .macts{width:100%; margin-left:0}
@@ -442,10 +599,30 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .tpl .rm{grid-column:2 / 3; grid-row:2}
   .sync{display:none}
   main{padding-bottom:120px}
+  /* Zeiterfassung am Handy: Knöpfe teilen sich die Zeile, nichts ragt heraus */
+  .za-foot .btn{flex:1 1 auto; min-width:46%}
+  .za-foot .grow{flex-basis:100%}
+  .ze-line > .lbl{min-width:104px}
+  .ze-fuss{flex-wrap:wrap; row-gap:9px}
+  .ze-fuss .grow{flex-basis:100%; white-space:nowrap}
+  .ze-fuss .btn{flex:1 1 0; min-width:0; white-space:normal}
+  .za-row.is-miss .za-acts{flex-basis:100%; margin-bottom:3px}
+  .za-row.is-miss .za-acts .btn{flex:1}
+}
+
+/* Zeiterfassung am Rechner: die Liste ist Lesetext, keine Tabelle —
+   sie wird nicht auf 1240 px gestreckt. Die Büro-Zeile wird zweispaltig. */
+@media (min-width:761px){
+  .ze-top, .ze-days, .ze-later, .ze-add, .ze-obj{max-width:760px}
+  .za-rb{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:center}
+  .za-rs{padding-right:4px}
+  .za-sum, .za-chk{max-width:860px}
+  .za-step{font-size:12.5px}
+  .za-step b{font-size:14px}
 }
 
 /* ============================================================
-   12 — Druck
+   13 — Druck
    ============================================================ */
 #printRoot{display:none}
 @media print{
@@ -489,7 +666,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "15.10.2026 um 18:10 Uhr";
+const PATCH_AM  = "22.11.2026 um 19:05 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -531,7 +708,7 @@ let me = null;             // {id, name, role}
    minijob, soll und pos sieht nur das Büro; die Liste ist stets sortiert */
 let people = [];
 let templates = {};        // {wochentag: [{label, start, end}]}
-let config = {wage:0, wageSL:0, limit:0, limitOn:true};
+let config = {wage:0, wageSL:0, limit:0, limitOn:true, timeFirstYm:""};
 let month = null;          // {ym, exists, published, days:{}, avail:{}}
 let pending = null;
 let dragData = null;
@@ -551,7 +728,17 @@ const ui = {
   sheetOpen: false,
   checkOpen: true,
   jumpTo: null,
-  sync: ""
+  sync: "",
+  /* Zeiterfassung */
+  zeOpen: null,              // Datum des aufgeklappten Tages, "2026-11-16"
+  zeForm: null,              // ungespeicherter Stand des offenen Editors
+  zeAdd: false, zeNeu: "",   // Karte „zusätzlichen Tag anlegen“
+  zeExtra: null,             // {uid, ymd} — angelegter Zusatztag ohne Zeile
+  zeObj: false, zeObjText: "",
+  zaStep: "who",             // who | check | close
+  zaPerson: null,
+  zaBad: null,               // {datum: Meldung} für Zeilen, die nicht gespeichert wurden
+  zeFehler: ""               // Meldung in der Einstellung „Zeiterfassung ab Monat“
 };
 
 /* ============================================================
@@ -743,7 +930,11 @@ async function loadAll(depth){
   const ym = ui.monthKey;
   const admin = isAdmin();
 
-  const r = await Promise.all([
+  /* Die Zeiterfassung läuft in einem zweiten Bündel, parallel zum ersten:
+     so kostet sie keine zusätzliche Wartezeit, und ein Fehler dort (etwa
+     weil update-zeiterfassung.sql noch nicht eingespielt ist) hält die
+     Planung nicht auf. */
+  const [r, rz] = await Promise.all([Promise.all([
     sb.from("profiles").select("id,name,role,active,schedulable,can_lead,sort_pos").order("name"),
     sb.from("shift_templates").select("weekday,pos,label,starts,ends").order("weekday").order("pos"),
     sb.from("months").select("ym,published").eq("ym", ym).maybeSingle(),
@@ -753,7 +944,16 @@ async function loadAll(depth){
     admin ? sb.from("settings").select("wage,wage_lead,limit_amount,limit_on").eq("id", 1).maybeSingle()
           : Promise.resolve({data:null}),
     admin ? sb.from("payroll_flags").select("user_id,minijob,target_hours") : Promise.resolve({data:[]})
-  ]);
+  ]), Promise.all([
+    sb.from("time_entries").select(ZE_SPALTEN).eq("ym", ym),
+    sb.from("time_sheets").select("user_id,status,released_at,submitted_at,submitted_by,objection,reopen_reason").eq("ym", ym),
+    sb.from("time_months").select("ym,closed,closed_at,closed_by").eq("ym", ym).maybeSingle(),
+    typeof sb.rpc === "function" ? sb.rpc("time_tracking_on", {p_ym: ym}) : Promise.resolve({data:true}),
+    admin ? sb.from("time_month_rates").select("ym,wage,wage_lead,limit_amount").eq("ym", ym).maybeSingle()
+          : Promise.resolve({data:null}),
+    admin ? sb.from("settings").select("time_first_ym").eq("id", 1).maybeSingle()
+          : Promise.resolve({data:null})
+  ].map(q => Promise.resolve(q).catch(e => ({error:{message:String(e && e.message || e)}}))))]);
 
   const bad = r.find(x => x && x.error);
   if(bad){ console.error(bad.error); ui.formError = "Laden fehlgeschlagen: " + bad.error.message; }
@@ -780,7 +980,8 @@ async function loadAll(depth){
       wage: Number(r[6].data.wage),
       wageSL: Number(r[6].data.wage_lead),
       limit: Number(r[6].data.limit_amount),
-      limitOn: r[6].data.limit_on
+      limitOn: r[6].data.limit_on,
+      timeFirstYm: config.timeFirstYm || ""
     };
   }
 
@@ -792,6 +993,25 @@ async function loadAll(depth){
   });
   (r[5].data || []).forEach(a => {
     month.avail[a.user_id] = {off:(a.off_days || []).map(Number), confirmed:a.confirmed};
+  });
+
+  /* Zeiterfassung. Fehlt die Erweiterung in der Datenbank noch, bleibt der
+     Reiter leer statt die Planung mitzureißen. */
+  const badZ = rz.find(x => x && x.error);
+  if(badZ) console.warn("Zeiterfassung nicht geladen:", badZ.error.message);
+  if(rz[5] && rz[5].data) config.timeFirstYm = rz[5].data.time_first_ym || "";
+  month.time = {
+    on: badZ ? true : rz[3].data !== false,
+    closed: !!(rz[2].data && rz[2].data.closed),
+    closed_at: rz[2].data ? rz[2].data.closed_at : null,
+    closed_by: rz[2].data ? rz[2].data.closed_by : null,
+    rates: rz[4] && rz[4].data ? rz[4].data : null,
+    sheets: {}, entries: {}
+  };
+  (rz[1].data || []).forEach(s => { month.time.sheets[s.user_id] = s; });
+  (rz[0].data || []).forEach(e => {
+    const d = Number(String(e.work_date).slice(8, 10));
+    (month.time.entries[e.user_id] = month.time.entries[e.user_id] || {})[d] = e;
   });
 
   /* Büro öffnet einen noch nicht angelegten Monat: aus den Vorlagen aufbauen */
@@ -925,12 +1145,14 @@ function monthBar(actions){
    Mitarbeiteransicht
    ============================================================ */
 function viewStaff(){
-  const tabs = [{id:"avail", label:"Meine Verfügbarkeit"}];
+  const tabs = [{id:"avail", label:"Verfügbarkeit"}];
   if(month.published) tabs.push({id:"plan", label:"Dienstplan"});
-  tabs.push({id:"account", label:"Mein Konto"});
+  tabs.push({id:"time", label:"Zeiterfassung"});
+  tabs.push({id:"account", label:"Konto"});
   let tab = ui.empTab;
   if(tab === "plan" && !month.published) tab = "avail";
-  const body = tab === "plan" ? staffPlan() : tab === "account" ? accountPanel() : staffAvail();
+  const body = tab === "plan" ? staffPlan() : tab === "time" ? staffTime()
+    : tab === "account" ? accountPanel() : staffAvail();
   return headerBar("Dienstplan", "Angemeldet als Mitarbeiter", tabs, tab)
     + `<main><div class="wrap">${body}${fussnote()}</div></main>`;
 }
@@ -1029,11 +1251,13 @@ function accountPanel(){
 function viewAdmin(){
   const tabs = [
     {id:"plan", label:"Planung"},
+    {id:"time", label:"Zeiterfassung"},
     {id:"team", label:"Team"},
     {id:"settings", label:"Einstellungen"},
-    {id:"account", label:"Mein Konto"}
+    {id:"account", label:"Konto"}
   ];
   const body = ui.adminTab === "team" ? adminTeam()
+    : ui.adminTab === "time" ? adminTime()
     : ui.adminTab === "settings" ? adminSettings()
     : ui.adminTab === "account" ? accountPanel()
     : adminPlan();
@@ -1223,11 +1447,24 @@ function payPanel(){
       </span>
     </li>`;
 
+  /* Diese Übersicht rechnet aus dem Dienstplan. Sobald daneben Ist-Zeiten
+     erfasst sind, stehen zwei verschiedene Stundenzahlen für denselben Monat
+     in derselben App — deshalb sagt sie ausdrücklich, welche sie ist, und
+     zeigt den Weg zu den Abrechnungszahlen. */
+  const erfasst = Object.keys((month.time && month.time.entries) || {})
+    .reduce((n, id) => n + Object.keys(month.time.entries[id]).length, 0);
+
   return `<div class="card panel" style="margin-top:16px">
-    <h2>Stunden- und Schichtverteilung</h2>
-    <p>Anzeige über verteilte Stunden und Schichten. ${einleitung}
-       Bei Festanstellung zählen die Vertragsstunden aus dem Team.
+    <h2>Stunden- und Schichtverteilung (aus dem Plan)</h2>
+    <p>Gerechnet aus dem <b>Dienstplan</b>, nicht aus der Zeiterfassung — eine Planungshilfe.
+       ${einleitung} Bei Festanstellung zählen die Vertragsstunden aus dem Team.
        Diese Übersicht sieht nur der Administrator.</p>
+    ${erfasst ? `<div class="banner info" style="margin-bottom:12px">
+      Für ${esc(monthLabel(ui.monthKey))} sind schon <b>${erfasst}</b> Tage Ist-Zeit erfasst.
+      Für die Abrechnung zählen die, nicht die Zahlen hier.
+      <div class="row" style="margin-top:8px">
+        <button class="btn sm" data-act="zagoto">Zu den erfassten Stunden</button>
+      </div></div>` : ""}
     <ul class="list paylist">${
       rows.map(zeile).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
   </div>`;
@@ -1378,6 +1615,24 @@ function adminSettings(){
   </div>
 
   <div class="card panel">
+    <h2>Zeiterfassung</h2>
+    <p>Ab welchem Monat die Zeiterfassung verbindlich ist. Für Monate davor fehlt niemand,
+       und der Abschluss ist freiwillig — gut für einen Probemonat.</p>
+    <div style="max-width:220px">
+      <label class="lbl" for="w-tf">Zeiterfassung ab Monat</label>
+      <input class="field" id="w-tf" inputmode="numeric" placeholder="2026-11"
+        data-cfgtext="timeFirstYm" value="${esc(config.timeFirstYm || "")}">
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" data-act="zasavefirst">Übernehmen</button>
+      ${ui.zeFehler ? `<span class="err">${esc(ui.zeFehler)}</span>`
+        : ui.formInfo ? `<span class="okmsg">${esc(ui.formInfo)}</span>` : ""}
+    </div>
+    <p class="tiny muted" style="margin:10px 0 0">Format Jahr und Monat, also zum Beispiel
+      <b>2026-11</b>. Abschicken und Abschließen gehen immer erst, wenn der Monat vorbei ist.</p>
+  </div>
+
+  <div class="card panel">
     <h2>Standardschichten</h2>
     <p>Gilt für Monate, die noch nicht angelegt wurden. Einzelne Tage änderst du in der Planung.</p>
     ${[1,2,3,4,5,6,0].map(wd => `
@@ -1405,6 +1660,1434 @@ function adminSettings(){
       <button class="btn danger" data-act="resetmonth">Monat zurücksetzen</button>
     </div>
   </div>`;
+}
+
+/* ============================================================
+   Zeiterfassung — Rechenkern
+
+   Maßgeblich rechnet die Datenbank. Hier wird nur vorab angezeigt;
+   nach jedem Schreiben übernimmt die Karte die zurückgegebenen Werte.
+   Gerechnet wird in ganzen Minuten und in Berliner Zeit, nie in der
+   Zeit des Geräts: ein Handy in Tokio soll dasselbe anzeigen.
+   ============================================================ */
+const ZE_FMT = new Intl.DateTimeFormat("en-GB", {timeZone:"Europe/Berlin", hourCycle:"h23",
+  year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit"});
+
+/* Abstand der Berliner Uhr zur Weltzeit in Minuten, zu einem Zeitpunkt */
+function berOffsetMin(utcMs){
+  const p = {};
+  ZE_FMT.formatToParts(new Date(utcMs)).forEach(x => { p[x.type] = x.value; });
+  return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - utcMs) / 60000);
+}
+
+/* Berliner Wanduhrzeit -> Weltzeit. Wie Postgres: die doppelte Stunde im
+   Herbst gilt als Normalzeit, die ausgefallene im Frühjahr mit dem Versatz
+   davor. Date.UTC rollt Monats- und Jahresende selbst weiter. */
+function berWallToUtc(y, mo, d, h, mi){
+  const wall = Date.UTC(y, mo - 1, d, h, mi);
+  const sommer = berOffsetMin(wall - 120 * 60000) === 120;
+  const winter = berOffsetMin(wall - 60 * 60000) === 60;
+  return wall - (sommer && !winter ? 120 : 60) * 60000;
+}
+
+/* Brutto-Minuten einer Schicht. Ende <= Beginn heißt: Ende am Folgetag.
+   Die Nacht der Zeitumstellung ist dadurch von selbst länger oder kürzer. */
+function zeGross(ymd, starts, ends){
+  const y = +ymd.slice(0, 4), mo = +ymd.slice(5, 7), d = +ymd.slice(8, 10);
+  const s = zeMin(starts), e = zeMin(ends);
+  const folgetag = e <= s;
+  const t0 = berWallToUtc(y, mo, d, Math.floor(s / 60), s % 60);
+  const t1 = berWallToUtc(y, mo, d + (folgetag ? 1 : 0), Math.floor(e / 60), e % 60);
+  return Math.round((t1 - t0) / 60000);
+}
+
+/* „Heute“ in Berlin, als 2026-11-22 — nicht nach der Uhr des Geräts */
+const berHeute = () => new Intl.DateTimeFormat("en-CA", {timeZone:"Europe/Berlin"}).format(new Date());
+
+const zeMin = hm => { const p = String(hm).split(":"); return (+p[0] || 0) * 60 + (+p[1] || 0); };
+const zeHM = m => (m < 0 ? "-" : "") + Math.floor(Math.abs(m) / 60) + ":" + String(Math.abs(m) % 60).padStart(2, "0");
+/* Pflichtpause nach Arbeitszeitgesetz, bezogen auf die Brutto-Dauer:
+   über 6:00 -> 30, über 9:00 -> 45. 17:00-02:00 sind genau 9:00, also 30. */
+const zeReqBreak = g => g > 540 ? 45 : g > 360 ? 30 : 0;
+/* Minuten -> Hundertstelstunden, kaufmännisch gerundet, ganzzahlig gerechnet */
+const zeCenti = m => Math.floor((10 * m + 3) / 6);
+const zeDez = m => dec(zeCenti(m) / 100, 2);
+
+function zeCalc(ymd, starts, ends, brk, lead){
+  if(!/^\d\d:\d\d$/.test(String(starts)) || !/^\d\d:\d\d$/.test(String(ends)))
+    return {err:"Bitte Beginn und Ende eintragen.", gross:0, pause:0, net:0, sl:0, normal:0, req:0};
+  const s = zeMin(starts), e = zeMin(ends);
+  if(s === e) return {err:"Beginn und Ende sind gleich.", gross:0, pause:0, net:0, sl:0, normal:0, req:0};
+  const gross = zeGross(ymd, starts, ends);
+  const req = zeReqBreak(gross);
+  const pause = Math.max(Number(brk) || 0, req);
+  const net = gross - pause;
+  const sl = Math.max(0, Math.min(Number(lead) || 0, Math.max(net, 0)));
+  return {
+    gross, req, pause, net, sl, normal: net - sl,
+    folgetag: e <= s,
+    uhr: ((e - s) + 1440) % 1440 || 1440,          // Dauer nach der Uhr, ohne Zeitumstellung
+    lang: gross > 600,
+    err: gross > 960 ? "Mehr als 16 Stunden — stimmen Beginn und Ende?"
+       : net <= 0 ? "Die Pause ist länger als die Schicht." : ""
+  };
+}
+
+/* „4:00“, „4.00“ oder „240“ -> Minuten */
+function zeParseHM(v){
+  const s = String(v == null ? "" : v).trim().replace(",", ":").replace(".", ":");
+  if(!s) return 0;
+  if(s.indexOf(":") < 0) return Math.max(0, Math.round(Number(s) || 0));
+  const p = s.split(":");
+  return Math.max(0, (Math.abs(Number(p[0])) || 0) * 60 + (Math.abs(Number(p[1])) || 0));
+}
+
+/* ============================================================
+   Zeiterfassung — Daten aus dem geladenen Monat
+   ============================================================ */
+const zeiten = () => (month && month.time) || {on:true, closed:false, sheets:{}, entries:{}, rates:null};
+const zeOf = uid => zeiten().entries[uid] || {};
+const zeSheet = uid => zeiten().sheets[uid] || {status:"open"};
+const zeZu = () => !!zeiten().closed;
+
+/* Ist der Monat vorbei? Nach Berliner Datum. Daran hängen Freigeben zur
+   Endbestätigung, Abschicken und Abschließen. */
+function zeMonatVorbei(k){
+  const p = parseKey(k);
+  const y = p.m === 11 ? p.y + 1 : p.y;
+  const m = p.m === 11 ? 1 : p.m + 2;
+  return berHeute() >= y + "-" + String(m).padStart(2, "0") + "-01";
+}
+const zeAbDatum = k => { const p = parseKey(k);
+  return "01." + String(p.m === 11 ? 1 : p.m + 2).padStart(2, "0") + "." + (p.m === 11 ? p.y + 1 : p.y); };
+
+/* Plan-Schicht einer Person an einem Tag. setzeEin() nimmt einer Person
+   beim Einteilen alle anderen Schichten desselben Tages weg — es kann
+   also nie zwei geben. */
+function zePlanOf(uid, day){
+  const d = month.days[day];
+  if(!d || d.closed) return null;
+  const sh = d.shifts.find(s => s.emp === uid);
+  return sh ? {starts:sh.start, ends:sh.end, lead:!!sh.sl, label:sh.label} : null;
+}
+
+/* Alle Tage einer Person im Monat: vorbelegt aus dem Plan, erfasst, oder beides.
+   ui.zeExtra ist ein eben angelegter Zusatztag, der noch keine Zeile hat. */
+function zeTage(uid){
+  const k = ui.monthKey, n = daysInMonth(k), heute = berHeute();
+  const ein = zeOf(uid), out = [];
+  const extra = ui.zeExtra && ui.zeExtra.uid === uid
+    && String(ui.zeExtra.ymd).slice(0, 7) === k ? ui.zeExtra.ymd : null;
+  for(let d = 1; d <= n; d++){
+    const ymd = k + "-" + String(d).padStart(2, "0");
+    const e = ein[d] || null;
+    const plan = month.published ? zePlanOf(uid, d) : null;
+    if(!e && !plan && ymd !== extra) continue;
+    out.push({day:d, ymd, e, plan, wd:weekdayOf(k, d), zukunft:ymd > heute, heute:ymd === heute});
+  }
+  return out;
+}
+
+/* Wer gehört in diesen Monat: im freigegebenen Plan eingeteilt, oder es gibt
+   Einträge oder einen Stundenzettel. Bewusst NICHT teamList(): wer mitten im
+   Monat deaktiviert oder zum Admin gemacht wird, fällt dort heraus, obwohl er
+   die halbe Monatshälfte gearbeitet hat. */
+function zeScope(){
+  const ids = {};
+  const t = zeiten();
+  Object.keys(t.entries).forEach(id => { ids[id] = true; });
+  Object.keys(t.sheets).forEach(id => { ids[id] = true; });
+  if(month.published) Object.keys(month.days).forEach(key => {
+    const d = month.days[key];
+    if(d.closed) return;
+    d.shifts.forEach(s => { if(s.emp) ids[s.emp] = true; });
+  });
+  return people.filter(p => ids[p.id]);
+}
+
+function zeSumme(uid){
+  const ein = zeOf(uid);
+  let normal = 0, sl = 0, tage = 0;
+  Object.keys(ein).forEach(d => {
+    const e = ein[d];
+    if(!e.worked) return;
+    normal += Math.max(0, e.net_min - e.lead_min);
+    sl += e.lead_min;
+    if(e.net_min > 0) tage++;
+  });
+  return {normal, sl, tage, netto: normal + sl};
+}
+
+/* Hat das Büro etwas geändert, was der Mitarbeiter noch nicht bestätigt hat?
+   Entschieden wird durch Vergleich, nicht am Kennzeichen: ändert das Büro
+   etwas und stellt es wieder zurück, entsteht so keine Phantom-Änderung. */
+function zeGeaendert(e){
+  const o = e && e.emp_orig;
+  if(!o) return false;
+  return !!o.worked !== !!e.worked
+    || (o.starts || "") !== (e.starts || "") || (o.ends || "") !== (e.ends || "")
+    || (Number(o.break_min) || 0) !== (Number(e.break_min) || 0)
+    || (Number(o.lead_min) || 0) !== (Number(e.lead_min) || 0);
+}
+function zeDiffText(e){
+  const o = e.emp_orig, t = [];
+  if(!o.worked !== !e.worked) t.push(e.worked ? "jetzt gearbeitet" : "jetzt nicht gearbeitet");
+  if((o.starts || "") !== (e.starts || "")) t.push("Beginn <b>" + (e.starts || "—") + "</b> statt " + (o.starts || "—"));
+  if((o.ends || "") !== (e.ends || "")) t.push("Ende <b>" + (e.ends || "—") + "</b> statt " + (o.ends || "—"));
+  if((Number(o.break_min) || 0) !== (Number(e.break_min) || 0))
+    t.push("Pause <b>" + zeHM(e.break_min) + "</b> statt " + zeHM(Number(o.break_min) || 0));
+  if((Number(o.lead_min) || 0) !== (Number(e.lead_min) || 0))
+    t.push("Schichtleitung <b>" + zeHM(e.lead_min) + "</b> statt " + zeHM(Number(o.lead_min) || 0));
+  return t.join(" · ");
+}
+
+/* Was fehlt dieser Person noch? Gleiche Zählung wie time_sheet_problems in
+   der Datenbank, damit die Oberfläche keine Knöpfe anbietet, die scheitern. */
+function zeProbleme(uid){
+  if(!zeiten().on) return "";
+  const t = zeTage(uid), msgs = [];
+  const fehlend = t.filter(x => x.plan && !x.e).length;
+  const offen = t.filter(x => x.e && x.e.status !== "adm_ok").length;
+  if(fehlend) msgs.push(fehlend + (fehlend === 1 ? " geplanter Tag" : " geplante Tage") + " ohne Eintrag");
+  if(offen) msgs.push(offen + (offen === 1 ? " Tag" : " Tage") + " noch nicht vom Büro bestätigt");
+  return msgs.join(", ");
+}
+
+/* ============================================================
+   Zeiterfassung — Schreiben
+
+   Die Datenbank rechnet, der Client zeigt an: jeder Schreibvorgang hängt
+   .select() an und die Karte übernimmt danach die zurückgegebene Zeile.
+   Gesperrte Änderungen treffen 0 Zeilen, ohne Fehler — deshalb wird ein
+   leeres Ergebnis ausdrücklich als „gesperrt“ gemeldet.
+   ============================================================ */
+let zeBusy = false;          // ein Schreibvorgang des Editors zur Zeit
+let zaPend = [];             // angetippte Freigaben, warten auf den Sammelversand
+let zaTimer = null;
+
+function zeMerke(row){
+  if(!row || !row.user_id) return;
+  const t = zeiten();
+  const d = Number(String(row.work_date).slice(8, 10));
+  (t.entries[row.user_id] = t.entries[row.user_id] || {})[d] = row;
+  if(row.gross_min !== undefined && ui.zeForm && ui.zeForm.ymd === row.work_date){
+    const vor = zeCalc(row.work_date, row.starts, row.ends, row.break_min, row.lead_min);
+    if(row.worked && vor.gross !== row.gross_min)
+      console.warn("Vorschau weicht von der Datenbank ab", vor.gross, row.gross_min);
+  }
+}
+function zeVergiss(uid, day){
+  const e = zeiten().entries[uid];
+  if(e) delete e[day];
+}
+
+/* Wie write(), aber ohne Neuzeichnen: der Aufrufer entscheidet, was sich ändert */
+async function zeRun(builder){
+  setSync("saving");
+  let res;
+  try{ res = await builder; }catch(err){ res = {error:{message:String(err && err.message || err)}}; }
+  if(res && res.error){
+    console.error(res.error);
+    setSync("bad");
+    return {ok:false, msg:res.error.message, data:null};
+  }
+  const rows = res && res.data ? [].concat(res.data) : null;
+  if(rows && rows.length === 0){
+    setSync("bad");
+    return {ok:false, msg:"gesperrt — bitte lade die Seite neu", data:[]};
+  }
+  setSync("ok");
+  return {ok:true, msg:"", data:rows};
+}
+
+const ZE_SPALTEN = "id,user_id,work_date,ym,worked,starts,ends,break_min,lead_min,gross_min,net_min," +
+  "status,emp_ok_at,adm_ok_at,rev,admin_edited,emp_orig,plan_starts,plan_ends,note,admin_note,created_by";
+
+/* ============================================================
+   Mitarbeiter: Reiter Zeiterfassung
+   ============================================================ */
+function zeKopfText(uid, tage){
+  const sh = zeSheet(uid);
+  if(zeZu()) return "Der Monat ist abgeschlossen. Hier ist nichts mehr zu tun.";
+  if(sh.status === "submitted") return "Abgeschickt. Danke — das Büro hat deine Zeiten.";
+  if(sh.status === "review") return "Das Büro hat alles geprüft. Bitte bestätige jetzt den ganzen Monat.";
+  const offen = tage.filter(x => !x.zukunft && (!x.e || x.e.status === "draft")).length;
+  if(offen) return "Noch " + offen + (offen === 1 ? " Tag" : " Tage") + " zu bestätigen.";
+  if(!tage.length) return "In diesem Monat bist du nicht eingeteilt. Wenn du gearbeitet hast, trag den Tag unten ein.";
+  return "Alles bestätigt. Das Büro prüft jetzt deine Zeiten.";
+}
+
+/* Reihenfolge: was Aufmerksamkeit braucht, steht oben; darin der neueste Tag
+   zuerst. Innerhalb eines Neuzeichnens bleibt die Reihenfolge stehen. */
+function zeRang(x){
+  if(x.e && zeGeaendert(x.e)) return 0;
+  if(!x.e || x.e.status === "draft") return 1;
+  if(x.e.status === "emp_ok") return 2;
+  return 3;
+}
+
+function zeDayHtml(uid, x){
+  const e = x.e, plan = x.plan;
+  const auf = ui.zeOpen === x.ymd;
+  const chg = e && zeGeaendert(e);
+  const zustand = !e ? "is-plan" : e.status === "adm_ok" ? "is-adm" : e.status === "emp_ok" ? "is-emp" : "is-draft";
+  const cls = ["ze-day", zustand, e && !e.worked ? "is-nowork" : "", x.zukunft ? "is-future" : "",
+    chg ? "is-chg" : "", auf ? "is-open" : ""].filter(Boolean).join(" ");
+
+  let zeile1, zeile2;
+  if(!e && !plan){
+    zeile1 = "noch nichts eingetragen";
+    zeile2 = "zusätzlicher Tag — tippe ihn an und trag die Zeiten ein";
+  } else if(!e){
+    zeile1 = plan.starts + "–" + plan.ends;
+    zeile2 = x.zukunft ? "geplant · noch nicht fällig" : "Plan — tippe ✓, wenn es so war";
+  } else if(!e.worked){
+    zeile1 = "nicht gearbeitet";
+    zeile2 = plan ? "geplant war " + plan.starts + "–" + plan.ends : "eigener Eintrag";
+  } else {
+    const c = zeCalc(x.ymd, e.starts, e.ends, e.break_min, e.lead_min);
+    zeile1 = e.starts + "–" + e.ends + (c.folgetag ? " <small>+1</small>" : "");
+    const t = [zeHM(e.net_min) + " Std", "Pause " + zeHM(e.break_min)];
+    if(e.lead_min) t.push("SL " + zeHM(e.lead_min));
+    if(e.gross_min !== c.uhr) t.push("Zeitumstellung");
+    zeile2 = t.join(" · ");
+  }
+
+  const marke = !e ? "○" : e.status === "adm_ok" ? "✓✓" : e.status === "emp_ok" ? "✓" : "○";
+  const okCls = !e ? "" : e.status === "adm_ok" ? "is-adm" : e.status === "emp_ok" ? "is-emp" : "";
+  const gesperrt = zeZu() || zeSheet(uid).status !== "open" || x.zukunft
+    || (e && e.status === "adm_ok") || (!e && !plan);
+  const titel = !e ? "Tag mit den Plan-Zeiten bestätigen"
+    : e.status === "adm_ok" ? "Vom Büro bestätigt"
+    : e.status === "emp_ok" ? "Bestätigung zurücknehmen" : "Tag bestätigen";
+
+  /* Vorher/Nachher steht schon auf der zugeklappten Karte: der Mitarbeiter
+     soll eine Änderung des Büros sehen, ohne danach suchen zu müssen. */
+  const diffZu = chg && !auf
+    ? `<div class="ze-diff" style="margin:0 11px 11px">Büro: ${zeDiffText(e)}${
+        e.admin_note ? " · „" + esc(e.admin_note) + "“" : ""}</div>` : "";
+
+  return `<div class="${cls}" data-ymd="${x.ymd}">
+    <div class="ze-row">
+      <button class="ze-head" data-act="zeday" data-ymd="${x.ymd}" ${x.zukunft ? "disabled" : ""}>
+        <span class="ze-dt">${WD_SHORT[x.wd]} <em>${x.day}.</em></span>
+        <span class="ze-tx"><span class="ze-times">${zeile1}</span><span class="ze-sub">${esc(zeile2)}</span></span>
+      </button>
+      <button class="ze-ok ${okCls}" data-act="zeok" data-ymd="${x.ymd}"
+        ${gesperrt ? "disabled" : ""} aria-label="${esc(titel)}" title="${esc(titel)}">${marke}</button>
+    </div>
+    ${diffZu}${auf ? zeEditHtml(uid, x) : ""}
+  </div>`;
+}
+
+function zeCalcHtml(f){
+  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
+  if(!f.worked) return `<b>Nicht gearbeitet</b><i>0:00 Std werden gezählt.</i>`;
+  if(c.err) return `<b>—</b><span class="ze-warn">${esc(c.err)}</span>`;
+  const extra = [];
+  if(c.gross !== c.uhr) extra.push("Zeitumstellung " + (c.gross > c.uhr ? "+" : "−") + zeHM(Math.abs(c.gross - c.uhr)) + " eingerechnet");
+  if(c.folgetag) extra.push("Ende am Folgetag");
+  return `<b>${zeHM(c.net)} Std</b> netto`
+    + `<i>brutto ${zeHM(c.gross)} · Pause ${zeHM(c.pause)}`
+    + (c.sl ? ` · normal ${zeHM(c.normal)} · Schichtleitung ${zeHM(c.sl)}` : "")
+    + (extra.length ? " · " + esc(extra.join(" · ")) : "") + `</i>`
+    + (c.lang ? `<span class="ze-warn">Über 10 Stunden — stimmt das?</span>` : "");
+}
+
+/* Die Hinweiszeile unter Pause und Schichtleitung. Sie muss sich mitändern,
+   wenn die Zeiten geändert werden — sonst steht dort die alte Mindestpause. */
+function zeMinText(feld, c){
+  if(feld === "brk")
+    return "Mindestens " + zeHM(c.req)
+      + (c.req ? " (Schicht über " + (c.req === 45 ? "9" : "6") + " Std.)" : "")
+      + ". Verlängern geht, kürzen nicht — auch durch Eintippen.";
+  return "Höchstens " + zeHM(Math.max(0, c.net)) + " — die reine Arbeitszeit.";
+}
+
+function zeEditHtml(uid, x){
+  const f = ui.zeForm;
+  if(!f) return "";
+  const e = x.e, plan = x.plan, buero = isAdmin();
+  const p = people.find(q => q.id === uid) || {};
+  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
+  const netMax = Math.max(0, c.net);
+
+  const diff = e && zeGeaendert(e)
+    ? `<div class="ze-diff">Das Büro hat geändert: ${zeDiffText(e)}</div>` : "";
+  const anote = e && e.admin_note
+    ? `<div class="ze-anote">Büro: ${esc(e.admin_note)}</div>` : "";
+  const planzeile = plan
+    ? `<div class="tiny muted">Plan: ${esc(plan.label)} ${plan.starts}–${plan.ends}${plan.lead ? " · Schichtleitung" : ""}</div>`
+    : `<div class="tiny muted">Kein Plan für diesen Tag — selbst eingetragen.</div>`;
+
+  const spin = (feld, wert, schritt, min, titel, hinweis, extra) => `
+    <div class="ze-line">
+      <span class="lbl">${titel}</span>
+      <div class="ze-spin">
+        <button class="ze-spinb" data-act="zespin" data-feld="${feld}" data-d="-${schritt}"
+          ${wert <= min ? "disabled" : ""} aria-label="weniger">–</button>
+        <input class="ze-spinv" data-ze="${feld}" value="${zeHM(wert)}"
+          inputmode="numeric" aria-label="${titel} in Stunden und Minuten">
+        <button class="ze-spinb" data-act="zespin" data-feld="${feld}" data-d="${schritt}" aria-label="mehr">+</button>
+      </div>
+      ${extra || ""}
+      <p class="ze-mini" data-min="${feld}">${esc(hinweis)}</p>
+    </div>`;
+
+  return `<div class="ze-edit">
+    ${planzeile}${diff}${anote}
+    ${f.worked ? `
+    <div class="ze-two">
+      <div><label class="lbl" for="ze-s">Beginn</label>
+        <input class="field ze-t" id="ze-s" type="time" data-ze="starts" value="${esc(f.starts)}"></div>
+      <div><label class="lbl" for="ze-e">Ende</label>
+        <input class="field ze-t" id="ze-e" type="time" data-ze="ends" value="${esc(f.ends)}"></div>
+    </div>
+    ${spin("brk", f.brk, 5, c.req, "Pause", zeMinText("brk", c), "")}
+    ${p.can_lead ? spin("lead", Math.min(f.lead, netMax), 15, 0, "Davon Schichtleitung",
+      zeMinText("lead", c), `<button class="btn sm" data-act="zeall">ganze Schicht</button>`) : ""}
+    ` : `<div class="tiny muted">Für diesen Tag ist „nicht gearbeitet“ eingetragen.</div>`}
+    <div class="ze-calc">${zeCalcHtml(f)}</div>
+    <div>
+      <label class="lbl" for="ze-n">${buero ? "Anmerkung des Büros" : "Anmerkung (freiwillig)"}</label>
+      <input class="field" id="ze-n" data-ze="note" value="${esc(f.note)}"
+        placeholder="${buero ? "wird dem Mitarbeiter angezeigt" : "zum Beispiel: länger geblieben"}">
+    </div>
+    <div class="ze-btns">
+      ${f.worked
+        ? `<button class="btn" data-act="zeoff">Nicht gearbeitet</button>`
+        : `<button class="btn" data-act="zeon">Doch gearbeitet</button>`}
+      <button class="btn primary" data-act="zesave" ${f.worked && c.err ? "disabled" : ""}>${
+        buero ? "Speichern &amp; freigeben" : e && e.status !== "draft" ? "Änderung bestätigen" : "✓ Bestätigen"}</button>
+    </div>
+    ${e && (buero || !plan) ? `<div><button class="btn sm danger" data-act="zedel">Tag löschen</button></div>` : ""}
+  </div>`;
+}
+
+function staffTime(){
+  const uid = me.id;
+  const k = ui.monthKey;
+  const sh = zeSheet(uid);
+  const alle = zeTage(uid);
+  const kommt = alle.filter(x => x.zukunft && !x.e);
+  const karten = alle.filter(x => !(x.zukunft && !x.e));
+  karten.sort((a, b) => zeRang(a) - zeRang(b) || b.day - a.day);
+
+  const s = zeSumme(uid);
+  const fertig = karten.filter(x => x.e && x.e.status !== "draft").length;
+  const geaendert = karten.filter(x => x.e && zeGeaendert(x.e));
+
+  let banner = "";
+  if(!zeiten().on)
+    banner = `<div class="banner info">Für ${esc(monthLabel(k))} ist noch keine Zeiterfassung nötig. Du kannst trotzdem schon üben.</div>`;
+  else if(zeZu()) banner = `<div class="banner ok">Der Monat ist abgeschlossen.</div>`;
+  else if(sh.status === "submitted")
+    banner = `<div class="banner ok">Abgeschickt${sh.submitted_at ? " am " + zeDatum(sh.submitted_at) : ""}. Änderungen laufen jetzt übers Büro.</div>`;
+  else if(sh.status === "review")
+    banner = `<div class="banner ok">Das Büro hat deine Zeiten zur Bestätigung freigegeben. Schau sie dir an und schick den Monat ab.</div>`;
+  else if(sh.reopen_reason)
+    banner = `<div class="banner info">${esc(sh.reopen_reason)}</div>`;
+  else if(!month.published)
+    banner = `<div class="banner info">Der Dienstplan ist für diesen Monat noch nicht freigegeben. Tage kannst du selbst eintragen.</div>`;
+
+  const kopf = `<div class="card panel ze-top">
+    <div class="ze-state">${esc(zeKopfText(uid, alle))}</div>
+    ${geaendert.length ? `<div class="ze-diff" style="margin-top:10px">Das Büro hat <b>${geaendert.length}</b>
+       ${geaendert.length === 1 ? "deiner Tage" : "deiner Tage"} geändert (${
+         geaendert.map(x => x.day + ".").join(", ")}). Die Tage sind unten markiert.</div>` : ""}
+    <div class="ze-nums">
+      <div class="ze-num"><span class="ze-nv">${zeHM(s.normal)}</span><span class="ze-nl">Normal</span></div>
+      <div class="ze-num"><span class="ze-nv">${zeHM(s.sl)}</span><span class="ze-nl">Schichtleitung</span></div>
+      <div class="ze-num"><span class="ze-nv">${zeHM(s.netto)}</span><span class="ze-nl">Gesamt</span></div>
+    </div>
+    <span class="pill ${karten.length && fertig === karten.length ? "done" : ""}"><b>${fertig}</b> von ${karten.length}
+      ${karten.length === 1 ? "Tag" : "Tagen"} bestätigt</span>
+  </div>`;
+
+  const liste = karten.length
+    ? `<div class="ze-days">${karten.map(x => zeDayHtml(uid, x)).join("")}</div>`
+    : `<p class="empty-note">Noch keine Tage. Trag unten einen Tag ein.</p>`;
+
+  const spaeter = kommt.length
+    ? `<p class="ze-later">Noch ${kommt.length} ${kommt.length === 1 ? "geplanter Tag" : "geplante Tage"}
+       in diesem Monat (${kommt.map(x => x.day + ".").join(", ")}) — die kannst du eintragen, sobald sie begonnen haben.</p>`
+    : "";
+
+  const neu = zeZu() || sh.status !== "open" ? "" : ui.zeAdd
+    ? `<div class="card panel" style="margin-top:10px">
+         <label class="lbl" for="ze-neu">Welcher Tag?</label>
+         <input class="field" id="ze-neu" type="date" data-ze="neu"
+           min="${k}-01" max="${zeMaxTag(k)}" value="${esc(ui.zeNeu || "")}">
+         <div class="row" style="margin-top:10px">
+           <button class="btn primary" data-act="zeaddgo">Tag anlegen</button>
+           <button class="btn" data-act="zeaddzu">Abbrechen</button>
+         </div>
+       </div>`
+    : `<button class="btn ze-add" data-act="zeadd">+ Zusätzlichen Tag eintragen</button>`;
+
+  /* „Etwas stimmt nicht“: nur solange der Mitarbeiter gesperrt ist */
+  const einspruch = sh.status === "review" && ui.zeObj
+    ? `<div class="card panel ze-obj">
+         <label class="lbl" for="ze-o">Was stimmt nicht?</label>
+         <input class="field" id="ze-o" data-ze="obj" value="${esc(ui.zeObjText || "")}"
+           placeholder="zum Beispiel: Am 17. war ich bis 05:00 da">
+         <div class="row">
+           <button class="btn primary" data-act="zeobjsend">Ans Büro zurück</button>
+           <button class="btn" data-act="zeobjzu">Abbrechen</button>
+         </div>
+       </div>` : "";
+
+  const fuss = sh.status === "review" && !zeZu()
+    ? `<div class="sticky-bar"><div class="sticky-in ze-fuss">
+         <div class="grow small muted">${zeHM(s.netto)} Std${s.sl ? " · davon SL " + zeHM(s.sl) : ""}</div>
+         <button class="btn" data-act="zeobj">Etwas stimmt nicht</button>
+         <button class="btn primary" data-act="zesubmit">Monat abschicken</button>
+       </div></div>`
+    : "";
+
+  return monthBar()
+    + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
+    + banner + kopf + einspruch + liste + spaeter + neu
+    + `<p class="hint" style="margin-top:14px">Tippe ✓, wenn der Tag so war wie geplant. Wenn nicht,
+       tippe den Tag an und ändere ihn. Die Pause rechnet die App vor; verlängern kannst du sie,
+       kürzen nicht. Eine Schicht zählt zu dem Tag, an dem sie <b>beginnt</b>.</p>`
+    + fuss;
+}
+
+/* Höchstens drei Namen aufzählen; eine Liste mit zehn Namen liest am Handy
+   niemand, und sie macht aus einer Zeile einen Absatz. */
+function zeWenige(namen){
+  if(namen.length <= 3) return namen.join(", ");
+  return namen.slice(0, 3).join(", ") + " und " + (namen.length - 3) + " weitere";
+}
+
+const zeMaxTag = k => {
+  const letzter = k + "-" + String(daysInMonth(k)).padStart(2, "0");
+  const h = berHeute();
+  return h < letzter ? h : letzter;
+};
+const zeDatum = iso => {
+  const d = String(iso).slice(0, 10).split("-");
+  return d.length === 3 ? d[2] + "." + d[1] + "." : String(iso).slice(0, 10);
+};
+
+/* ============================================================
+   Büro: Reiter Zeiterfassung
+   ============================================================ */
+function zaStand(uid){
+  const t = zeTage(uid);
+  const sh = zeSheet(uid);
+  const p = people.find(x => x.id === uid) || {};
+  let fehlt = 0, pruefen = 0, geprueft = 0, kommt = 0, entwurf = 0;
+  t.forEach(x => {
+    if(!x.e){ if(x.zukunft || x.heute) kommt++; else fehlt++; return; }
+    if(x.e.status === "adm_ok") geprueft++;
+    else if(x.e.status === "emp_ok") pruefen++;
+    else entwurf++;
+  });
+  const probleme = zeProbleme(uid);
+  const vorbei = zeMonatVorbei(ui.monthKey);
+  let chip = {text:"nichts fällig", cls:""};
+  if(sh.status === "submitted") chip = {text:"Abgeschickt", cls:"is-done"};
+  else if(sh.status === "review") chip = probleme
+    ? {text:"Plan geändert", cls:"is-miss"} : {text:"Wartet", cls:""};
+  else if(fehlt + entwurf > 0) chip = {text:"Fehlt " + (fehlt + entwurf), cls:"is-miss"};
+  else if(pruefen > 0) chip = {text:"Prüfen " + pruefen, cls:"is-check"};
+  else if(!probleme && vorbei && t.length) chip = {text:"Freigeben", cls:"is-check"};
+  else if(t.length) chip = {text:kommt ? "Läuft" : "Bereit", cls:""};
+  return {t, sh, p, fehlt, pruefen, geprueft, kommt, entwurf, probleme, chip, vorbei};
+}
+
+function zaPersonHtml(uid){
+  const st = zaStand(uid);
+  const teile = [];
+  if(st.fehlt + st.entwurf) teile.push((st.fehlt + st.entwurf) + " offen");
+  if(st.pruefen) teile.push(st.pruefen + " zu prüfen");
+  teile.push(st.geprueft + " bestätigt");
+  if(st.kommt) teile.push(st.kommt + " kommt noch");
+  const zusatz = [];
+  if(!st.p.active) zusatz.push("inaktiv");
+  if(st.p.role === "admin") zusatz.push("Büro");
+  return `<button class="za-p" data-act="zaperson" data-emp="${uid}">
+    <span class="za-pt">
+      <span class="za-pn">${esc(st.p.name || "?")}${zusatz.length ? " <small>(" + esc(zusatz.join(", ")) + ")</small>" : ""}</span>
+      <span class="za-ps">${esc(teile.join(" · "))}${st.probleme && st.sh.status !== "open" ? " · " + esc(st.probleme) : ""}</span>
+    </span>
+    <span class="za-chip ${st.chip.cls}">${esc(st.chip.text)}</span>
+  </button>`;
+}
+
+function zaRowHtml(uid, x){
+  const e = x.e, plan = x.plan;
+  const auf = ui.zeOpen === x.ymd;
+  const zustand = !e ? "is-miss" : e.status === "adm_ok" ? "is-adm" : e.status === "emp_ok" ? "is-emp" : "is-draft";
+  const schlecht = ui.zaBad && ui.zaBad[x.ymd];
+
+  let mitte, unten;
+  if(!e){
+    mitte = plan ? plan.starts + "–" + plan.ends : "—";
+    unten = x.zukunft || x.heute ? "geplant · läuft noch" : "<b>nichts eingetragen</b>";
+  } else if(!e.worked){
+    mitte = "nicht gearbeitet";
+    unten = (plan ? "geplant " + plan.starts + "–" + plan.ends : "kein Plan")
+      + (e.note ? " · " + esc(e.note) : "");
+  } else {
+    const c = zeCalc(x.ymd, e.starts, e.ends, e.break_min, e.lead_min);
+    mitte = e.starts + "–" + e.ends + " · " + zeHM(e.net_min) + " Std";
+    const t = [];
+    if(!plan) t.push("<b>kein Plan</b>");
+    else if(plan.starts === e.starts && plan.ends === e.ends) t.push("wie Plan");
+    else t.push(`<span class="za-dev">Plan ${plan.starts}–${plan.ends}</span>`);
+    t.push("Pause " + zeHM(e.break_min));
+    if(e.lead_min) t.push("SL " + zeHM(e.lead_min));
+    if(e.status === "draft") t.push('<span class="za-dev">nicht bestätigt</span>');
+    if(e.admin_edited) t.push("vom Büro geändert");
+    if(e.gross_min !== c.uhr) t.push("Zeitumstellung");
+    if(e.note) t.push(esc(e.note));
+    unten = t.join(" · ");
+  }
+
+  let rechts;
+  if(!e && plan && !(x.zukunft || x.heute)){
+    rechts = `<span class="za-acts">
+      <button class="btn sm" data-act="zafromplan" data-ymd="${x.ymd}">Aus Plan</button>
+      <button class="btn sm" data-act="zanowork" data-ymd="${x.ymd}">Nicht gearb.</button></span>`;
+  } else if(!e){
+    rechts = `<button class="za-ok" disabled>läuft</button>`;
+  } else if(e.status === "emp_ok"){
+    rechts = `<button class="za-ok" data-act="zaok" data-ymd="${x.ymd}" ${zeZu() ? "disabled" : ""}
+      aria-label="Freigeben" title="Freigeben">✓</button>`;
+  } else if(e.status === "adm_ok"){
+    rechts = `<button class="za-ok is-adm" data-act="zaok" data-ymd="${x.ymd}" ${zeZu() ? "disabled" : ""}
+      aria-label="Freigabe zurücknehmen" title="Freigabe zurücknehmen">✓✓</button>`;
+  } else {
+    rechts = `<button class="za-ok" disabled title="Der Mitarbeiter hat den Tag nicht bestätigt">Entw.</button>`;
+  }
+
+  return `<div class="za-row ${zustand} ${schlecht ? "is-bad" : ""}" data-ymd="${x.ymd}">
+    <button class="za-rb" data-act="zarow" data-ymd="${x.ymd}" ${zeZu() ? "disabled" : ""}>
+      <span class="za-rt"><span class="za-rd">${WD_SHORT[x.wd]} ${x.day}.</span>
+        <span class="za-rm">${mitte}</span></span>
+      <span class="za-rs">${schlecht ? '<span class="za-dev">Nicht gespeichert: ' + esc(schlecht) + "</span>" : unten}</span>
+    </button>
+    ${rechts}
+  </div>${auf ? `<div class="ze-day is-open" data-ymd="${x.ymd}">${zeEditHtml(uid, x)}</div>` : ""}`;
+}
+
+function zaCheckHtml(){
+  const leute = zeScope();
+  if(!leute.length) return `<p class="empty-note">In diesem Monat ist niemand eingeteilt und niemand hat etwas erfasst.</p>`;
+  const uid = ui.zaPerson && leute.some(p => p.id === ui.zaPerson) ? ui.zaPerson : leute[0].id;
+  ui.zaPerson = uid;
+  const st = zaStand(uid);
+  const idx = leute.findIndex(p => p.id === uid);
+  const s = zeSumme(uid);
+
+  const tage = st.t.slice().sort((a, b) => a.day - b.day);
+  const kommt = tage.filter(x => x.zukunft && !x.e);
+  const zeigen = tage.filter(x => !(x.zukunft && !x.e));
+
+  return `<div class="za-phead">
+      <div class="za-pnav">
+        <button class="btn arrow" data-act="zapnav" data-d="-1" aria-label="Vorige Person">‹</button>
+        <div class="za-pname">${esc(st.p.name || "?")}</div>
+        <button class="btn arrow" data-act="zapnav" data-d="1" aria-label="Nächste Person">›</button>
+      </div>
+      <div class="za-psum">${idx + 1} von ${leute.length} · <b class="za-count">${st.geprueft} von ${zeigen.length}</b>
+        bestätigt · ${zeHM(s.netto)} Std${s.sl ? " · davon SL " + zeHM(s.sl) : ""}</div>
+    </div>
+    <div class="za-rows">${zeigen.map(x => zaRowHtml(uid, x)).join("")
+      || `<p class="empty-note">Für diese Person gibt es in diesem Monat nichts.</p>`}</div>
+    ${kommt.length ? `<p class="ze-later">Noch ${kommt.length} ${kommt.length === 1 ? "geplanter Tag" : "geplante Tage"}
+      (${kommt.map(x => x.day + ".").join(", ")}).</p>` : ""}
+    ${zeZu() ? "" : ui.zeAdd
+      ? `<div class="card panel" style="margin-top:10px">
+           <label class="lbl" for="za-neu">Welchen Tag ergänzen?</label>
+           <input class="field" id="za-neu" type="date" data-ze="neu"
+             min="${ui.monthKey}-01" max="${ui.monthKey}-${String(daysInMonth(ui.monthKey)).padStart(2, "0")}"
+             value="${esc(ui.zeNeu || "")}">
+           <div class="row" style="margin-top:10px">
+             <button class="btn primary" data-act="zaaddgo" data-emp="${uid}">Tag anlegen</button>
+             <button class="btn" data-act="zeaddzu">Abbrechen</button>
+           </div>
+           <p class="tiny muted" style="margin:8px 0 0">Dafür gedacht, dass jemand einen Tag nicht
+             selbst eintragen kann — zum Beispiel, weil sein Zugang deaktiviert ist.</p>
+         </div>`
+      : `<button class="btn ze-add" data-act="zaadd">+ Vergessenen Tag ergänzen</button>`}
+    <div class="za-foot">${zaFussHtml(uid)}</div>`;
+}
+
+/* Der Fuß einer Personenkarte. Eigene Funktion, weil er nach jedem Tipp auf
+   eine Freigabe nachgeführt werden muss: sonst fehlt der Knopf „Zur
+   Endbestätigung freigeben“, obwohl gerade der letzte Tag bestätigt wurde. */
+function zaFussHtml(uid){
+  const st = zaStand(uid);
+  let fussText = "", fussKnopf = "";
+  if(zeZu()){
+    fussText = "Der Monat ist abgeschlossen.";
+  } else if(st.sh.status === "submitted"){
+    fussText = "Abgeschickt" + (st.sh.submitted_at ? " am " + zeDatum(st.sh.submitted_at) : "")
+      + (st.sh.submitted_by && st.sh.submitted_by !== uid ? " (vom Büro)" : "")
+      + (st.probleme ? " — aber: " + st.probleme : "");
+    fussKnopf = `<button class="btn" data-act="zareturn" data-emp="${uid}">Zurückgeben</button>`;
+  } else if(st.sh.status === "review"){
+    fussText = "Wartet auf die Bestätigung von " + st.p.name + (st.probleme ? " — aber: " + st.probleme : "");
+    fussKnopf = `<button class="btn" data-act="zareturn" data-emp="${uid}">Zurückgeben</button>
+      <button class="btn" data-act="zasubmitfor" data-emp="${uid}">Stellvertretend abschicken</button>`;
+  } else if(st.probleme){
+    fussText = "Freigeben noch nicht möglich: " + st.probleme + ".";
+  } else if(!st.vorbei){
+    fussText = "Freigeben zur Endbestätigung geht ab " + zeAbDatum(ui.monthKey) + ". Einzelne Tage kannst du jederzeit bestätigen.";
+  } else if(!st.t.length){
+    fussText = "Nichts zu prüfen.";
+  } else {
+    fussText = "Alles bestätigt.";
+    fussKnopf = `<button class="btn primary" data-act="zarelease" data-emp="${uid}">Zur Endbestätigung freigeben</button>`;
+  }
+  return `<div class="grow muted">${esc(fussText)}</div>${fussKnopf}
+    <button class="btn" data-act="zapnav" data-d="1">Nächste Person ›</button>`;
+}
+
+function zaSumHtml(){
+  const leute = zeScope();
+  const geschlossen = zeZu();
+  const r = zeiten().rates;
+  const satz = geschlossen && r ? r : {wage:config.wage, wage_lead:config.wageSL, limit_amount:config.limit};
+  let gN = 0, gS = 0;
+
+  const zeilen = leute.map(p => {
+    const s = zeSumme(p.id);
+    gN += s.normal; gS += s.sl;
+    const plan = payroll(p.id);
+    const brutto = (zeCenti(s.normal) / 100) * Number(satz.wage) + (zeCenti(s.sl) / 100) * Number(satz.wage_lead);
+    const ueber = config.limitOn && p.minijob && Number(satz.limit_amount) > 0 && brutto > Number(satz.limit_amount);
+    const diff = (zeCenti(s.netto) / 100) - plan.hours;
+    /* Wer nichts erfasst hat, bekommt eine kurze Zeile statt dreier Nullen
+       und einer Betragsschätzung über 0,00 €. */
+    if(!s.netto) return `<div class="za-s">
+      <div class="za-sn"><b>${esc(p.name)}</b>
+        <span class="tiny muted">nichts erfasst${plan.hours ? " · Plan war " + dec(plan.hours, 2) + " Std" : ""}</span></div>
+    </div>`;
+    return `<div class="za-s">
+      <div class="za-sn"><b>${esc(p.name)}</b>
+        <span class="tiny muted">${s.tage} ${s.tage === 1 ? "Arbeitstag" : "Arbeitstage"}</span>
+        ${ueber ? `<span class="pill warn">über Grenze</span>` : ""}</div>
+      <div class="za-sg">
+        <span><b>${zeDez(s.normal)}</b>Normal</span>
+        <span><b>${zeDez(s.sl)}</b>Schichtleitung</span>
+        <span><b>${zeDez(s.netto)}</b>Gesamt</span>
+      </div>
+      <span class="za-sx">Plan war ${dec(plan.hours, 2)} Std · Differenz ${diff >= 0 ? "+" : "−"}${dec(Math.abs(diff), 2)} Std
+        · ≈ ${eur(brutto)} brutto${geschlossen ? "" : " (vorläufig)"}</span>
+    </div>`;
+  }).join("");
+
+  return `<div class="za-sum">${zeilen || `<p class="empty-note">Niemand in diesem Monat.</p>`}
+    ${leute.length ? `<div class="za-total">Summe: ${zeDez(gN)} Normal · ${zeDez(gS)} Schichtleitung
+      · ${dec((zeCenti(gN) + zeCenti(gS)) / 100, 2)} gesamt</div>` : ""}</div>`;
+}
+
+function zaCloseHtml(){
+  const leute = zeScope();
+  const vorbei = zeMonatVorbei(ui.monthKey);
+  const offen = leute.filter(p => {
+    const st = zaStand(p.id);
+    return !!st.probleme;
+  });
+  const nichtAb = leute.filter(p => {
+    const st = zaStand(p.id);
+    return st.p.role !== "admin" && st.sh.status !== "submitted";
+  });
+  const geschlossen = zeZu();
+  const haken = (ok, text, sub) => `<li class="${ok ? "is-done" : ""}"><i>${ok ? "✓" : "○"}</i>
+    <span style="color:inherit; font-size:14px">${esc(text)}${sub ? `<span>${esc(sub)}</span>` : ""}</span></li>`;
+
+  const bereit = vorbei && !offen.length && !nichtAb.length && leute.length > 0;
+  const grund = !vorbei ? "Der Monat läuft noch bis " + zeAbDatum(ui.monthKey) + " (abschließen ab dann)."
+    : offen.length ? "Noch zu klären: " + offen.map(p => p.name).join(", ") + "."
+    : nichtAb.length ? "Es fehlt die Endbestätigung von: " + nichtAb.map(p => p.name).join(", ") + "."
+    : !leute.length ? "In diesem Monat gibt es nichts abzuschließen." : "";
+
+  return `<div class="card panel">
+      <h2>Abschluss ${esc(monthLabel(ui.monthKey))}</h2>
+      <ul class="za-chk">
+        ${haken(vorbei, "Der Monat ist vorbei", vorbei ? "" : "geht ab " + zeAbDatum(ui.monthKey))}
+        ${haken(!offen.length, "Alle Tage belegt und vom Büro bestätigt",
+          offen.length ? zeWenige(offen.map(p => p.name)) : "")}
+        ${haken(!nichtAb.length, "Alle haben den Monat abgeschickt",
+          (leute.length - nichtAb.length) + " von " + leute.length
+          + (nichtAb.length ? " · es fehlen " + zeWenige(nichtAb.map(p => p.name)) : ""))}
+      </ul>
+      ${geschlossen
+        ? `<div class="banner ok">Abgeschlossen${zeiten().closed_at ? " am " + zeDatum(zeiten().closed_at) : ""}.
+             Niemand kann die Zeiten mehr ändern.</div>
+           <div class="za-csv">
+             <button class="btn primary" data-act="zacsv" data-wie="summen">Summen (CSV)</button>
+             <button class="btn" data-act="zacsv" data-wie="tage">Einzeltage (CSV)</button>
+           </div>
+           <p class="tiny muted" style="margin:10px 0 0">Zwei getrennte Knöpfe, weil Browser den zweiten
+             Download ohne eigenen Tipp blockieren. Am iPhone bietet Safari „In Dateien sichern“ an.</p>
+           <div class="row" style="margin-top:12px">
+             <button class="btn ghost danger" data-act="zareopen">Monat wieder öffnen</button>
+           </div>`
+        : `<button class="btn primary" data-act="zaclose" ${bereit ? "" : "disabled"}
+             style="min-height:46px">Monat abschließen</button>
+           ${grund ? `<p class="tiny muted" style="margin:10px 0 0">${esc(grund)}</p>` : ""}`}
+    </div>
+    <div class="card panel">
+      <h2>Stunden je Mitarbeiter
+        ${geschlossen ? "" : `<span class="pill warn" style="margin-left:8px">vorläufig</span>`}</h2>
+      <p>Aus den <b>erfassten</b> Zeiten, nicht aus dem Plan. Eine Schicht zählt zu dem Tag, an dem sie beginnt.
+         ${geschlossen ? "Die Sätze sind die beim Abschluss festgeschriebenen." : "Beträge sind geschätzt und können sich noch ändern."}</p>
+      ${zaSumHtml()}
+    </div>`;
+}
+
+function adminTime(){
+  const leute = zeScope();
+  const schritt = ui.zaStep || "who";
+  let offen = 0, pruefen = 0, fertig = 0;
+  leute.forEach(p => {
+    const st = zaStand(p.id);
+    offen += st.fehlt + st.entwurf;
+    pruefen += st.pruefen;
+    if(st.sh.status === "submitted") fertig++;
+  });
+
+  const stufe = (id, nr, titel, zahl, erledigt) => `<button class="za-step ${erledigt ? "is-done" : ""}"
+    role="tab" aria-selected="${schritt === id}" data-act="zastep" data-step="${id}">
+    <b>${nr} ${titel}</b>${esc(zahl)}</button>`;
+
+  const kopf = `<div class="za-steps" role="tablist">
+    ${stufe("who", 1, "Wer fehlt", offen ? offen + " offen" : "niemand offen", !offen)}
+    ${stufe("check", 2, "Prüfen", pruefen ? pruefen + " zu prüfen" : "nichts offen", !pruefen)}
+    ${stufe("close", 3, "Abschluss", fertig + " von " + leute.length, zeZu())}
+  </div>`;
+
+  const body = schritt === "check" ? zaCheckHtml()
+    : schritt === "close" ? zaCloseHtml()
+    : `<div class="za-who">${leute.map(p => zaPersonHtml(p.id)).join("")
+        || `<p class="empty-note">In diesem Monat ist niemand eingeteilt und niemand hat etwas erfasst.</p>`}</div>
+       <p class="hint" style="margin-top:14px">Tippe eine Person an, um ihre Tage zu prüfen. Jeder Tag wird
+         einzeln bestätigt: ein Tipp auf ✓ reicht, derselbe Tipp nimmt die Bestätigung zurück.
+         Freigeben kannst du jederzeit, auch mitten im Monat.</p>`;
+
+  return monthBar()
+    + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
+    + (zeZu() ? `<div class="banner ok">${esc(monthLabel(ui.monthKey))} ist abgeschlossen. Zum Ändern musst du den Monat wieder öffnen.</div>` : "")
+    + (!zeiten().on ? `<div class="banner info">Für ${esc(monthLabel(ui.monthKey))} ist keine Zeiterfassung nötig
+        (Einstellungen: „Zeiterfassung ab Monat“). Erfassen und Abschließen gehen trotzdem.</div>` : "")
+    + kopf + body;
+}
+
+/* ============================================================
+   Zeiterfassung — Teile neu zeichnen, ohne die Liste zu bewegen
+   ============================================================ */
+function zePatchDay(uid, ymd){
+  const el = document.querySelector('.ze-day[data-ymd="' + ymd + '"]');
+  if(!el) return;
+  const x = zeTage(uid).find(y => y.ymd === ymd);
+  if(!x) return;
+  el.outerHTML = zeDayHtml(uid, x);
+  zeKopfPatch(uid);
+}
+function zeKopfPatch(uid){
+  const s = zeSumme(uid);
+  const w = document.querySelectorAll(".ze-top .ze-nv");
+  if(w.length === 3){ w[0].textContent = zeHM(s.normal); w[1].textContent = zeHM(s.sl); w[2].textContent = zeHM(s.netto); }
+  const alle = zeTage(uid);
+  const karten = alle.filter(x => !(x.zukunft && !x.e));
+  const fertig = karten.filter(x => x.e && x.e.status !== "draft").length;
+  const pill = document.querySelector(".ze-top .pill");
+  if(pill){
+    pill.innerHTML = "<b>" + fertig + "</b> von " + karten.length + (karten.length === 1 ? " Tag" : " Tagen") + " bestätigt";
+    pill.className = "pill" + (karten.length && fertig === karten.length ? " done" : "");
+  }
+  const st = document.querySelector(".ze-top .ze-state");
+  if(st) st.textContent = zeKopfText(uid, alle);
+}
+function zaPatchRow(uid, ymd){
+  const el = document.querySelector('.za-row[data-ymd="' + ymd + '"]');
+  if(!el) return;
+  const x = zeTage(uid).find(y => y.ymd === ymd);
+  if(!x) return;
+  /* der Editor steht als eigenes Element hinter der Zeile — beides ersetzen */
+  const edit = el.nextElementSibling;
+  if(edit && edit.classList.contains("ze-day") && edit.dataset.ymd === ymd) edit.remove();
+  el.outerHTML = zaRowHtml(uid, x);
+  const st = zaStand(uid);
+  const z = document.querySelector(".za-count");
+  if(z) z.textContent = st.geprueft + " von " + st.t.filter(y => !(y.zukunft && !y.e)).length;
+  /* Der Fuß muss mit: sonst fehlt „Zur Endbestätigung freigeben“, obwohl
+     gerade der letzte Tag bestätigt wurde. Er steht unter der Liste, das
+     Neuschreiben bewegt also keine Zeile. */
+  const fuss = document.querySelector(".za-foot");
+  if(fuss) fuss.innerHTML = zaFussHtml(uid);
+}
+
+/* ============================================================
+   Zeiterfassung — Bedienung
+   ============================================================ */
+function zeFormAuf(uid, ymd){
+  const x = zeTage(uid).find(y => y.ymd === ymd);
+  if(!x) return;
+  const e = x.e, plan = x.plan;
+  if(e){
+    ui.zeForm = {ymd, worked:!!e.worked, starts:e.starts || "", ends:e.ends || "",
+      brk:Number(e.break_min) || 0, lead:Number(e.lead_min) || 0,
+      note:isAdmin() ? (e.admin_note || "") : (e.note || "")};
+  } else {
+    /* Zusatztag ohne Plan: die Standardschicht dieses Wochentags vorbelegen */
+    const tpl = (templates[x.wd] || [])[0];
+    const von = plan ? plan.starts : tpl ? tpl.start : "17:00";
+    const bis = plan ? plan.ends : tpl ? tpl.end : "23:00";
+    const c = zeCalc(ymd, von, bis, 0, 0);
+    ui.zeForm = {ymd, worked:true, starts:von, ends:bis,
+      brk:c.req, lead:plan && plan.lead ? Math.max(0, c.net) : 0, note:""};
+  }
+  ui.zeOpen = ymd;
+}
+
+/* Beim Speichern wird die Schichtleitung auf die neue Arbeitszeit geklemmt —
+   sonst lehnt die Datenbank ab, wenn man die Zeiten verkürzt hat. */
+function zeNutzlast(f, rolle){
+  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
+  if(!f.worked) return {p:{worked:false, starts:null, ends:null, break_min:0, lead_min:0}, c};
+  return {p:{worked:true, starts:f.starts, ends:f.ends, break_min:c.pause, lead_min:c.sl}, c};
+}
+
+async function zeSpeichern(uid){
+  if(zeBusy || !ui.zeForm) return;
+  const f = ui.zeForm, ymd = f.ymd;
+  const n = zeNutzlast(f);
+  if(f.worked && n.c.err){ ui.formError = n.c.err; render(); return; }
+  const x = zeTage(uid).find(y => y.ymd === ymd);
+  const e = x && x.e;
+  const buero = isAdmin();
+  const nutz = Object.assign({}, n.p, buero ? {status:"adm_ok", admin_note:f.note} : {status:"emp_ok", note:f.note});
+  zeBusy = true;
+  const res = e
+    ? await zeRun(sb.from("time_entries").update(nutz).eq("id", e.id).select(ZE_SPALTEN))
+    : await zeRun(sb.from("time_entries").insert(Object.assign({user_id:uid, work_date:ymd}, nutz)).select(ZE_SPALTEN));
+  zeBusy = false;
+  if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return; }
+  const zeile = res.data && res.data[0];
+  if(zeile) zeMerke(zeile);
+  if(buero && zeile) zeBlattNach(uid, zeile.status, true);
+  ui.zeOpen = null; ui.zeForm = null; ui.formError = "";
+  /* nur die eine Karte neu zeichnen, damit die Liste stehen bleibt */
+  if(buero) zaPatchRow(uid, ymd); else zePatchDay(uid, ymd);
+}
+
+/* Was der Trigger mit dem Monat des Mitarbeiters macht, wenn das Büro nach
+   der Freigabe eingreift — hier nachgezogen, damit der Fuß ohne Neuladen
+   stimmt. Dieselbe Regel steht in guard_time_entry. */
+function zeBlattNach(uid, tagStatus, geaendert){
+  const sh = zeiten().sheets[uid];
+  if(!sh || sh.status === "open") return;
+  if(tagStatus !== "adm_ok"){
+    sh.status = "open"; sh.reopen_reason = "Das Büro hat einen Tag zurückgegeben.";
+  } else if(geaendert){
+    sh.status = "review"; sh.reopen_reason = "Das Büro hat Zeiten geändert.";
+  }
+}
+
+async function zeTapOk(uid, ymd){
+  if(zeBusy) return;
+  const x = zeTage(uid).find(y => y.ymd === ymd);
+  if(!x) return;
+  const e = x.e;
+  zeBusy = true;
+  let res;
+  if(!e){
+    const c = zeCalc(ymd, x.plan.starts, x.plan.ends, 0, 0);
+    if(c.err){ zeBusy = false; zeFormAuf(uid, ymd); render(); return; }
+    res = await zeRun(sb.from("time_entries").insert({
+      user_id:uid, work_date:ymd, worked:true, starts:x.plan.starts, ends:x.plan.ends,
+      break_min:c.pause, lead_min:x.plan.lead ? Math.max(0, c.net) : 0, status:"emp_ok"
+    }).select(ZE_SPALTEN));
+  } else {
+    res = await zeRun(sb.from("time_entries")
+      .update({status: e.status === "emp_ok" ? "draft" : "emp_ok"})
+      .eq("id", e.id).select(ZE_SPALTEN));
+  }
+  zeBusy = false;
+  if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return; }
+  if(res.data && res.data[0]) zeMerke(res.data[0]);
+  zePatchDay(uid, ymd);
+}
+
+/* Freigeben: ein Tipp, kein Dialog, kein render(). Tipps, die kurz
+   hintereinander fallen, gehen in einem Aufruf an die Datenbank — freigegeben
+   wird nur, was einzeln angetippt wurde und noch im gesehenen Stand (rev)
+   vorliegt. Hat der Mitarbeiter zwischendurch geändert, fehlt die Zeile in
+   der Antwort und die Zeile wird zurückgestellt. */
+function zaTapOk(uid, ymd){
+  const x = zeTage(uid).find(y => y.ymd === ymd);
+  if(!x || !x.e) return;
+  const e = x.e;
+  if(e.status === "adm_ok"){ zaZurueck(uid, ymd); return; }
+  if(e.status !== "emp_ok") return;
+  if(ui.zaBad) delete ui.zaBad[ymd];
+  e.status = "adm_ok";                       // zuversichtlich, die Zeile wird sofort grün
+  zaPatchRow(uid, ymd);
+  zaPend.push({uid, ymd, id:e.id, rev:e.rev});
+  clearTimeout(zaTimer);
+  zaTimer = setTimeout(zaSenden, 350);
+}
+
+async function zaSenden(){
+  const paket = zaPend.slice();
+  zaPend = [];
+  if(!paket.length) return;
+  setSync("saving");
+  let res;
+  try{
+    res = typeof sb.rpc === "function"
+      ? await sb.rpc("approve_time_entries", {p_items: paket.map(x => ({id:x.id, rev:x.rev}))})
+      : {data: paket.map(x => ({id:x.id, rev:x.rev + 1}))};
+  }catch(err){ res = {error:{message:String(err && err.message || err)}}; }
+
+  ui.zaBad = ui.zaBad || {};
+  if(res && res.error){
+    console.error(res.error);
+    setSync("bad");
+    paket.forEach(x => {
+      const e = (zeOf(x.uid)[Number(x.ymd.slice(8, 10))]);
+      if(e){ e.status = "emp_ok"; }
+      ui.zaBad[x.ymd] = res.error.message;
+      zaPatchRow(x.uid, x.ymd);
+    });
+    return;
+  }
+  const zurueck = {};
+  (res.data || []).forEach(r => { zurueck[r.id] = r.rev; });
+  paket.forEach(x => {
+    const e = zeOf(x.uid)[Number(x.ymd.slice(8, 10))];
+    if(!e) return;
+    if(zurueck[x.id] !== undefined){ e.status = "adm_ok"; e.rev = zurueck[x.id]; delete ui.zaBad[x.ymd]; }
+    else { e.status = "emp_ok"; ui.zaBad[x.ymd] = "hat sich geändert, bitte erneut ansehen"; }
+    zaPatchRow(x.uid, x.ymd);
+  });
+  setSync("ok");
+}
+
+async function zaZurueck(uid, ymd){
+  const e = zeOf(uid)[Number(ymd.slice(8, 10))];
+  if(!e) return;
+  const alt = e.rev;
+  e.status = "emp_ok";
+  zeBlattNach(uid, "emp_ok", false);        // eine zurückgenommene Freigabe hebt die Monatsfreigabe auf
+  zaPatchRow(uid, ymd);
+  const res = await zeRun(sb.from("time_entries").update({status:"emp_ok"})
+    .eq("id", e.id).eq("rev", alt).select(ZE_SPALTEN));
+  ui.zaBad = ui.zaBad || {};
+  if(!res.ok){
+    e.status = "adm_ok";
+    ui.zaBad[ymd] = res.msg;
+  } else if(res.data && res.data[0]){
+    zeMerke(res.data[0]);
+    delete ui.zaBad[ymd];
+  }
+  zaPatchRow(uid, ymd);
+}
+
+/* ============================================================
+   Zeiterfassung — CSV
+
+   Semikolon, CRLF, UTF-8 mit Signatur, Dezimalkomma: so öffnet deutsches
+   Excel die Datei ohne Nachfrage. Der Monat steht als zwei Zahlenspalten,
+   sonst macht Excel daraus ein Datum.
+   ============================================================ */
+function csvFeld(v){
+  let s = v === null || v === undefined ? "" : String(v);
+  if(/^[=+\-@\t\r]/.test(s)) s = "'" + s;          // keine Formel aus einem Namen
+  return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+const csvZeile = a => a.map(csvFeld).join(";");
+
+function csvLaden(name, text){
+  const blob = new Blob(["\ufeff" + text], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+function zeCsvSummen(){
+  const p = parseKey(ui.monthKey);
+  const kopf = ["Jahr", "Monat", "Name", "Arbeitstage", "Stunden normal", "Stunden Schichtleitung",
+    "Stunden gesamt", "Minuten normal", "Minuten Schichtleitung"];
+  const zeilen = zeScope().slice()
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), "de"))
+    .map(x => {
+      const s = zeSumme(x.id);
+      return csvZeile([p.y, p.m + 1, x.name, s.tage, zeDez(s.normal), zeDez(s.sl),
+        dec((zeCenti(s.normal) + zeCenti(s.sl)) / 100, 2), s.normal, s.sl]);
+    });
+  return [csvZeile(kopf)].concat(zeilen).join("\r\n") + "\r\n";
+}
+
+function zeCsvTage(){
+  const kopf = ["Datum", "Wochentag", "Name", "Beginn", "Ende", "Ende am Folgetag", "Pause (Min)",
+    "Netto (Std)", "davon Schichtleitung (Std)", "davon normal (Std)", "Vom Büro geändert",
+    "Beginn Mitarbeiter", "Ende Mitarbeiter", "Pause Mitarbeiter", "Plan Beginn", "Plan Ende", "Anmerkung"];
+  const zeilen = [];
+  zeScope().slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "de")).forEach(x => {
+    const ein = zeOf(x.id);
+    Object.keys(ein).map(Number).sort((a, b) => a - b).forEach(d => {
+      const e = ein[d];
+      const o = e.emp_orig && zeGeaendert(e) ? e.emp_orig : null;
+      const folge = e.worked && zeMin(e.ends) <= zeMin(e.starts);
+      const anm = [e.note, e.admin_note].filter(Boolean).join(" | ");
+      zeilen.push(csvZeile([
+        String(d).padStart(2, "0") + "." + String(parseKey(ui.monthKey).m + 1).padStart(2, "0") + "." + parseKey(ui.monthKey).y,
+        WD_SHORT[weekdayOf(ui.monthKey, d)], x.name,
+        e.worked ? e.starts : "", e.worked ? e.ends : "", e.worked ? (folge ? "ja" : "nein") : "",
+        e.break_min, zeDez(e.net_min), zeDez(e.lead_min), zeDez(Math.max(0, e.net_min - e.lead_min)),
+        o ? "ja" : "nein",
+        o ? (o.starts || "") : "", o ? (o.ends || "") : "", o ? (o.break_min === undefined ? "" : o.break_min) : "",
+        e.plan_starts || "", e.plan_ends || "",
+        e.worked ? anm : ("nicht gearbeitet" + (anm ? " | " + anm : ""))
+      ]));
+    });
+  });
+  return [csvZeile(kopf)].concat(zeilen).join("\r\n") + "\r\n";
+}
+
+/* ============================================================
+   Zeiterfassung — Klicks
+
+   Steht vor dem großen switch in handleClick(): alle Aktionen mit den
+   Präfixen ze… und za… werden hier behandelt. Was hier nichts findet,
+   läuft unverändert weiter.
+   ============================================================ */
+async function zeClick(act, el){
+  const k = ui.monthKey;
+  const uid = isAdmin() ? (ui.zaPerson || me.id) : me.id;
+  const ymd = el.dataset.ymd;
+  /* Eine Meldung gehört zur letzten Handlung: beim nächsten Tipp ist sie weg */
+  ui.formError = ""; ui.zeFehler = "";
+
+  switch(act){
+
+    /* ---- gemeinsamer Tages-Editor ---- */
+    case "zeday":
+    case "zarow": {
+      /* Auf- und Zuklappen ohne render(): sonst springt die Liste an den
+         Anfang und sortiert sich dabei auch noch um. */
+      const vorher = ui.zeOpen;
+      if(ui.zeOpen === ymd){ ui.zeOpen = null; ui.zeForm = null; }
+      else zeFormAuf(uid, ymd);
+      const patch = act === "zarow" ? zaPatchRow : zePatchDay;
+      if(vorher && vorher !== ymd) patch(uid, vorher);
+      patch(uid, ymd);
+      if(ui.zeOpen){
+        const el = document.querySelector('.ze-day[data-ymd="' + ymd + '"] .ze-edit');
+        if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+      }
+      return true;
+    }
+
+    case "zespin": {
+      if(!ui.zeForm) return true;
+      const f = el.dataset.feld, d = Number(el.dataset.d);
+      const c = zeCalc(ui.zeForm.ymd, ui.zeForm.starts, ui.zeForm.ends, ui.zeForm.brk, ui.zeForm.lead);
+      if(f === "brk") ui.zeForm.brk = Math.max(c.req, Math.min(600, (Number(ui.zeForm.brk) || 0) + d));
+      else ui.zeForm.lead = Math.max(0, Math.min(Math.max(0, c.net), (Number(ui.zeForm.lead) || 0) + d));
+      zePatchEdit();
+      return true;
+    }
+    case "zeall": {
+      if(!ui.zeForm) return true;
+      const c = zeCalc(ui.zeForm.ymd, ui.zeForm.starts, ui.zeForm.ends, ui.zeForm.brk, 0);
+      ui.zeForm.lead = Math.max(0, c.net);
+      zePatchEdit();
+      return true;
+    }
+    case "zesave": await zeSpeichern(uid); return true;
+
+    case "zeoff": {                       /* ausdrückliche Null: „nicht gearbeitet“ */
+      if(!ui.zeForm) return true;
+      ui.zeForm.worked = false;
+      await zeSpeichern(uid);
+      return true;
+    }
+    case "zeon": {
+      if(!ui.zeForm) return true;
+      const x = zeTage(uid).find(y => y.ymd === ui.zeForm.ymd);
+      const tpl = (templates[x ? x.wd : 0] || [])[0];
+      const plan = x && x.plan;
+      ui.zeForm.worked = true;
+      if(!ui.zeForm.starts) ui.zeForm.starts = plan ? plan.starts : tpl ? tpl.start : "17:00";
+      if(!ui.zeForm.ends) ui.zeForm.ends = plan ? plan.ends : tpl ? tpl.end : "23:00";
+      const c = zeCalc(ui.zeForm.ymd, ui.zeForm.starts, ui.zeForm.ends, 0, 0);
+      ui.zeForm.brk = c.req;
+      render();
+      return true;
+    }
+    case "zedel": {
+      const x = zeTage(uid).find(y => y.ymd === ui.zeOpen);
+      if(!x || !x.e) return true;
+      const id = x.e.id, tag = x.day;
+      ask("Den Eintrag für den " + tag + ". wirklich löschen? Ein geplanter Tag gilt danach wieder als offen.",
+        "Löschen", async () => {
+          const res = await zeRun(sb.from("time_entries").delete().eq("id", id).select("id"));
+          if(!res.ok){ ui.formError = "Nicht gelöscht: " + res.msg; render(); return; }
+          zeVergiss(uid, tag);
+          ui.zeOpen = null; ui.zeForm = null;
+          render();
+        });
+      return true;
+    }
+
+    /* ---- Mitarbeiter: zusätzlicher Tag, Abschicken, Einspruch ---- */
+    case "zeadd":
+    case "zaadd": ui.zeAdd = true; ui.zeNeu = ""; render(); return true;
+    case "zeaddzu": ui.zeAdd = false; render(); return true;
+    case "zeaddgo":
+    case "zaaddgo": {
+      const wer = act === "zaaddgo" ? el.dataset.emp : me.id;
+      const datum = ui.zeNeu || "";
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(datum) || datum.slice(0, 7) !== k){
+        ui.formError = "Bitte einen Tag aus " + monthLabel(k) + " wählen.";
+        render(); return true;
+      }
+      ui.zeAdd = false;
+      ui.zeExtra = {uid:wer, ymd:datum};
+      zeFormAuf(wer, datum);
+      render();
+      return true;
+    }
+
+    case "zesubmit": {
+      const s = zeSumme(me.id);
+      const chg = zeTage(me.id).filter(x => x.e && zeGeaendert(x.e));
+      let text = "Du bestätigst deine Zeiten für " + monthLabel(k) + ": "
+        + zeHM(s.netto) + " Std, davon " + zeHM(s.sl) + " Schichtleitung, an " + s.tage
+        + (s.tage === 1 ? " Tag" : " Tagen") + ".";
+      if(chg.length) text += " Das Büro hat " + chg.length + (chg.length === 1 ? " Tag" : " Tage")
+        + " geändert: " + chg.map(x => x.day + ". " + zeDiffText(x.e).replace(/<\/?b>/g, "")).join(" · ") + ".";
+      text += " Danach kannst du nichts mehr ändern.";
+      ask(text, "Monat abschicken", async () => {
+        const res = await zeRun(sb.from("time_sheets")
+          .upsert({ym:k, user_id:me.id, status:"submitted"}, {onConflict:"ym,user_id"})
+          .select("user_id,status,released_at,submitted_at,submitted_by,objection,reopen_reason"));
+        if(!res.ok){ ui.formError = "Nicht abgeschickt: " + res.msg; render(); return; }
+        await reload();
+      });
+      return true;
+    }
+    case "zeobj": ui.zeObj = true; ui.zeObjText = ""; render(); return true;
+    case "zeobjzu": ui.zeObj = false; render(); return true;
+    case "zeobjsend": {
+      if(String(ui.zeObjText || "").trim().length < 3){
+        ui.formError = "Bitte schreib kurz dazu, was nicht stimmt."; render(); return true;
+      }
+      const res = await zeRun(sb.from("time_sheets")
+        .update({status:"open", objection:String(ui.zeObjText).trim()})
+        .eq("ym", k).eq("user_id", me.id).select("user_id,status"));
+      if(!res.ok){ ui.formError = "Nicht gesendet: " + res.msg; render(); return true; }
+      ui.zeObj = false; ui.zeObjText = ""; ui.formError = "";
+      await reload();
+      return true;
+    }
+
+    /* ---- Mitarbeiter und Büro: ein Tipp auf den Haken ---- */
+    case "zeok": await zeTapOk(uid, ymd); return true;
+    case "zaok": zaTapOk(uid, ymd); return true;
+
+    /* ---- Büro: Wegweiser und Personen ---- */
+    case "zastep":
+      ui.zaStep = el.dataset.step; ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false;
+      ui.formError = ""; render(); return true;
+    case "zaperson":
+      ui.zaPerson = el.dataset.emp; ui.zaStep = "check";
+      ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false; render(); return true;
+    case "zapnav": {
+      const leute = zeScope();
+      if(!leute.length) return true;
+      const i = Math.max(0, leute.findIndex(p => p.id === ui.zaPerson));
+      const n = (i + Number(el.dataset.d) + leute.length) % leute.length;
+      ui.zaPerson = leute[n].id; ui.zaStep = "check";
+      ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false;
+      render();
+      window.scrollTo(0, 0);
+      return true;
+    }
+
+    /* ---- Büro: fehlenden Tag belegen ---- */
+    case "zafromplan":
+    case "zanowork": {
+      const x = zeTage(uid).find(y => y.ymd === ymd);
+      if(!x) return true;
+      let nutz;
+      if(act === "zanowork"){
+        nutz = {worked:false, status:"adm_ok"};
+      } else {
+        if(!x.plan) return true;
+        const c = zeCalc(ymd, x.plan.starts, x.plan.ends, 0, 0);
+        nutz = {worked:true, starts:x.plan.starts, ends:x.plan.ends, break_min:c.pause,
+          lead_min:x.plan.lead ? Math.max(0, c.net) : 0, status:"adm_ok"};
+      }
+      const res = await zeRun(sb.from("time_entries")
+        .insert(Object.assign({user_id:uid, work_date:ymd}, nutz)).select(ZE_SPALTEN));
+      if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return true; }
+      if(res.data && res.data[0]) zeMerke(res.data[0]);
+      zaPatchRow(uid, ymd);
+      return true;
+    }
+
+    /* ---- Büro: Monat einer Person ---- */
+    case "zarelease": {
+      const wer = el.dataset.emp, p = people.find(x => x.id === wer) || {name:"?"};
+      ask(p.name + " bekommt die Zeiten jetzt zur Bestätigung. Danach kann "
+        + (p.name) + " nichts mehr ändern, nur widersprechen.", "Freigeben", async () => {
+          const res = await zeRun(sb.from("time_sheets")
+            .upsert({ym:k, user_id:wer, status:"review"}, {onConflict:"ym,user_id"})
+            .select("user_id,status"));
+          if(!res.ok){ ui.formError = "Nicht freigegeben: " + res.msg; render(); return; }
+          await reload();
+        });
+      return true;
+    }
+    case "zasubmitfor": {
+      const wer = el.dataset.emp, p = people.find(x => x.id === wer) || {name:"?"};
+      ask("Du bestätigst den Monat für " + p.name + ", ohne dass "
+        + p.name + " es selbst getan hat. Das bleibt gespeichert. Nur sinnvoll, wenn es abgestimmt ist "
+        + "oder der Zugang nicht mehr geht.", "Stellvertretend abschicken", async () => {
+          const res = await zeRun(sb.from("time_sheets").update({status:"submitted"})
+            .eq("ym", k).eq("user_id", wer).select("user_id,status"));
+          if(!res.ok){ ui.formError = "Nicht abgeschickt: " + res.msg; render(); return; }
+          await reload();
+        });
+      return true;
+    }
+    case "zareturn": {
+      const wer = el.dataset.emp, p = people.find(x => x.id === wer) || {name:"?"};
+      ask("Den Monat an " + p.name + " zurückgeben? " + p.name + " kann dann wieder Tage ändern, "
+        + "und du musst danach erneut freigeben.", "Zurückgeben", async () => {
+          const res = await zeRun(sb.from("time_sheets")
+            .update({status:"open", reopen_reason:"Das Büro hat den Monat zurückgegeben."})
+            .eq("ym", k).eq("user_id", wer).select("user_id,status"));
+          if(!res.ok){ ui.formError = "Nicht zurückgegeben: " + res.msg; render(); return; }
+          await reload();
+        });
+      return true;
+    }
+
+    /* ---- Büro: Monat abschließen, wieder öffnen, CSV ---- */
+    case "zaclose":
+      ask(monthLabel(k) + " abschließen? Danach kann niemand mehr Zeiten ändern — auch du nicht, "
+        + "bis du den Monat wieder öffnest. Die Lohnsätze werden dabei festgeschrieben.",
+        "Abschließen", async () => {
+          const res = await zeRun(sb.from("time_months")
+            .upsert({ym:k, closed:true}, {onConflict:"ym"}).select("ym,closed"));
+          if(!res.ok){ ui.formError = "Nicht abgeschlossen: " + res.msg; render(); return; }
+          await reload();
+        });
+      return true;
+    case "zareopen":
+      ask(monthLabel(k) + " wieder öffnen? Eine schon an die Steuerberatung gegebene CSV-Datei passt "
+        + "danach vielleicht nicht mehr zu den Zeiten.", "Wieder öffnen", async () => {
+          const res = await zeRun(sb.from("time_months").update({closed:false}).eq("ym", k).select("ym,closed"));
+          if(!res.ok){ ui.formError = "Nicht geöffnet: " + res.msg; render(); return; }
+          await reload();
+        });
+      return true;
+    case "zacsv": {
+      /* ohne await, sonst zählt der Browser den Download nicht mehr als Benutzeraktion */
+      const name = "Rennbahn_Zeiten_" + k + (el.dataset.wie === "tage" ? "_Einzeltage" : "_Summen") + ".csv";
+      csvLaden(name, el.dataset.wie === "tage" ? zeCsvTage() : zeCsvSummen());
+      return true;
+    }
+
+    /* ---- Sprung aus der Planung in den Abschluss ---- */
+    case "zagoto":
+      ui.adminTab = "time"; ui.zaStep = "close"; render(); return true;
+
+    /* ---- Einstellung: ab welchem Monat die Zeiterfassung Pflicht ist ---- */
+    case "zasavefirst": {
+      const v = String(config.timeFirstYm || "").trim();
+      ui.formInfo = "";
+      if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(v)){
+        ui.zeFehler = "Bitte Jahr und Monat eintragen, zum Beispiel 2026-11.";
+        render(); return true;
+      }
+      const okay = await write(sb.from("settings").update({time_first_ym:v}).eq("id", 1));
+      if(okay){ ui.formInfo = "Gespeichert."; await reload(); }
+      else render();
+      return true;
+    }
+  }
+  return false;
+}
+
+/* Nur den grauen Rechenkasten, die Stepper und den Knopf neu schreiben —
+   nicht die ganze Seite, sonst springt die Liste und der Fokus geht verloren. */
+function zePatchEdit(){
+  const f = ui.zeForm;
+  if(!f) return;
+  /* Zeiten geändert: die Mindestpause kann gestiegen sein (dann hebt sie die
+     Datenbank ohnehin an), und die Schichtleitung muss auf die neue
+     Arbeitszeit geklemmt werden — sonst lehnt der Trigger ab. */
+  if(f.worked){
+    const c0 = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
+    if(f.brk < c0.req) f.brk = c0.req;
+    if(f.lead > Math.max(0, c0.net)) f.lead = Math.max(0, c0.net);
+  }
+  const box = document.querySelector('.ze-day[data-ymd="' + f.ymd + '"] .ze-calc');
+  if(box) box.innerHTML = zeCalcHtml(f);
+  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
+  document.querySelectorAll('.ze-day[data-ymd="' + f.ymd + '"] .ze-mini').forEach(p => {
+    p.textContent = zeMinText(p.dataset.min, c);
+  });
+  document.querySelectorAll('.ze-day[data-ymd="' + f.ymd + '"] .ze-spinv').forEach(inp => {
+    const feld = inp.dataset.ze;
+    if(document.activeElement === inp) return;              // nicht beim Tippen dazwischenfahren
+    inp.value = zeHM(feld === "brk" ? f.brk : Math.min(f.lead, Math.max(0, c.net)));
+  });
+  document.querySelectorAll('.ze-day[data-ymd="' + f.ymd + '"] .ze-spinb').forEach(b => {
+    const feld = b.dataset.feld, d = Number(b.dataset.d);
+    if(d > 0) b.disabled = false;
+    else b.disabled = feld === "brk" ? f.brk <= c.req : f.lead <= 0;
+  });
+  const save = document.querySelector('.ze-day[data-ymd="' + f.ymd + '"] [data-act="zesave"]');
+  if(save) save.disabled = !!(f.worked && c.err);
+}
+
+/* Zusatz für die Dialoge „Zuteilungen leeren“ und „Monat zurücksetzen“:
+   erfasste Zeiten überleben beides (sie hängen nicht am Plan), aber das
+   Büro soll es vorher wissen. */
+function zeHinweisPlan(){
+  const t = zeiten();
+  const n = Object.keys(t.entries).reduce((s, id) => s + Object.keys(t.entries[id]).length, 0);
+  if(!n) return "";
+  let s = " Für diesen Monat sind schon " + n + (n === 1 ? " Tag" : " Tage")
+    + " Zeiterfassung erfasst. Die bleiben erhalten; danach verlangt die Zeiterfassung "
+    + "aber keine geplanten Tage mehr.";
+  if(t.closed) s += " Der Monat ist in der Zeiterfassung abgeschlossen — eine schon "
+    + "ausgelieferte CSV passt danach nicht mehr zum Plan.";
+  return s;
+}
+
+/* Beim Wechsel von Reiter oder Monat alles Halboffene zumachen */
+function zeSchliessen(){
+  ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false; ui.zeNeu = "";
+  ui.zeObj = false; ui.zeObjText = ""; ui.zeExtra = null; ui.zaBad = null;
+}
+
+/* Eingaben im Editor: Zustand merken und nur den Rechenkasten nachführen */
+function zeInput(t){
+  const feld = t.dataset.ze;
+  if(feld === "neu"){ ui.zeNeu = t.value; return true; }
+  if(feld === "obj"){ ui.zeObjText = t.value; return true; }
+  if(!ui.zeForm) return true;
+  if(feld === "brk" || feld === "lead") ui.zeForm[feld] = zeParseHM(t.value);
+  else ui.zeForm[feld] = t.value;
+  zePatchEdit();
+  return true;
 }
 
 /* ============================================================
@@ -1644,6 +3327,9 @@ async function handleClick(e){
   const day = Number(el.dataset.day);
   const k = ui.monthKey;
 
+  /* Zeiterfassung zuerst: alles mit ze… und za… wird dort behandelt */
+  if((act.slice(0, 2) === "ze" || act.slice(0, 2) === "za") && await zeClick(act, el)) return;
+
   switch(act){
     case "dlg-no": pending = null; render(); return;
     case "dlg-yes": { const p = pending; pending = null; render(); if(p) await p.cb(); return; }
@@ -1657,10 +3343,17 @@ async function handleClick(e){
     case "theme": toggleTheme(); return;
     case "tab":
       if(isAdmin()) ui.adminTab = el.dataset.tab; else ui.empTab = el.dataset.tab;
-      ui.selection = null; ui.formError = ""; ui.formInfo = ""; render(); return;
+      ui.selection = null; ui.formError = ""; ui.formInfo = "";
+      zeSchliessen();
+      /* Die Zeiterfassung ist der einzige Reiter, in dem zwei Leute gleichzeitig
+         schreiben. Beim Betreten deshalb frisch laden, sonst prüft das Büro
+         veraltete Stände. */
+      if(el.dataset.tab === "time"){ await reload(); return; }
+      render(); return;
     case "month":
       ui.monthKey = shiftMonth(k, Number(el.dataset.dir));
       ui.selection = null; ui.formError = "";
+      zeSchliessen();
       await reload(); return;
 
     /* Mitarbeiter */
@@ -1910,13 +3603,15 @@ async function handleClick(e){
       render(); return;
     }
     case "clearmonth":
-      ask("Alle Zuteilungen in " + monthLabel(k) + " leeren? Schichten und Eintragungen bleiben.", "Leeren", async () => {
+      ask("Alle Zuteilungen in " + monthLabel(k) + " leeren? Schichten und Eintragungen bleiben."
+        + zeHinweisPlan(), "Leeren", async () => {
         await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("ym", k));
         await reload();
       });
       return;
     case "resetmonth":
-      ask(monthLabel(k) + " zurücksetzen? Schichten und Zuteilungen werden neu aus den Vorlagen aufgebaut.", "Zurücksetzen", async () => {
+      ask(monthLabel(k) + " zurücksetzen? Schichten und Zuteilungen werden neu aus den Vorlagen aufgebaut."
+        + zeHinweisPlan(), "Zurücksetzen", async () => {
         await write(sb.from("months").delete().eq("ym", k));
         await reload();
       });
@@ -2120,6 +3815,7 @@ let noteTimer = null, sollTimer = null;
 function onInput(e){
   const t = e.target;
 
+  if(t.dataset.ze !== undefined){ zeInput(t); return; }
   if(t.dataset.note !== undefined){
     const day = Number(t.dataset.note);
     month.days[day].comment = t.value;
@@ -2141,6 +3837,7 @@ function onInput(e){
     return;
   }
   if(t.dataset.cfg){ config[t.dataset.cfg] = toNum(t.value); return; }
+  if(t.dataset.cfgtext){ config[t.dataset.cfgtext] = t.value.trim(); return; }
   if(t.dataset.tpl !== undefined && t.dataset.f){
     const arr = templates[Number(t.dataset.tpl)];
     const row = arr && arr[Number(t.dataset.i)];
@@ -2176,6 +3873,24 @@ function render(){
 
   setSync(ui.sync);
 
+  /* Der weiche Rand an der Reiterleiste gehört nur dorthin, wo wirklich
+     noch etwas kommt — sonst verblasst grundlos der letzte Reiter. */
+  const reiter = app.querySelector(".tabs");
+  if(reiter){
+    reiter.classList.toggle("passt", reiter.scrollWidth <= reiter.clientWidth + 1);
+    /* Beim Büro passen fünf Reiter nicht auf ein Handy. Nach dem Umschalten
+       muss der aktive trotzdem im Bild stehen — sonst sieht man nicht, wo
+       man ist. Hart gesetzt, nicht weich gescrollt: weiches Scrollen hat in
+       dieser App schon einmal die Ansicht wandern lassen. */
+    const aktiv = reiter.querySelector('[aria-selected="true"]');
+    if(aktiv){
+      const zuWeitLinks  = aktiv.offsetLeft - reiter.scrollLeft;
+      const zuWeitRechts = (aktiv.offsetLeft + aktiv.offsetWidth) - (reiter.scrollLeft + reiter.clientWidth);
+      if(zuWeitRechts > 0) reiter.scrollLeft += zuWeitRechts + 12;
+      else if(zuWeitLinks < 0) reiter.scrollLeft += zuWeitLinks - 12;
+    }
+  }
+
   const fresh = document.getElementById("board");
   if(fresh){
     if(ui.jumpTo){
@@ -2190,6 +3905,10 @@ function render(){
       fresh.scrollLeft = keepScroll;          // hart, sonst wandert die Ansicht sichtbar
     }
   }
+  const leiste = app.querySelector(".sticky-bar");
+  const inhalt = app.querySelector("main");
+  if(leiste && inhalt) inhalt.style.paddingBottom = (leiste.offsetHeight + 26) + "px";
+
   const details = app.querySelector(".checklist");
   if(details) details.addEventListener("toggle", () => { ui.checkOpen = details.open; });
 
