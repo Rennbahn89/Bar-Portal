@@ -451,6 +451,9 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
    hinterlegt: in beiden Erscheinungsbildern der warme Akzentton. */
 .ze-day.is-chg{border-color:var(--accent); background:var(--accent-soft)}
 .ze-day.is-open{border-color:var(--accent); border-style:solid}
+/* Der Editor für eine neue Schicht steht unter der Tagesliste — er
+   braucht denselben Abstand wie der Knopf „+ Schicht hinzufügen". */
+.za-rows + .ze-day{margin-top:8px}
 
 .ze-row{display:flex; align-items:center; gap:8px; padding:0 8px 0 11px}
 .ze-head{flex:1; min-width:0; display:flex; align-items:center; gap:10px; text-align:left;
@@ -701,7 +704,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 16:55 Uhr";
+const PATCH_AM  = "23.11.2026 um 17:10 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
