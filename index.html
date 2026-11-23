@@ -446,12 +446,10 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 
 .ze-days{display:flex; flex-direction:column; gap:6px}
 .ze-day{background:var(--surface); border:1px solid var(--line); border-radius:var(--r)}
-.ze-day.is-plan{border-style:dashed; background:transparent}
-.ze-day.is-emp{border-color:var(--ok-line)}
 .ze-day.is-adm{border-color:var(--ok-line); background:var(--ok-soft)}
-.ze-day.is-nowork{opacity:.72}
-.ze-day.is-future{opacity:.5}
-.ze-day.is-chg{box-shadow:inset 3px 0 0 0 var(--accent)}
+/* Hat der Mitarbeiter nachträglich eine Zeit geändert, ist die Schicht
+   hinterlegt: in beiden Erscheinungsbildern der warme Akzentton. */
+.ze-day.is-chg{border-color:var(--accent); background:var(--accent-soft)}
 .ze-day.is-open{border-color:var(--accent); border-style:solid}
 
 .ze-row{display:flex; align-items:center; gap:8px; padding:0 8px 0 11px}
@@ -464,16 +462,20 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .ze-times{display:block; font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .ze-times small{font-weight:600; font-size:11.5px; color:var(--ink-2); margin-left:5px}
 .ze-sub{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.ze-ok{flex:none; width:44px; height:44px; padding:0; border-radius:50%; font-size:14px; font-weight:700;
+/* Zwei Haken nebeneinander: links der des Mitarbeiters, rechts der des
+   Büros. Nur Anzeige — bestätigt wird der Monat als Ganzes. */
+.ze-ok2{flex:none; display:flex; gap:4px; padding-right:3px}
+.ze-h{width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
   border:1.5px solid var(--line); background:var(--surface); color:var(--ink-3);
-  display:grid; place-items:center; line-height:1}
-.ze-ok.is-emp{border-color:var(--ok); background:var(--ok); color:var(--surface)}
-.ze-ok.is-adm{border-color:var(--ok-line); background:var(--ok-soft); color:var(--ok); cursor:default}
-.ze-ok:disabled{cursor:default}
+  font-size:13px; font-weight:700; line-height:1}
+.ze-h.is-on{border-color:var(--ok); background:var(--ok); color:var(--surface)}
 
 .ze-edit{display:grid; gap:10px; padding:11px 12px 12px; border-top:1px solid var(--line)}
 .ze-two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px}
 .ze-t{font-size:16px; padding:10px 8px}
+/* Alle Felder im Editor bleiben Tippflächen — auch das Auswahlfeld für
+   die Person, das sonst flacher ausfällt als ein Knopf. */
+.ze-edit .field{min-height:46px}
 .ze-line{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
 .ze-line > .lbl{margin:0; flex:none; min-width:116px}
 .ze-line .btn.sm{min-height:44px; padding:6px 11px}
@@ -486,24 +488,28 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   border:1px solid var(--line); border-radius:var(--r); background:var(--bg); color:var(--ink)}
 .ze-spinv:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
 .ze-mini{font-size:12px; color:var(--ink-3); flex-basis:100%; margin:-4px 0 0}
+/* Unter 6:01 gibt es keine Pflichtpause — dann steht hier nichts, und
+   die leere Zeile soll auch keinen Platz brauchen. */
+.ze-mini:empty{display:none}
 .ze-calc{background:var(--surface-2); border-radius:var(--r); padding:9px 11px; font-size:13.5px}
 .ze-calc b{font-size:16px}
 .ze-calc i{display:block; font-style:normal; font-size:12px; color:var(--ink-2); margin-top:2px}
 .ze-warn{display:block; color:var(--no); font-size:12.5px; font-weight:700; margin-top:3px}
 .ze-btns{display:flex; gap:8px}
 .ze-btns .btn{min-height:46px; flex:1; white-space:normal; line-height:1.2}
-.ze-btns .btn.primary{flex:2}
+.ze-btns .btn.primary{flex:3}
+/* Das rote Kreuz schließt die Schicht und löscht sie — ein Quadrat
+   neben dem breiten Bestätigen-Knopf, nicht halb so breit wie er. */
+.ze-x{flex:0 0 52px; font-size:17px; padding:0}
 .ze-diff{font-size:12.5px; line-height:1.45; background:var(--accent-soft); border:1px solid var(--line);
   border-radius:var(--r); padding:8px 10px}
 .ze-diff b{font-weight:700}
 .ze-anote{font-size:12.5px; color:var(--ink-2); font-style:italic}
-.ze-later{font-size:13px; color:var(--ink-2); padding:10px 2px 2px}
 .ze-add{width:100%; margin-top:10px; min-height:46px}
-.ze-obj{display:grid; gap:8px; margin-bottom:12px; padding:12px 14px}
 .ze-fuss .btn{min-height:46px}
 
 /* ---- Büro ---- */
-.za-steps{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:13px}
+.za-steps{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin-bottom:13px}
 .za-step{border:1px solid var(--line); background:var(--surface); border-radius:var(--r);
   padding:8px 6px; min-height:54px; color:var(--ink-2); font-size:11.5px; font-weight:600;
   line-height:1.3; text-align:center; display:flex; flex-direction:column; justify-content:center; gap:1px}
@@ -511,21 +517,6 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-step[aria-selected="true"]{background:var(--accent-soft); border-color:var(--accent)}
 .za-step.is-done{border-color:var(--ok-line)}
 .za-step.is-done b::after{content:" ✓"; color:var(--ok)}
-
-.za-who{display:flex; flex-direction:column; gap:6px}
-.za-p{display:flex; align-items:center; gap:10px; width:100%; text-align:left; min-height:60px;
-  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
-  padding:9px 11px; color:inherit; font:inherit}
-.za-p:hover{border-color:var(--ink-3)}
-.za-pt{flex:1; min-width:0}
-.za-pn{display:block; font-weight:700; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.za-pn small{font-weight:600; font-size:12px; color:var(--ink-2)}
-.za-ps{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.za-chip{flex:none; font-size:11.5px; font-weight:700; padding:5px 9px; border-radius:999px;
-  background:var(--surface-2); color:var(--ink-2); white-space:nowrap}
-.za-chip.is-miss{background:var(--no-soft); color:var(--no)}
-.za-chip.is-check{background:var(--accent-soft); color:var(--ink)}
-.za-chip.is-done{background:var(--ok-soft); color:var(--ok)}
 
 .za-phead{display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap}
 .za-pnav{display:flex; align-items:center; gap:8px; flex:1; min-width:0}
@@ -538,8 +529,8 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-row{display:flex; align-items:center; gap:8px; background:var(--surface);
   border:1px solid var(--line); border-radius:var(--r); padding:5px 7px 5px 11px; min-height:62px}
 .za-row.is-adm{border-color:var(--ok-line); background:var(--ok-soft)}
-.za-row.is-miss{border-style:dashed; flex-wrap:wrap}
-.za-row.is-bad{border-color:var(--no); background:var(--no-soft)}
+.za-row.is-miss{border-style:dashed}
+.za-row.is-chg{border-color:var(--accent); background:var(--accent-soft)}
 .za-rb{flex:1; min-width:0; align-self:stretch; text-align:left; background:none; border:none;
   color:inherit; font:inherit; padding:6px 0; display:flex; flex-direction:column; justify-content:center}
 .za-rb:disabled{cursor:default}
@@ -548,13 +539,17 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-rm{flex:1; min-width:0; font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .za-rs{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .za-dev{color:var(--accent); font-weight:700}
+/* Das Zeichen rechts in der Tagesliste ist ein Zustand, kein Knopf: kein
+   Rahmen, keine Fläche — sonst tippt man darauf und es passiert nichts. */
+.za-mark{flex:none; width:36px; text-align:center; font-size:19px; font-weight:700; color:var(--ink-2)}
+.za-mark.is-ok{color:var(--ok)}
+.za-row.is-leer{opacity:.62}
 .za-ok{flex:none; width:52px; height:52px; padding:0; border-radius:14px; font-size:15px; font-weight:700;
   border:1.5px solid var(--line); background:var(--surface); color:var(--ink-3);
   display:grid; place-items:center; line-height:1}
 .za-ok.is-adm{border-color:var(--ok); background:var(--ok); color:var(--surface)}
 .za-ok:disabled{font-size:11px; font-weight:700; color:var(--ink-2); cursor:default; border-style:dashed}
-.za-acts{display:flex; gap:6px; flex:none}
-.za-acts .btn{min-height:44px; padding:6px 10px; font-size:12.5px}
+.za-zurueck{min-height:46px; margin-bottom:10px}
 .za-foot{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px}
 .za-foot .btn{min-height:46px}
 .za-foot .grow{font-size:13px}
@@ -606,14 +601,12 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .ze-fuss{flex-wrap:wrap; row-gap:9px}
   .ze-fuss .grow{flex-basis:100%; white-space:nowrap}
   .ze-fuss .btn{flex:1 1 0; min-width:0; white-space:normal}
-  .za-row.is-miss .za-acts{flex-basis:100%; margin-bottom:3px}
-  .za-row.is-miss .za-acts .btn{flex:1}
 }
 
 /* Zeiterfassung am Rechner: die Liste ist Lesetext, keine Tabelle —
    sie wird nicht auf 1240 px gestreckt. Die Büro-Zeile wird zweispaltig. */
 @media (min-width:761px){
-  .ze-top, .ze-days, .ze-later, .ze-add, .ze-obj{max-width:760px}
+  .ze-top, .ze-days, .ze-add, .za-rows{max-width:760px}
   .za-rb{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:center}
   .za-rs{padding-right:4px}
   .za-sum, .za-chk{max-width:860px}
@@ -666,7 +659,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "22.11.2026 um 19:05 Uhr";
+const PATCH_AM  = "23.11.2026 um 10:00 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -730,14 +723,10 @@ const ui = {
   jumpTo: null,
   sync: "",
   /* Zeiterfassung */
-  zeOpen: null,              // Datum des aufgeklappten Tages, "2026-11-16"
+  zeOpen: null,              // id der aufgeklappten Schicht, oder "neu"
   zeForm: null,              // ungespeicherter Stand des offenen Editors
-  zeAdd: false, zeNeu: "",   // Karte „zusätzlichen Tag anlegen“
-  zeExtra: null,             // {uid, ymd} — angelegter Zusatztag ohne Zeile
-  zeObj: false, zeObjText: "",
-  zaStep: "who",             // who | check | close
-  zaPerson: null,
-  zaBad: null,               // {datum: Meldung} für Zeilen, die nicht gespeichert wurden
+  zaStep: "tage",            // tage | close
+  zaDay: null,               // Tag, der in der Tagesansicht des Büros offen ist
   zeFehler: ""               // Meldung in der Einstellung „Zeiterfassung ab Monat“
 };
 
@@ -946,7 +935,7 @@ async function loadAll(depth){
     admin ? sb.from("payroll_flags").select("user_id,minijob,target_hours") : Promise.resolve({data:[]})
   ]), Promise.all([
     sb.from("time_entries").select(ZE_SPALTEN).eq("ym", ym),
-    sb.from("time_sheets").select("user_id,status,released_at,submitted_at,submitted_by,objection,reopen_reason").eq("ym", ym),
+    sb.from("time_days").select("work_date,ok").eq("ym", ym),
     sb.from("time_months").select("ym,closed,closed_at,closed_by").eq("ym", ym).maybeSingle(),
     typeof sb.rpc === "function" ? sb.rpc("time_tracking_on", {p_ym: ym}) : Promise.resolve({data:true}),
     admin ? sb.from("time_month_rates").select("ym,wage,wage_lead,limit_amount").eq("ym", ym).maybeSingle()
@@ -996,7 +985,9 @@ async function loadAll(depth){
   });
 
   /* Zeiterfassung. Fehlt die Erweiterung in der Datenbank noch, bleibt der
-     Reiter leer statt die Planung mitzureißen. */
+     Reiter leer statt die Planung mitzureißen.
+     entries ist eine flache Liste: das Büro arbeitet auf Tagesbasis, der
+     Mitarbeiter auf seiner eigenen — beide Sichten filtern dieselbe Liste. */
   const badZ = rz.find(x => x && x.error);
   if(badZ) console.warn("Zeiterfassung nicht geladen:", badZ.error.message);
   if(rz[5] && rz[5].data) config.timeFirstYm = rz[5].data.time_first_ym || "";
@@ -1006,12 +997,10 @@ async function loadAll(depth){
     closed_at: rz[2].data ? rz[2].data.closed_at : null,
     closed_by: rz[2].data ? rz[2].data.closed_by : null,
     rates: rz[4] && rz[4].data ? rz[4].data : null,
-    sheets: {}, entries: {}
+    days: {}, rows: rz[0].data || []
   };
-  (rz[1].data || []).forEach(s => { month.time.sheets[s.user_id] = s; });
-  (rz[0].data || []).forEach(e => {
-    const d = Number(String(e.work_date).slice(8, 10));
-    (month.time.entries[e.user_id] = month.time.entries[e.user_id] || {})[d] = e;
+  (rz[1].data || []).forEach(x => {
+    month.time.days[Number(String(x.work_date).slice(8, 10))] = !!x.ok;
   });
 
   /* Büro öffnet einen noch nicht angelegten Monat: aus den Vorlagen aufbauen */
@@ -1451,8 +1440,7 @@ function payPanel(){
      erfasst sind, stehen zwei verschiedene Stundenzahlen für denselben Monat
      in derselben App — deshalb sagt sie ausdrücklich, welche sie ist, und
      zeigt den Weg zu den Abrechnungszahlen. */
-  const erfasst = Object.keys((month.time && month.time.entries) || {})
-    .reduce((n, id) => n + Object.keys(month.time.entries[id]).length, 0);
+  const erfasst = ((month.time && month.time.rows) || []).length;
 
   return `<div class="card panel" style="margin-top:16px">
     <h2>Stunden- und Schichtverteilung (aus dem Plan)</h2>
@@ -1460,7 +1448,7 @@ function payPanel(){
        ${einleitung} Bei Festanstellung zählen die Vertragsstunden aus dem Team.
        Diese Übersicht sieht nur der Administrator.</p>
     ${erfasst ? `<div class="banner info" style="margin-bottom:12px">
-      Für ${esc(monthLabel(ui.monthKey))} sind schon <b>${erfasst}</b> Tage Ist-Zeit erfasst.
+      Für ${esc(monthLabel(ui.monthKey))} sind schon <b>${erfasst}</b> ${erfasst === 1 ? "Schicht" : "Schichten"} Ist-Zeit erfasst.
       Für die Abrechnung zählen die, nicht die Zahlen hier.
       <div class="row" style="margin-top:8px">
         <button class="btn sm" data-act="zagoto">Zu den erfassten Stunden</button>
@@ -1629,7 +1617,8 @@ function adminSettings(){
         : ui.formInfo ? `<span class="okmsg">${esc(ui.formInfo)}</span>` : ""}
     </div>
     <p class="tiny muted" style="margin:10px 0 0">Format Jahr und Monat, also zum Beispiel
-      <b>2026-11</b>. Abschicken und Abschließen gehen immer erst, wenn der Monat vorbei ist.</p>
+      <b>2026-11</b>. Die Sammelbestätigung der Mitarbeiter und der Abschluss gehen immer erst,
+      wenn der Monat vorbei ist.</p>
   </div>
 
   <div class="card panel">
@@ -1744,144 +1733,172 @@ function zeParseHM(v){
 
 /* ============================================================
    Zeiterfassung — Daten aus dem geladenen Monat
-   ============================================================ */
-const zeiten = () => (month && month.time) || {on:true, closed:false, sheets:{}, entries:{}, rates:null};
-const zeOf = uid => zeiten().entries[uid] || {};
-const zeSheet = uid => zeiten().sheets[uid] || {status:"open"};
-const zeZu = () => !!zeiten().closed;
 
-/* Ist der Monat vorbei? Nach Berliner Datum. Daran hängen Freigeben zur
-   Endbestätigung, Abschicken und Abschließen. */
+   Das Büro trägt alle Schichten ein, auf Tagesbasis, mit den Zeiten
+   aus dem Dienstplan als Vorschlag. Ein Haken je Tag (time_days)
+   gibt die Schichten dieses Tages für die Mitarbeiter frei; was nicht
+   freigegeben ist, sieht der Mitarbeiter gar nicht. Er kann eine Zeit
+   korrigieren — dann gilt der Tag beim Büro wieder als offen und die
+   Schicht ist markiert — und bestätigt nach Monatswechsel den ganzen
+   Monat auf einmal. Danach ist die Schicht auch für das Büro zu.
+   ============================================================ */
+const ZE_SPALTEN = "id,user_id,work_date,ym,starts,ends,break_min,lead_min,gross_min,net_min," +
+  "emp_ok,emp_ok_at,emp_changed,emp_orig,plan_starts,plan_ends,note,admin_note";
+
+const zeiten  = () => (month && month.time) || {on:true, closed:false, days:{}, rows:[], rates:null};
+const zeZu    = () => !!zeiten().closed;
+const zeFrei  = d => zeiten().days[d] === true;        // Tag vom Büro freigegeben?
+const zeTagNr = ymd => Number(String(ymd).slice(8, 10));
+const zePad   = d => String(d).padStart(2, "0");
+const zeYmd   = d => ui.monthKey + "-" + zePad(d);
+
+const zeAmTag = d => zeiten().rows.filter(r => zeTagNr(r.work_date) === d);
+const zeVon   = uid => zeiten().rows.filter(r => r.user_id === uid);
+const zeZeile = id => zeiten().rows.find(r => r.id === id);
+
+/* Ist der Monat vorbei? Nach Berliner Datum. Daran hängen die
+   Sammelbestätigung des Mitarbeiters und der Monatsabschluss. */
 function zeMonatVorbei(k){
   const p = parseKey(k);
   const y = p.m === 11 ? p.y + 1 : p.y;
   const m = p.m === 11 ? 1 : p.m + 2;
-  return berHeute() >= y + "-" + String(m).padStart(2, "0") + "-01";
+  return berHeute() >= y + "-" + zePad(m) + "-01";
 }
 const zeAbDatum = k => { const p = parseKey(k);
-  return "01." + String(p.m === 11 ? 1 : p.m + 2).padStart(2, "0") + "." + (p.m === 11 ? p.y + 1 : p.y); };
+  return "01." + zePad(p.m === 11 ? 1 : p.m + 2) + "." + (p.m === 11 ? p.y + 1 : p.y); };
 
-/* Plan-Schicht einer Person an einem Tag. setzeEin() nimmt einer Person
-   beim Einteilen alle anderen Schichten desselben Tages weg — es kann
-   also nie zwei geben. */
-function zePlanOf(uid, day){
-  const d = month.days[day];
-  if(!d || d.closed) return null;
-  const sh = d.shifts.find(s => s.emp === uid);
-  return sh ? {starts:sh.start, ends:sh.end, lead:!!sh.sl, label:sh.label} : null;
+const zeDatum = iso => {
+  const d = String(iso).slice(0, 10).split("-");
+  return d.length === 3 ? d[2] + "." + d[1] + "." : String(iso).slice(0, 10);
+};
+
+/* Höchstens drei Namen aufzählen; eine Liste mit zehn Namen liest am
+   Handy niemand, und sie macht aus einer Zeile einen Absatz. */
+function zeWenige(namen){
+  if(namen.length <= 3) return namen.join(", ");
+  return namen.slice(0, 3).join(", ") + " und " + (namen.length - 3) + " weitere";
 }
 
-/* Alle Tage einer Person im Monat: vorbelegt aus dem Plan, erfasst, oder beides.
-   ui.zeExtra ist ein eben angelegter Zusatztag, der noch keine Zeile hat. */
-function zeTage(uid){
-  const k = ui.monthKey, n = daysInMonth(k), heute = berHeute();
-  const ein = zeOf(uid), out = [];
-  const extra = ui.zeExtra && ui.zeExtra.uid === uid
-    && String(ui.zeExtra.ymd).slice(0, 7) === k ? ui.zeExtra.ymd : null;
+/* Die Schichten des Dienstplans an einem Tag, mit Person. Sie sind für
+   das Büro nur ein Vorschlag: in die Zeiterfassung kommen sie erst,
+   wenn es den Tag bestätigt oder die Schicht einzeln übernimmt. */
+function zaPlan(d){
+  if(!month.published) return [];
+  const day = month.days[d];
+  if(!day || day.closed) return [];
+  return day.shifts.filter(s => s.emp)
+    .map(s => ({emp:s.emp, starts:s.start, ends:s.end, lead:!!s.sl, label:s.label}));
+}
+const zaOffenePlan = d => {
+  const da = zeAmTag(d);
+  return zaPlan(d).filter(p => !da.some(e => e.user_id === p.emp));
+};
+
+/* Eine Plan-Schicht als Eintrag. null, wenn die Zeiten unmöglich sind —
+   dann hat sich im Dienstplan etwas verstellt und das Büro muss hin. */
+function zeAusPlan(d, p){
+  const ymd = zeYmd(d);
+  const c = zeCalc(ymd, p.starts, p.ends, 0, 0);
+  if(c.err) return null;
+  const per = people.find(x => x.id === p.emp);
+  return {user_id:p.emp, work_date:ymd, starts:p.starts, ends:p.ends, break_min:c.pause,
+    lead_min: p.lead && per && per.can_lead ? Math.max(0, c.net) : 0};
+}
+
+/* Zustand eines Tages. „noetig“ heißt: dieser Tag braucht einen Haken,
+   weil es Einträge gibt oder der freigegebene Plan jemanden eingeteilt
+   hat — dieselbe Regel wie time_days_needed in der Datenbank. */
+function zaTagStand(d){
+  const rows = zeAmTag(d).slice().sort((a, b) =>
+    zeMin(a.starts) - zeMin(b.starts) || String(personName(a.user_id)).localeCompare(String(personName(b.user_id)), "de"));
+  const plan = zaPlan(d);
+  const geaendert = rows.filter(r => r.emp_changed);
+  return {
+    d, ymd: zeYmd(d), wd: weekdayOf(ui.monthKey, d),
+    rows, plan, offen: zaOffenePlan(d), geaendert,
+    noetig: rows.length > 0 || plan.length > 0,
+    frei: zeFrei(d),
+    fertig: zeFrei(d) && !geaendert.length,
+    netto: rows.reduce((s, r) => s + Number(r.net_min || 0), 0),
+    sl: rows.reduce((s, r) => s + Number(r.lead_min || 0), 0)
+  };
+}
+
+/* Tage, die das Büro noch anfassen muss — gleiche Zählung wie
+   time_days_open: ohne Haken, oder mit einer Änderung des Mitarbeiters. */
+function zaOffeneTage(){
+  const n = daysInMonth(ui.monthKey), heute = berHeute(), out = [];
   for(let d = 1; d <= n; d++){
-    const ymd = k + "-" + String(d).padStart(2, "0");
-    const e = ein[d] || null;
-    const plan = month.published ? zePlanOf(uid, d) : null;
-    if(!e && !plan && ymd !== extra) continue;
-    out.push({day:d, ymd, e, plan, wd:weekdayOf(k, d), zukunft:ymd > heute, heute:ymd === heute});
+    if(zeYmd(d) > heute) break;          // was noch nicht war, ist nicht offen
+    const st = zaTagStand(d);
+    if(st.noetig && !st.fertig) out.push(st);
   }
   return out;
 }
+/* Freigegebene Schichten, die noch kein Mitarbeiter bestätigt hat. Das
+   Büro bestätigt seine eigenen Schichten nicht noch einmal als
+   Mitarbeiter — sonst bliebe der dritte Punkt ewig offen. */
+function zaOffeneHaken(){
+  return zeiten().rows.filter(r => {
+    if(r.emp_ok || !zeFrei(zeTagNr(r.work_date))) return false;
+    const p = people.find(x => x.id === r.user_id);
+    return !p || p.role !== "admin";
+  });
+}
+const zaFreigegeben = () => zeiten().rows.filter(r => zeFrei(zeTagNr(r.work_date))).length;
 
-/* Wer gehört in diesen Monat: im freigegebenen Plan eingeteilt, oder es gibt
-   Einträge oder einen Stundenzettel. Bewusst NICHT teamList(): wer mitten im
-   Monat deaktiviert oder zum Admin gemacht wird, fällt dort heraus, obwohl er
-   die halbe Monatshälfte gearbeitet hat. */
+/* Wer gehört in diesen Monat: wer erfasste Zeiten hat oder im
+   freigegebenen Plan eingeteilt ist. Bewusst NICHT teamList(): wer
+   mitten im Monat deaktiviert oder zum Admin gemacht wird, hat die
+   halbe Monatshälfte gearbeitet und muss weiter auftauchen. */
 function zeScope(){
   const ids = {};
-  const t = zeiten();
-  Object.keys(t.entries).forEach(id => { ids[id] = true; });
-  Object.keys(t.sheets).forEach(id => { ids[id] = true; });
+  zeiten().rows.forEach(r => { ids[r.user_id] = true; });
   if(month.published) Object.keys(month.days).forEach(key => {
-    const d = month.days[key];
-    if(d.closed) return;
-    d.shifts.forEach(s => { if(s.emp) ids[s.emp] = true; });
+    const day = month.days[key];
+    if(day.closed) return;
+    day.shifts.forEach(s => { if(s.emp) ids[s.emp] = true; });
   });
   return people.filter(p => ids[p.id]);
 }
 
 function zeSumme(uid){
-  const ein = zeOf(uid);
   let normal = 0, sl = 0, tage = 0;
-  Object.keys(ein).forEach(d => {
-    const e = ein[d];
-    if(!e.worked) return;
-    normal += Math.max(0, e.net_min - e.lead_min);
-    sl += e.lead_min;
-    if(e.net_min > 0) tage++;
+  zeVon(uid).forEach(r => {
+    normal += Math.max(0, Number(r.net_min) - Number(r.lead_min));
+    sl += Number(r.lead_min);
+    tage++;
   });
   return {normal, sl, tage, netto: normal + sl};
 }
 
-/* Hat das Büro etwas geändert, was der Mitarbeiter noch nicht bestätigt hat?
-   Entschieden wird durch Vergleich, nicht am Kennzeichen: ändert das Büro
-   etwas und stellt es wieder zurück, entsteht so keine Phantom-Änderung. */
-function zeGeaendert(e){
-  const o = e && e.emp_orig;
-  if(!o) return false;
-  return !!o.worked !== !!e.worked
-    || (o.starts || "") !== (e.starts || "") || (o.ends || "") !== (e.ends || "")
-    || (Number(o.break_min) || 0) !== (Number(e.break_min) || 0)
-    || (Number(o.lead_min) || 0) !== (Number(e.lead_min) || 0);
-}
-function zeDiffText(e){
-  const o = e.emp_orig, t = [];
-  if(!o.worked !== !e.worked) t.push(e.worked ? "jetzt gearbeitet" : "jetzt nicht gearbeitet");
-  if((o.starts || "") !== (e.starts || "")) t.push("Beginn <b>" + (e.starts || "—") + "</b> statt " + (o.starts || "—"));
-  if((o.ends || "") !== (e.ends || "")) t.push("Ende <b>" + (e.ends || "—") + "</b> statt " + (o.ends || "—"));
-  if((Number(o.break_min) || 0) !== (Number(e.break_min) || 0))
-    t.push("Pause <b>" + zeHM(e.break_min) + "</b> statt " + zeHM(Number(o.break_min) || 0));
-  if((Number(o.lead_min) || 0) !== (Number(e.lead_min) || 0))
-    t.push("Schichtleitung <b>" + zeHM(e.lead_min) + "</b> statt " + zeHM(Number(o.lead_min) || 0));
+/* Was hat der Mitarbeiter geändert? Entschieden wird durch Vergleich,
+   nicht am Kennzeichen — ändert er etwas und stellt es zurück, soll
+   keine Phantom-Änderung stehen bleiben. */
+function zeDiffText(r){
+  const o = r.emp_orig;
+  if(!o) return "";
+  const t = [];
+  if((o.starts || "") !== (r.starts || "")) t.push("Beginn <b>" + (r.starts || "—") + "</b> statt " + (o.starts || "—"));
+  if((o.ends || "") !== (r.ends || "")) t.push("Ende <b>" + (r.ends || "—") + "</b> statt " + (o.ends || "—"));
+  if((Number(o.break_min) || 0) !== (Number(r.break_min) || 0))
+    t.push("Pause <b>" + zeHM(r.break_min) + "</b> statt " + zeHM(Number(o.break_min) || 0));
+  if((Number(o.lead_min) || 0) !== (Number(r.lead_min) || 0))
+    t.push("Schichtleitung <b>" + zeHM(r.lead_min) + "</b> statt " + zeHM(Number(o.lead_min) || 0));
   return t.join(" · ");
 }
 
-/* Was fehlt dieser Person noch? Gleiche Zählung wie time_sheet_problems in
-   der Datenbank, damit die Oberfläche keine Knöpfe anbietet, die scheitern. */
-function zeProbleme(uid){
-  if(!zeiten().on) return "";
-  const t = zeTage(uid), msgs = [];
-  const fehlend = t.filter(x => x.plan && !x.e).length;
-  const offen = t.filter(x => x.e && x.e.status !== "adm_ok").length;
-  if(fehlend) msgs.push(fehlend + (fehlend === 1 ? " geplanter Tag" : " geplante Tage") + " ohne Eintrag");
-  if(offen) msgs.push(offen + (offen === 1 ? " Tag" : " Tage") + " noch nicht vom Büro bestätigt");
-  return msgs.join(", ");
-}
 
 /* ============================================================
    Zeiterfassung — Schreiben
 
-   Die Datenbank rechnet, der Client zeigt an: jeder Schreibvorgang hängt
-   .select() an und die Karte übernimmt danach die zurückgegebene Zeile.
-   Gesperrte Änderungen treffen 0 Zeilen, ohne Fehler — deshalb wird ein
-   leeres Ergebnis ausdrücklich als „gesperrt“ gemeldet.
+   Die Datenbank rechnet, der Client zeigt an: jeder Schreibvorgang
+   hängt .select() an und übernimmt danach die zurückgegebene Zeile.
+   Gesperrte Änderungen treffen 0 Zeilen, ohne Fehler — deshalb wird
+   ein leeres Ergebnis ausdrücklich als „gesperrt“ gemeldet.
    ============================================================ */
-let zeBusy = false;          // ein Schreibvorgang des Editors zur Zeit
-let zaPend = [];             // angetippte Freigaben, warten auf den Sammelversand
-let zaTimer = null;
+let zeBusy = false;
 
-function zeMerke(row){
-  if(!row || !row.user_id) return;
-  const t = zeiten();
-  const d = Number(String(row.work_date).slice(8, 10));
-  (t.entries[row.user_id] = t.entries[row.user_id] || {})[d] = row;
-  if(row.gross_min !== undefined && ui.zeForm && ui.zeForm.ymd === row.work_date){
-    const vor = zeCalc(row.work_date, row.starts, row.ends, row.break_min, row.lead_min);
-    if(row.worked && vor.gross !== row.gross_min)
-      console.warn("Vorschau weicht von der Datenbank ab", vor.gross, row.gross_min);
-  }
-}
-function zeVergiss(uid, day){
-  const e = zeiten().entries[uid];
-  if(e) delete e[day];
-}
-
-/* Wie write(), aber ohne Neuzeichnen: der Aufrufer entscheidet, was sich ändert */
 async function zeRun(builder){
   setSync("saving");
   let res;
@@ -1900,92 +1917,72 @@ async function zeRun(builder){
   return {ok:true, msg:"", data:rows};
 }
 
-const ZE_SPALTEN = "id,user_id,work_date,ym,worked,starts,ends,break_min,lead_min,gross_min,net_min," +
-  "status,emp_ok_at,adm_ok_at,rev,admin_edited,emp_orig,plan_starts,plan_ends,note,admin_note,created_by";
+/* Eine zurückgegebene Zeile in den geladenen Monat einsetzen */
+function zeMerke(row){
+  if(!row || !row.id) return;
+  const t = zeiten();
+  const i = t.rows.findIndex(r => r.id === row.id);
+  if(i < 0) t.rows.push(row); else t.rows[i] = row;
+}
+const zeVergiss = id => { const t = zeiten(); t.rows = t.rows.filter(r => r.id !== id); };
+
+/* Nach einer Handlung am ganzen Tag: diesen Tag frisch holen. Nötig,
+   weil der Haken Nebenwirkungen auf die Einträge hat — er nimmt
+   Änderungen an und löscht beim Öffnen die Bestätigungen. */
+async function zeTagFrisch(d){
+  const ymd = zeYmd(d);
+  let a, b;
+  try{
+    [a, b] = await Promise.all([
+      sb.from("time_entries").select(ZE_SPALTEN).eq("work_date", ymd),
+      sb.from("time_days").select("work_date,ok").eq("work_date", ymd).maybeSingle()
+    ]);
+  }catch(err){ return false; }
+  if((a && a.error) || (b && b.error)) return false;
+  const t = zeiten();
+  t.rows = t.rows.filter(r => zeTagNr(r.work_date) !== d).concat(a.data || []);
+  if(b.data) t.days[d] = !!b.data.ok; else delete t.days[d];
+  return true;
+}
+
 
 /* ============================================================
-   Mitarbeiter: Reiter Zeiterfassung
+   Zeiterfassung — der Editor einer Schicht
+
+   Dieselbe Maske für Büro und Mitarbeiter. Das Büro darf zusätzlich
+   die Person tauschen und die Schicht löschen; der Mitarbeiter sieht
+   nur seine eigenen Zeiten.
    ============================================================ */
-function zeKopfText(uid, tage){
-  const sh = zeSheet(uid);
-  if(zeZu()) return "Der Monat ist abgeschlossen. Hier ist nichts mehr zu tun.";
-  if(sh.status === "submitted") return "Abgeschickt. Danke — das Büro hat deine Zeiten.";
-  if(sh.status === "review") return "Das Büro hat alles geprüft. Bitte bestätige jetzt den ganzen Monat.";
-  const offen = tage.filter(x => !x.zukunft && (!x.e || x.e.status === "draft")).length;
-  if(offen) return "Noch " + offen + (offen === 1 ? " Tag" : " Tage") + " zu bestätigen.";
-  if(!tage.length) return "In diesem Monat bist du nicht eingeteilt. Wenn du gearbeitet hast, trag den Tag unten ein.";
-  return "Alles bestätigt. Das Büro prüft jetzt deine Zeiten.";
-}
-
-/* Reihenfolge: was Aufmerksamkeit braucht, steht oben; darin der neueste Tag
-   zuerst. Innerhalb eines Neuzeichnens bleibt die Reihenfolge stehen. */
-function zeRang(x){
-  if(x.e && zeGeaendert(x.e)) return 0;
-  if(!x.e || x.e.status === "draft") return 1;
-  if(x.e.status === "emp_ok") return 2;
-  return 3;
-}
-
-function zeDayHtml(uid, x){
-  const e = x.e, plan = x.plan;
-  const auf = ui.zeOpen === x.ymd;
-  const chg = e && zeGeaendert(e);
-  const zustand = !e ? "is-plan" : e.status === "adm_ok" ? "is-adm" : e.status === "emp_ok" ? "is-emp" : "is-draft";
-  const cls = ["ze-day", zustand, e && !e.worked ? "is-nowork" : "", x.zukunft ? "is-future" : "",
-    chg ? "is-chg" : "", auf ? "is-open" : ""].filter(Boolean).join(" ");
-
-  let zeile1, zeile2;
-  if(!e && !plan){
-    zeile1 = "noch nichts eingetragen";
-    zeile2 = "zusätzlicher Tag — tippe ihn an und trag die Zeiten ein";
-  } else if(!e){
-    zeile1 = plan.starts + "–" + plan.ends;
-    zeile2 = x.zukunft ? "geplant · noch nicht fällig" : "Plan — tippe ✓, wenn es so war";
-  } else if(!e.worked){
-    zeile1 = "nicht gearbeitet";
-    zeile2 = plan ? "geplant war " + plan.starts + "–" + plan.ends : "eigener Eintrag";
+function zeFormAuf(id, d, vorschlag){
+  const r = id ? zeZeile(id) : null;
+  if(id && !r) return;                 // die Zeile ist weg — nichts aufmachen
+  if(r){
+    ui.zeForm = {id:r.id, d:zeTagNr(r.work_date), uid:r.user_id,
+      starts:r.starts || "", ends:r.ends || "",
+      brk:Number(r.break_min) || 0, lead:Number(r.lead_min) || 0,
+      note:isAdmin() ? (r.admin_note || "") : (r.note || "")};
+    ui.zeOpen = r.id;
   } else {
-    const c = zeCalc(x.ymd, e.starts, e.ends, e.break_min, e.lead_min);
-    zeile1 = e.starts + "–" + e.ends + (c.folgetag ? " <small>+1</small>" : "");
-    const t = [zeHM(e.net_min) + " Std", "Pause " + zeHM(e.break_min)];
-    if(e.lead_min) t.push("SL " + zeHM(e.lead_min));
-    if(e.gross_min !== c.uhr) t.push("Zeitumstellung");
-    zeile2 = t.join(" · ");
+    /* Neue Schicht: aus dem Vorschlag, sonst aus der Standardschicht
+       dieses Wochentags, sonst eine runde Abendschicht. */
+    const tpl = (templates[weekdayOf(ui.monthKey, d)] || [])[0];
+    const von = vorschlag ? vorschlag.starts : tpl ? tpl.start : "17:00";
+    const bis = vorschlag ? vorschlag.ends : tpl ? tpl.end : "23:00";
+    const c = zeCalc(zeYmd(d), von, bis, 0, 0);
+    const wer = vorschlag ? vorschlag.emp : "";
+    const per = people.find(x => x.id === wer);
+    ui.zeForm = {id:null, d, uid:wer, starts:von, ends:bis, brk:c.pause,
+      lead: vorschlag && vorschlag.lead && per && per.can_lead ? Math.max(0, c.net) : 0, note:""};
+    ui.zeOpen = "neu";
   }
-
-  const marke = !e ? "○" : e.status === "adm_ok" ? "✓✓" : e.status === "emp_ok" ? "✓" : "○";
-  const okCls = !e ? "" : e.status === "adm_ok" ? "is-adm" : e.status === "emp_ok" ? "is-emp" : "";
-  const gesperrt = zeZu() || zeSheet(uid).status !== "open" || x.zukunft
-    || (e && e.status === "adm_ok") || (!e && !plan);
-  const titel = !e ? "Tag mit den Plan-Zeiten bestätigen"
-    : e.status === "adm_ok" ? "Vom Büro bestätigt"
-    : e.status === "emp_ok" ? "Bestätigung zurücknehmen" : "Tag bestätigen";
-
-  /* Vorher/Nachher steht schon auf der zugeklappten Karte: der Mitarbeiter
-     soll eine Änderung des Büros sehen, ohne danach suchen zu müssen. */
-  const diffZu = chg && !auf
-    ? `<div class="ze-diff" style="margin:0 11px 11px">Büro: ${zeDiffText(e)}${
-        e.admin_note ? " · „" + esc(e.admin_note) + "“" : ""}</div>` : "";
-
-  return `<div class="${cls}" data-ymd="${x.ymd}">
-    <div class="ze-row">
-      <button class="ze-head" data-act="zeday" data-ymd="${x.ymd}" ${x.zukunft ? "disabled" : ""}>
-        <span class="ze-dt">${WD_SHORT[x.wd]} <em>${x.day}.</em></span>
-        <span class="ze-tx"><span class="ze-times">${zeile1}</span><span class="ze-sub">${esc(zeile2)}</span></span>
-      </button>
-      <button class="ze-ok ${okCls}" data-act="zeok" data-ymd="${x.ymd}"
-        ${gesperrt ? "disabled" : ""} aria-label="${esc(titel)}" title="${esc(titel)}">${marke}</button>
-    </div>
-    ${diffZu}${auf ? zeEditHtml(uid, x) : ""}
-  </div>`;
 }
 
 function zeCalcHtml(f){
-  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
-  if(!f.worked) return `<b>Nicht gearbeitet</b><i>0:00 Std werden gezählt.</i>`;
+  const c = zeCalc(zeYmd(f.d), f.starts, f.ends, f.brk, f.lead);
   if(c.err) return `<b>—</b><span class="ze-warn">${esc(c.err)}</span>`;
   const extra = [];
-  if(c.gross !== c.uhr) extra.push("Zeitumstellung " + (c.gross > c.uhr ? "+" : "−") + zeHM(Math.abs(c.gross - c.uhr)) + " eingerechnet");
+  if(c.gross !== c.uhr) extra.push("Zeitumstellung " + (c.gross > c.uhr ? "+" : "−")
+    + zeHM(Math.abs(c.gross - c.uhr)) + " eingerechnet");
   if(c.folgetag) extra.push("Ende am Folgetag");
   return `<b>${zeHM(c.net)} Std</b> netto`
     + `<i>brutto ${zeHM(c.gross)} · Pause ${zeHM(c.pause)}`
@@ -1994,31 +1991,26 @@ function zeCalcHtml(f){
     + (c.lang ? `<span class="ze-warn">Über 10 Stunden — stimmt das?</span>` : "");
 }
 
-/* Die Hinweiszeile unter Pause und Schichtleitung. Sie muss sich mitändern,
-   wenn die Zeiten geändert werden — sonst steht dort die alte Mindestpause. */
+/* Die Hinweiszeile unter Pause und Schichtleitung. Sie muss sich
+   mitändern, wenn die Zeiten geändert werden — sonst steht dort die
+   alte Mindestpause. Unter 6:01 gibt es keine Pflichtpause und damit
+   auch keinen Hinweis. */
 function zeMinText(feld, c){
   if(feld === "brk")
-    return "Mindestens " + zeHM(c.req)
-      + (c.req ? " (Schicht über " + (c.req === 45 ? "9" : "6") + " Std.)" : "")
-      + ". Verlängern geht, kürzen nicht — auch durch Eintippen.";
+    return c.req ? "Mindestens " + zeHM(c.req) + " (Schicht über " + (c.req === 45 ? "9" : "6")
+      + " Std.). Verlängern geht, kürzen nicht — auch durch Eintippen." : "";
   return "Höchstens " + zeHM(Math.max(0, c.net)) + " — die reine Arbeitszeit.";
 }
 
-function zeEditHtml(uid, x){
+function zeEditHtml(){
   const f = ui.zeForm;
   if(!f) return "";
-  const e = x.e, plan = x.plan, buero = isAdmin();
-  const p = people.find(q => q.id === uid) || {};
-  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
+  const buero = isAdmin();
+  const r = f.id ? zeZeile(f.id) : null;
+  const per = people.find(q => q.id === f.uid) || {};
+  const c = zeCalc(zeYmd(f.d), f.starts, f.ends, f.brk, f.lead);
   const netMax = Math.max(0, c.net);
-
-  const diff = e && zeGeaendert(e)
-    ? `<div class="ze-diff">Das Büro hat geändert: ${zeDiffText(e)}</div>` : "";
-  const anote = e && e.admin_note
-    ? `<div class="ze-anote">Büro: ${esc(e.admin_note)}</div>` : "";
-  const planzeile = plan
-    ? `<div class="tiny muted">Plan: ${esc(plan.label)} ${plan.starts}–${plan.ends}${plan.lead ? " · Schichtleitung" : ""}</div>`
-    : `<div class="tiny muted">Kein Plan für diesen Tag — selbst eingetragen.</div>`;
+  const zu = r && r.emp_ok;                      // bestätigt: für beide Seiten gesperrt
 
   const spin = (feld, wert, schritt, min, titel, hinweis, extra) => `
     <div class="ze-line">
@@ -2034,9 +2026,37 @@ function zeEditHtml(uid, x){
       <p class="ze-mini" data-min="${feld}">${esc(hinweis)}</p>
     </div>`;
 
+  if(zu) return `<div class="ze-edit">
+      <div class="ze-diff">${esc(buero
+        ? personName(f.uid) + " hat diese Schicht bestätigt. Zum Ändern nimm die Bestätigung zurück — "
+          + personName(f.uid) + " muss danach erneut bestätigen."
+        : "Du hast diese Schicht bestätigt. Wenn etwas nicht stimmt, sag es dem Büro.")}</div>
+      ${buero ? `<div class="ze-btns">
+        <button class="btn" data-act="zezu">Schließen</button>
+        <button class="btn primary" data-act="zeback" data-id="${f.id}">Bestätigung zurücknehmen</button>
+      </div>` : `<div class="ze-btns"><button class="btn" data-act="zezu">Schließen</button></div>`}
+    </div>`;
+
+  const wahl = buero
+    ? `<div><label class="lbl" for="ze-w">Wer</label>
+         <select class="field" id="ze-w" data-ze="uid">
+           ${f.uid ? "" : `<option value="">— bitte wählen —</option>`}
+           ${people.filter(p => p.active || p.id === f.uid).map(p =>
+             `<option value="${p.id}" ${p.id === f.uid ? "selected" : ""}>${esc(p.name)}</option>`).join("")}
+         </select></div>`
+    : "";
+
+  const diff = r && r.emp_changed && zeDiffText(r)
+    ? `<div class="ze-diff">${buero ? esc(personName(f.uid)) + " hat geändert: " : "Von dir geändert: "}${zeDiffText(r)}</div>`
+    : "";
+  const anote = !buero && r && r.admin_note
+    ? `<div class="ze-anote">Büro: ${esc(r.admin_note)}</div>` : "";
+  const planzeile = r && r.plan_starts
+    ? `<div class="tiny muted">Im Dienstplan: ${esc(r.plan_starts)}–${esc(r.plan_ends)}</div>`
+    : r ? `<div class="tiny muted">Kein Dienstplan-Eintrag für diese Schicht.</div>` : "";
+
   return `<div class="ze-edit">
-    ${planzeile}${diff}${anote}
-    ${f.worked ? `
+    ${planzeile}${diff}${anote}${wahl}
     <div class="ze-two">
       <div><label class="lbl" for="ze-s">Beginn</label>
         <input class="field ze-t" id="ze-s" type="time" data-ze="starts" value="${esc(f.starts)}"></div>
@@ -2044,9 +2064,8 @@ function zeEditHtml(uid, x){
         <input class="field ze-t" id="ze-e" type="time" data-ze="ends" value="${esc(f.ends)}"></div>
     </div>
     ${spin("brk", f.brk, 5, c.req, "Pause", zeMinText("brk", c), "")}
-    ${p.can_lead ? spin("lead", Math.min(f.lead, netMax), 15, 0, "Davon Schichtleitung",
+    ${per.can_lead ? spin("lead", Math.min(f.lead, netMax), 15, 0, "Davon Schichtleitung",
       zeMinText("lead", c), `<button class="btn sm" data-act="zeall">ganze Schicht</button>`) : ""}
-    ` : `<div class="tiny muted">Für diesen Tag ist „nicht gearbeitet“ eingetragen.</div>`}
     <div class="ze-calc">${zeCalcHtml(f)}</div>
     <div>
       <label class="lbl" for="ze-n">${buero ? "Anmerkung des Büros" : "Anmerkung (freiwillig)"}</label>
@@ -2054,300 +2073,283 @@ function zeEditHtml(uid, x){
         placeholder="${buero ? "wird dem Mitarbeiter angezeigt" : "zum Beispiel: länger geblieben"}">
     </div>
     <div class="ze-btns">
-      ${f.worked
-        ? `<button class="btn" data-act="zeoff">Nicht gearbeitet</button>`
-        : `<button class="btn" data-act="zeon">Doch gearbeitet</button>`}
-      <button class="btn primary" data-act="zesave" ${f.worked && c.err ? "disabled" : ""}>${
-        buero ? "Speichern &amp; freigeben" : e && e.status !== "draft" ? "Änderung bestätigen" : "✓ Bestätigen"}</button>
+      <button class="btn primary" data-act="zesave" ${c.err || (buero && !f.uid) ? "disabled" : ""}>✓ Bestätigen</button>
+      ${buero && f.id
+        ? `<button class="btn danger ze-x" data-act="zedel" data-id="${f.id}"
+             aria-label="Schicht löschen" title="Schicht löschen">✕</button>`
+        : `<button class="btn ze-x" data-act="zezu" aria-label="Abbrechen" title="Abbrechen">✕</button>`}
     </div>
-    ${e && (buero || !plan) ? `<div><button class="btn sm danger" data-act="zedel">Tag löschen</button></div>` : ""}
+  </div>`;
+}
+
+/* Nur den Rechenkasten, die Stepper und den Knopf neu schreiben — nicht
+   die ganze Seite, sonst springt die Liste und der Fokus geht verloren. */
+function zePatchEdit(){
+  const f = ui.zeForm;
+  if(!f) return;
+  /* Zeiten geändert: die Mindestpause kann gestiegen sein (dann hebt sie
+     die Datenbank ohnehin an), und die Schichtleitung muss auf die neue
+     Arbeitszeit geklemmt werden — sonst lehnt der Riegel ab. */
+  const c0 = zeCalc(zeYmd(f.d), f.starts, f.ends, f.brk, f.lead);
+  if(f.brk < c0.req) f.brk = c0.req;
+  if(f.lead > Math.max(0, c0.net)) f.lead = Math.max(0, c0.net);
+  const c = zeCalc(zeYmd(f.d), f.starts, f.ends, f.brk, f.lead);
+  const box = document.querySelector(".ze-edit .ze-calc");
+  if(box) box.innerHTML = zeCalcHtml(f);
+  document.querySelectorAll(".ze-edit .ze-mini").forEach(p => { p.textContent = zeMinText(p.dataset.min, c); });
+  document.querySelectorAll(".ze-edit .ze-spinv").forEach(inp => {
+    const feld = inp.dataset.ze;
+    if(document.activeElement === inp) return;              // nicht beim Tippen dazwischenfahren
+    inp.value = zeHM(feld === "brk" ? f.brk : Math.min(f.lead, Math.max(0, c.net)));
+  });
+  document.querySelectorAll(".ze-edit .ze-spinb").forEach(b => {
+    const feld = b.dataset.feld, d = Number(b.dataset.d);
+    b.disabled = d > 0 ? false : feld === "brk" ? f.brk <= c.req : f.lead <= 0;
+  });
+  const save = document.querySelector('.ze-edit [data-act="zesave"]');
+  if(save) save.disabled = !!c.err || (isAdmin() && !f.uid);
+}
+
+/* Die zwei Haken nebeneinander: einer für den Mitarbeiter, einer für
+   das Büro. Nur Anzeige — bestätigt wird der Monat als Ganzes. */
+function zeHaken(r){
+  const buero = zeFrei(zeTagNr(r.work_date)) && !r.emp_changed;
+  return `<span class="ze-ok2">
+    <span class="ze-h ${r.emp_ok ? "is-on" : ""}" title="Haken des Mitarbeiters">✓</span>
+    <span class="ze-h ${buero ? "is-on" : ""}" title="Haken des Büros">✓</span>
+  </span>`;
+}
+
+/* Zweite Zeile einer Schicht: Stunden, Pause, Schichtleitung, Hinweise */
+function zeUnten(r){
+  const c = zeCalc(String(r.work_date), r.starts, r.ends, r.break_min, r.lead_min);
+  const t = [zeHM(r.net_min) + " Std"];
+  if(Number(r.break_min)) t.push("Pause " + zeHM(r.break_min));
+  if(Number(r.lead_min)) t.push("SL " + zeHM(r.lead_min));
+  if(Number(r.gross_min) !== c.uhr) t.push("Zeitumstellung");
+  if(r.note) t.push(esc(r.note));
+  return t.join(" · ");
+}
+
+
+/* ============================================================
+   Mitarbeiter: Reiter Zeiterfassung
+   ============================================================ */
+function zeTageMitarbeiter(){
+  return zeVon(me.id).slice().sort((a, b) => zeTagNr(a.work_date) - zeTagNr(b.work_date));
+}
+
+function zeDayHtml(r){
+  const d = zeTagNr(r.work_date);
+  const auf = ui.zeOpen === r.id;
+  const c = zeCalc(String(r.work_date), r.starts, r.ends, r.break_min, r.lead_min);
+  const cls = ["ze-day", r.emp_ok ? "is-adm" : "", r.emp_changed ? "is-chg" : "", auf ? "is-open" : ""]
+    .filter(Boolean).join(" ");
+  const gesperrt = zeZu();
+  return `<div class="${cls}" data-id="${r.id}">
+    <div class="ze-row">
+      <button class="ze-head" data-act="zeday" data-id="${r.id}" ${gesperrt ? "disabled" : ""}>
+        <span class="ze-dt">${WD_SHORT[weekdayOf(ui.monthKey, d)]} <em>${d}.</em></span>
+        <span class="ze-tx">
+          <span class="ze-times">${r.starts}–${r.ends}${c.folgetag ? " <small>+1</small>" : ""}</span>
+          <span class="ze-sub">${zeUnten(r)}</span></span>
+      </button>
+      ${zeHaken(r)}
+    </div>
+    ${r.emp_changed && !auf && zeDiffText(r)
+      ? `<div class="ze-diff" style="margin:0 11px 11px">Von dir geändert: ${zeDiffText(r)}
+           — das Büro sieht es sich noch an.</div>` : ""}
+    ${auf ? zeEditHtml() : ""}
   </div>`;
 }
 
 function staffTime(){
-  const uid = me.id;
   const k = ui.monthKey;
-  const sh = zeSheet(uid);
-  const alle = zeTage(uid);
-  const kommt = alle.filter(x => x.zukunft && !x.e);
-  const karten = alle.filter(x => !(x.zukunft && !x.e));
-  karten.sort((a, b) => zeRang(a) - zeRang(b) || b.day - a.day);
-
-  const s = zeSumme(uid);
-  const fertig = karten.filter(x => x.e && x.e.status !== "draft").length;
-  const geaendert = karten.filter(x => x.e && zeGeaendert(x.e));
+  const rows = zeTageMitarbeiter();
+  const s = zeSumme(me.id);
+  const offen = rows.filter(r => !r.emp_ok);
+  const vorbei = zeMonatVorbei(k);
+  const geaendert = rows.filter(r => r.emp_changed);
 
   let banner = "";
-  if(!zeiten().on)
-    banner = `<div class="banner info">Für ${esc(monthLabel(k))} ist noch keine Zeiterfassung nötig. Du kannst trotzdem schon üben.</div>`;
-  else if(zeZu()) banner = `<div class="banner ok">Der Monat ist abgeschlossen.</div>`;
-  else if(sh.status === "submitted")
-    banner = `<div class="banner ok">Abgeschickt${sh.submitted_at ? " am " + zeDatum(sh.submitted_at) : ""}. Änderungen laufen jetzt übers Büro.</div>`;
-  else if(sh.status === "review")
-    banner = `<div class="banner ok">Das Büro hat deine Zeiten zur Bestätigung freigegeben. Schau sie dir an und schick den Monat ab.</div>`;
-  else if(sh.reopen_reason)
-    banner = `<div class="banner info">${esc(sh.reopen_reason)}</div>`;
-  else if(!month.published)
-    banner = `<div class="banner info">Der Dienstplan ist für diesen Monat noch nicht freigegeben. Tage kannst du selbst eintragen.</div>`;
+  if(zeZu()) banner = `<div class="banner ok">Der Monat ist abgeschlossen. Hier ist nichts mehr zu tun.</div>`;
+  else if(!rows.length)
+    banner = `<div class="banner info">Für ${esc(monthLabel(k))} hat das Büro noch keine Schichten freigegeben.
+      Sobald es das tut, stehen sie hier — und du prüfst und bestätigst sie.</div>`;
+  else if(!offen.length)
+    banner = `<div class="banner ok">Alles bestätigt. Danke — das Büro hat deine Zeiten.</div>`;
+  else if(!vorbei)
+    banner = `<div class="banner info">Bestätigen kannst du ab ${esc(zeAbDatum(k))}, wenn der Monat vorbei ist.
+      Schau bis dahin ruhig schon mal drüber.</div>`;
 
   const kopf = `<div class="card panel ze-top">
-    <div class="ze-state">${esc(zeKopfText(uid, alle))}</div>
-    ${geaendert.length ? `<div class="ze-diff" style="margin-top:10px">Das Büro hat <b>${geaendert.length}</b>
-       ${geaendert.length === 1 ? "deiner Tage" : "deiner Tage"} geändert (${
-         geaendert.map(x => x.day + ".").join(", ")}). Die Tage sind unten markiert.</div>` : ""}
+    <div class="ze-state">${esc(
+      zeZu() ? "Abgeschlossen."
+      : !rows.length ? "Noch keine freigegebenen Schichten."
+      : !offen.length ? "Alle " + rows.length + (rows.length === 1 ? " Schicht" : " Schichten") + " bestätigt."
+      : offen.length + (offen.length === 1 ? " Schicht" : " Schichten") + " noch zu bestätigen.")}</div>
     <div class="ze-nums">
       <div class="ze-num"><span class="ze-nv">${zeHM(s.normal)}</span><span class="ze-nl">Normal</span></div>
       <div class="ze-num"><span class="ze-nv">${zeHM(s.sl)}</span><span class="ze-nl">Schichtleitung</span></div>
       <div class="ze-num"><span class="ze-nv">${zeHM(s.netto)}</span><span class="ze-nl">Gesamt</span></div>
     </div>
-    <span class="pill ${karten.length && fertig === karten.length ? "done" : ""}"><b>${fertig}</b> von ${karten.length}
-      ${karten.length === 1 ? "Tag" : "Tagen"} bestätigt</span>
+    <span class="pill ${rows.length && !offen.length ? "done" : ""}"><b>${rows.length - offen.length}</b>
+      von ${rows.length} ${rows.length === 1 ? "Schicht" : "Schichten"} bestätigt</span>
   </div>`;
 
-  const liste = karten.length
-    ? `<div class="ze-days">${karten.map(x => zeDayHtml(uid, x)).join("")}</div>`
-    : `<p class="empty-note">Noch keine Tage. Trag unten einen Tag ein.</p>`;
-
-  const spaeter = kommt.length
-    ? `<p class="ze-later">Noch ${kommt.length} ${kommt.length === 1 ? "geplanter Tag" : "geplante Tage"}
-       in diesem Monat (${kommt.map(x => x.day + ".").join(", ")}) — die kannst du eintragen, sobald sie begonnen haben.</p>`
+  const liste = rows.length
+    ? `<div class="ze-days">${rows.map(zeDayHtml).join("")}</div>`
     : "";
 
-  const neu = zeZu() || sh.status !== "open" ? "" : ui.zeAdd
-    ? `<div class="card panel" style="margin-top:10px">
-         <label class="lbl" for="ze-neu">Welcher Tag?</label>
-         <input class="field" id="ze-neu" type="date" data-ze="neu"
-           min="${k}-01" max="${zeMaxTag(k)}" value="${esc(ui.zeNeu || "")}">
-         <div class="row" style="margin-top:10px">
-           <button class="btn primary" data-act="zeaddgo">Tag anlegen</button>
-           <button class="btn" data-act="zeaddzu">Abbrechen</button>
-         </div>
-       </div>`
-    : `<button class="btn ze-add" data-act="zeadd">+ Zusätzlichen Tag eintragen</button>`;
-
-  /* „Etwas stimmt nicht“: nur solange der Mitarbeiter gesperrt ist */
-  const einspruch = sh.status === "review" && ui.zeObj
-    ? `<div class="card panel ze-obj">
-         <label class="lbl" for="ze-o">Was stimmt nicht?</label>
-         <input class="field" id="ze-o" data-ze="obj" value="${esc(ui.zeObjText || "")}"
-           placeholder="zum Beispiel: Am 17. war ich bis 05:00 da">
-         <div class="row">
-           <button class="btn primary" data-act="zeobjsend">Ans Büro zurück</button>
-           <button class="btn" data-act="zeobjzu">Abbrechen</button>
-         </div>
-       </div>` : "";
-
-  const fuss = sh.status === "review" && !zeZu()
+  const fuss = !zeZu() && vorbei && offen.length
     ? `<div class="sticky-bar"><div class="sticky-in ze-fuss">
          <div class="grow small muted">${zeHM(s.netto)} Std${s.sl ? " · davon SL " + zeHM(s.sl) : ""}</div>
-         <button class="btn" data-act="zeobj">Etwas stimmt nicht</button>
-         <button class="btn primary" data-act="zesubmit">Monat abschicken</button>
+         <button class="btn primary" data-act="zemonat">✓ Monat bestätigen</button>
        </div></div>`
     : "";
 
   return monthBar()
     + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
-    + banner + kopf + einspruch + liste + spaeter + neu
-    + `<p class="hint" style="margin-top:14px">Tippe ✓, wenn der Tag so war wie geplant. Wenn nicht,
-       tippe den Tag an und ändere ihn. Die Pause rechnet die App vor; verlängern kannst du sie,
-       kürzen nicht. Eine Schicht zählt zu dem Tag, an dem sie <b>beginnt</b>.</p>`
+    + banner + kopf
+    + (geaendert.length ? `<div class="ze-diff" style="margin-bottom:10px">Du hast <b>${geaendert.length}</b>
+        ${geaendert.length === 1 ? "Schicht" : "Schichten"} geändert (${
+          geaendert.map(r => zeTagNr(r.work_date) + ".").join(", ")}). Das Büro sieht sich das an und
+        bestätigt den Tag erneut.</div>` : "")
+    + liste
+    + (rows.length ? `<p class="hint" style="margin-top:14px">Zwei Haken je Schicht: der <b>linke</b> ist deiner,
+        der <b>rechte</b> der des Büros. Das Büro trägt die Schichten ein; stimmt eine Zeit nicht, tippe die
+        Schicht an und ändere sie — der Tag geht dann beim Büro wieder auf. Zum Monatsende bestätigst du alles
+        auf einmal. Eine Schicht zählt zu dem Tag, an dem sie <b>beginnt</b>.</p>` : "")
     + fuss;
 }
 
-/* Höchstens drei Namen aufzählen; eine Liste mit zehn Namen liest am Handy
-   niemand, und sie macht aus einer Zeile einen Absatz. */
-function zeWenige(namen){
-  if(namen.length <= 3) return namen.join(", ");
-  return namen.slice(0, 3).join(", ") + " und " + (namen.length - 3) + " weitere";
-}
-
-const zeMaxTag = k => {
-  const letzter = k + "-" + String(daysInMonth(k)).padStart(2, "0");
-  const h = berHeute();
-  return h < letzter ? h : letzter;
-};
-const zeDatum = iso => {
-  const d = String(iso).slice(0, 10).split("-");
-  return d.length === 3 ? d[2] + "." + d[1] + "." : String(iso).slice(0, 10);
-};
 
 /* ============================================================
-   Büro: Reiter Zeiterfassung
+   Büro: Reiter Zeiterfassung — Liste der Tage
    ============================================================ */
-function zaStand(uid){
-  const t = zeTage(uid);
-  const sh = zeSheet(uid);
-  const p = people.find(x => x.id === uid) || {};
-  let fehlt = 0, pruefen = 0, geprueft = 0, kommt = 0, entwurf = 0;
-  t.forEach(x => {
-    if(!x.e){ if(x.zukunft || x.heute) kommt++; else fehlt++; return; }
-    if(x.e.status === "adm_ok") geprueft++;
-    else if(x.e.status === "emp_ok") pruefen++;
-    else entwurf++;
-  });
-  const probleme = zeProbleme(uid);
-  const vorbei = zeMonatVorbei(ui.monthKey);
-  let chip = {text:"nichts fällig", cls:""};
-  if(sh.status === "submitted") chip = {text:"Abgeschickt", cls:"is-done"};
-  else if(sh.status === "review") chip = probleme
-    ? {text:"Plan geändert", cls:"is-miss"} : {text:"Wartet", cls:""};
-  else if(fehlt + entwurf > 0) chip = {text:"Fehlt " + (fehlt + entwurf), cls:"is-miss"};
-  else if(pruefen > 0) chip = {text:"Prüfen " + pruefen, cls:"is-check"};
-  else if(!probleme && vorbei && t.length) chip = {text:"Freigeben", cls:"is-check"};
-  else if(t.length) chip = {text:kommt ? "Läuft" : "Bereit", cls:""};
-  return {t, sh, p, fehlt, pruefen, geprueft, kommt, entwurf, probleme, chip, vorbei};
-}
-
-function zaPersonHtml(uid){
-  const st = zaStand(uid);
-  const teile = [];
-  if(st.fehlt + st.entwurf) teile.push((st.fehlt + st.entwurf) + " offen");
-  if(st.pruefen) teile.push(st.pruefen + " zu prüfen");
-  teile.push(st.geprueft + " bestätigt");
-  if(st.kommt) teile.push(st.kommt + " kommt noch");
-  const zusatz = [];
-  if(!st.p.active) zusatz.push("inaktiv");
-  if(st.p.role === "admin") zusatz.push("Büro");
-  return `<button class="za-p" data-act="zaperson" data-emp="${uid}">
-    <span class="za-pt">
-      <span class="za-pn">${esc(st.p.name || "?")}${zusatz.length ? " <small>(" + esc(zusatz.join(", ")) + ")</small>" : ""}</span>
-      <span class="za-ps">${esc(teile.join(" · "))}${st.probleme && st.sh.status !== "open" ? " · " + esc(st.probleme) : ""}</span>
-    </span>
-    <span class="za-chip ${st.chip.cls}">${esc(st.chip.text)}</span>
-  </button>`;
-}
-
-function zaRowHtml(uid, x){
-  const e = x.e, plan = x.plan;
-  const auf = ui.zeOpen === x.ymd;
-  const zustand = !e ? "is-miss" : e.status === "adm_ok" ? "is-adm" : e.status === "emp_ok" ? "is-emp" : "is-draft";
-  const schlecht = ui.zaBad && ui.zaBad[x.ymd];
-
-  let mitte, unten;
-  if(!e){
-    mitte = plan ? plan.starts + "–" + plan.ends : "—";
-    unten = x.zukunft || x.heute ? "geplant · läuft noch" : "<b>nichts eingetragen</b>";
-  } else if(!e.worked){
-    mitte = "nicht gearbeitet";
-    unten = (plan ? "geplant " + plan.starts + "–" + plan.ends : "kein Plan")
-      + (e.note ? " · " + esc(e.note) : "");
-  } else {
-    const c = zeCalc(x.ymd, e.starts, e.ends, e.break_min, e.lead_min);
-    mitte = e.starts + "–" + e.ends + " · " + zeHM(e.net_min) + " Std";
-    const t = [];
-    if(!plan) t.push("<b>kein Plan</b>");
-    else if(plan.starts === e.starts && plan.ends === e.ends) t.push("wie Plan");
-    else t.push(`<span class="za-dev">Plan ${plan.starts}–${plan.ends}</span>`);
-    t.push("Pause " + zeHM(e.break_min));
-    if(e.lead_min) t.push("SL " + zeHM(e.lead_min));
-    if(e.status === "draft") t.push('<span class="za-dev">nicht bestätigt</span>');
-    if(e.admin_edited) t.push("vom Büro geändert");
-    if(e.gross_min !== c.uhr) t.push("Zeitumstellung");
-    if(e.note) t.push(esc(e.note));
-    unten = t.join(" · ");
+function zaListeHtml(){
+  const k = ui.monthKey, n = daysInMonth(k), heute = berHeute();
+  const tage = [];
+  for(let d = 1; d <= n; d++){
+    if(zeYmd(d) > heute) break;                // was noch nicht war, ist nicht zu bestätigen
+    tage.push(zaTagStand(d));
   }
+  if(!tage.length) return `<p class="empty-note">${esc(monthLabel(k))} hat noch nicht begonnen.</p>`;
 
-  let rechts;
-  if(!e && plan && !(x.zukunft || x.heute)){
-    rechts = `<span class="za-acts">
-      <button class="btn sm" data-act="zafromplan" data-ymd="${x.ymd}">Aus Plan</button>
-      <button class="btn sm" data-act="zanowork" data-ymd="${x.ymd}">Nicht gearb.</button></span>`;
-  } else if(!e){
-    rechts = `<button class="za-ok" disabled>läuft</button>`;
-  } else if(e.status === "emp_ok"){
-    rechts = `<button class="za-ok" data-act="zaok" data-ymd="${x.ymd}" ${zeZu() ? "disabled" : ""}
-      aria-label="Freigeben" title="Freigeben">✓</button>`;
-  } else if(e.status === "adm_ok"){
-    rechts = `<button class="za-ok is-adm" data-act="zaok" data-ymd="${x.ymd}" ${zeZu() ? "disabled" : ""}
-      aria-label="Freigabe zurücknehmen" title="Freigabe zurücknehmen">✓✓</button>`;
-  } else {
-    rechts = `<button class="za-ok" disabled title="Der Mitarbeiter hat den Tag nicht bestätigt">Entw.</button>`;
-  }
+  const offen = tage.filter(x => x.noetig && !x.fertig);
+  const zeile = st => {
+    const cls = ["za-row", !st.noetig ? "is-leer"
+      : st.geaendert.length ? "is-chg" : st.fertig ? "is-adm" : "is-miss"].filter(Boolean).join(" ");
+    const mitte = st.rows.length
+      ? st.rows.length + (st.rows.length === 1 ? " Schicht" : " Schichten") + " · " + zeHM(st.netto) + " Std"
+      : st.plan.length ? st.plan.length + (st.plan.length === 1 ? " Schicht" : " Schichten") + " im Plan"
+      : "nichts geplant";
+    const unten = st.geaendert.length
+      ? `<span class="za-dev">${st.geaendert.length === 1 ? "Eine Zeit" : st.geaendert.length + " Zeiten"}
+          vom Mitarbeiter geändert</span>`
+      : st.rows.length
+        ? esc(zeWenige(st.rows.map(r => personName(r.user_id).split(" ")[0] + " " + r.starts)))
+          + (st.offen.length ? ` · <span class="za-dev">${st.offen.length} aus dem Plan offen</span>` : "")
+      : st.plan.length ? "Vorschlag: " + esc(zeWenige(st.plan.map(p => personName(p.emp).split(" ")[0])))
+      : "&nbsp;";
+    return `<div class="${cls}" data-d="${st.d}">
+      <button class="za-rb" data-act="zaday" data-d="${st.d}">
+        <span class="za-rt"><span class="za-rd">${WD_SHORT[st.wd]} ${st.d}.</span>
+          <span class="za-rm">${mitte}</span></span>
+        <span class="za-rs">${unten}</span>
+      </button>
+      <span class="za-mark ${st.noetig && st.fertig ? "is-ok" : ""}" aria-hidden="true">${
+        !st.noetig ? "·" : st.fertig ? "✓" : "○"}</span>
+    </div>`;
+  };
 
-  return `<div class="za-row ${zustand} ${schlecht ? "is-bad" : ""}" data-ymd="${x.ymd}">
-    <button class="za-rb" data-act="zarow" data-ymd="${x.ymd}" ${zeZu() ? "disabled" : ""}>
-      <span class="za-rt"><span class="za-rd">${WD_SHORT[x.wd]} ${x.day}.</span>
-        <span class="za-rm">${mitte}</span></span>
-      <span class="za-rs">${schlecht ? '<span class="za-dev">Nicht gespeichert: ' + esc(schlecht) + "</span>" : unten}</span>
-    </button>
-    ${rechts}
-  </div>${auf ? `<div class="ze-day is-open" data-ymd="${x.ymd}">${zeEditHtml(uid, x)}</div>` : ""}`;
+  return `<div class="za-rows">${tage.map(zeile).join("")}</div>
+    ${offen.length && !zeZu() ? `<button class="btn ze-add primary" data-act="zaalle">✓ Alle
+      ${offen.length} offenen Tage aus dem Plan übernehmen</button>` : ""}
+    <p class="hint" style="margin-top:14px">Tippe einen Tag an: dort stehen die Schichten so, wie sie im
+      Dienstplan stehen. Du kannst Zeiten ändern, Personen tauschen und die Schichtleitung setzen. Ein
+      Haken bestätigt den Tag — damit sieht der Mitarbeiter seine Schichten und kann sie bestätigen.</p>`;
 }
 
-function zaCheckHtml(){
-  const leute = zeScope();
-  if(!leute.length) return `<p class="empty-note">In diesem Monat ist niemand eingeteilt und niemand hat etwas erfasst.</p>`;
-  const uid = ui.zaPerson && leute.some(p => p.id === ui.zaPerson) ? ui.zaPerson : leute[0].id;
-  ui.zaPerson = uid;
-  const st = zaStand(uid);
-  const idx = leute.findIndex(p => p.id === uid);
-  const s = zeSumme(uid);
 
-  const tage = st.t.slice().sort((a, b) => a.day - b.day);
-  const kommt = tage.filter(x => x.zukunft && !x.e);
-  const zeigen = tage.filter(x => !(x.zukunft && !x.e));
-
-  return `<div class="za-phead">
-      <div class="za-pnav">
-        <button class="btn arrow" data-act="zapnav" data-d="-1" aria-label="Vorige Person">‹</button>
-        <div class="za-pname">${esc(st.p.name || "?")}</div>
-        <button class="btn arrow" data-act="zapnav" data-d="1" aria-label="Nächste Person">›</button>
-      </div>
-      <div class="za-psum">${idx + 1} von ${leute.length} · <b class="za-count">${st.geprueft} von ${zeigen.length}</b>
-        bestätigt · ${zeHM(s.netto)} Std${s.sl ? " · davon SL " + zeHM(s.sl) : ""}</div>
+/* ============================================================
+   Büro: ein Tag
+   ============================================================ */
+function zaRowHtml(r){
+  const auf = ui.zeOpen === r.id;
+  const cls = ["za-row", r.emp_changed ? "is-chg" : r.emp_ok ? "is-adm" : ""].filter(Boolean).join(" ");
+  const c = zeCalc(String(r.work_date), r.starts, r.ends, r.break_min, r.lead_min);
+  const unten = [];
+  if(r.plan_starts && (r.plan_starts !== r.starts || r.plan_ends !== r.ends))
+    unten.push(`<span class="za-dev">Plan ${esc(r.plan_starts)}–${esc(r.plan_ends)}</span>`);
+  if(Number(r.break_min)) unten.push("Pause " + zeHM(r.break_min));
+  if(Number(r.lead_min)) unten.push("SL " + zeHM(r.lead_min));
+  if(Number(r.gross_min) !== c.uhr) unten.push("Zeitumstellung");
+  if(r.note) unten.push("„" + esc(r.note) + "“");
+  return `<div class="${cls}" data-id="${r.id}">
+      <button class="za-rb" data-act="zarow" data-id="${r.id}" ${zeZu() ? "disabled" : ""}>
+        <span class="za-rt"><span class="za-rm">${esc(personName(r.user_id))}</span></span>
+        <span class="za-rs">${r.starts}–${r.ends}${c.folgetag ? " +1" : ""} · ${zeHM(r.net_min)} Std${
+          unten.length ? " · " + unten.join(" · ") : ""}</span>
+      </button>
+      ${zeHaken(r)}
     </div>
-    <div class="za-rows">${zeigen.map(x => zaRowHtml(uid, x)).join("")
-      || `<p class="empty-note">Für diese Person gibt es in diesem Monat nichts.</p>`}</div>
-    ${kommt.length ? `<p class="ze-later">Noch ${kommt.length} ${kommt.length === 1 ? "geplanter Tag" : "geplante Tage"}
-      (${kommt.map(x => x.day + ".").join(", ")}).</p>` : ""}
-    ${zeZu() ? "" : ui.zeAdd
-      ? `<div class="card panel" style="margin-top:10px">
-           <label class="lbl" for="za-neu">Welchen Tag ergänzen?</label>
-           <input class="field" id="za-neu" type="date" data-ze="neu"
-             min="${ui.monthKey}-01" max="${ui.monthKey}-${String(daysInMonth(ui.monthKey)).padStart(2, "0")}"
-             value="${esc(ui.zeNeu || "")}">
-           <div class="row" style="margin-top:10px">
-             <button class="btn primary" data-act="zaaddgo" data-emp="${uid}">Tag anlegen</button>
-             <button class="btn" data-act="zeaddzu">Abbrechen</button>
-           </div>
-           <p class="tiny muted" style="margin:8px 0 0">Dafür gedacht, dass jemand einen Tag nicht
-             selbst eintragen kann — zum Beispiel, weil sein Zugang deaktiviert ist.</p>
-         </div>`
-      : `<button class="btn ze-add" data-act="zaadd">+ Vergessenen Tag ergänzen</button>`}
-    <div class="za-foot">${zaFussHtml(uid)}</div>`;
+    ${r.emp_changed && zeDiffText(r)
+      ? `<div class="ze-diff">${esc(personName(r.user_id))} hat geändert: ${zeDiffText(r)}
+           <button class="btn sm" data-act="zetake" data-id="${r.id}"
+             style="margin-left:6px">Übernehmen</button></div>` : ""}
+    ${auf ? `<div class="ze-day is-open">${zeEditHtml()}</div>` : ""}`;
 }
 
-/* Der Fuß einer Personenkarte. Eigene Funktion, weil er nach jedem Tipp auf
-   eine Freigabe nachgeführt werden muss: sonst fehlt der Knopf „Zur
-   Endbestätigung freigeben“, obwohl gerade der letzte Tag bestätigt wurde. */
-function zaFussHtml(uid){
-  const st = zaStand(uid);
-  let fussText = "", fussKnopf = "";
-  if(zeZu()){
-    fussText = "Der Monat ist abgeschlossen.";
-  } else if(st.sh.status === "submitted"){
-    fussText = "Abgeschickt" + (st.sh.submitted_at ? " am " + zeDatum(st.sh.submitted_at) : "")
-      + (st.sh.submitted_by && st.sh.submitted_by !== uid ? " (vom Büro)" : "")
-      + (st.probleme ? " — aber: " + st.probleme : "");
-    fussKnopf = `<button class="btn" data-act="zareturn" data-emp="${uid}">Zurückgeben</button>`;
-  } else if(st.sh.status === "review"){
-    fussText = "Wartet auf die Bestätigung von " + st.p.name + (st.probleme ? " — aber: " + st.probleme : "");
-    fussKnopf = `<button class="btn" data-act="zareturn" data-emp="${uid}">Zurückgeben</button>
-      <button class="btn" data-act="zasubmitfor" data-emp="${uid}">Stellvertretend abschicken</button>`;
-  } else if(st.probleme){
-    fussText = "Freigeben noch nicht möglich: " + st.probleme + ".";
-  } else if(!st.vorbei){
-    fussText = "Freigeben zur Endbestätigung geht ab " + zeAbDatum(ui.monthKey) + ". Einzelne Tage kannst du jederzeit bestätigen.";
-  } else if(!st.t.length){
-    fussText = "Nichts zu prüfen.";
-  } else {
-    fussText = "Alles bestätigt.";
-    fussKnopf = `<button class="btn primary" data-act="zarelease" data-emp="${uid}">Zur Endbestätigung freigeben</button>`;
-  }
-  return `<div class="grow muted">${esc(fussText)}</div>${fussKnopf}
-    <button class="btn" data-act="zapnav" data-d="1">Nächste Person ›</button>`;
+function zaTagHtml(d){
+  const st = zaTagStand(d);
+  const k = ui.monthKey;
+  const neu = ui.zeOpen === "neu" && ui.zeForm && ui.zeForm.d === d;
+
+  const vor = st.offen.map(p => `<div class="za-row is-miss">
+      <button class="za-rb" data-act="zafromplan" data-d="${d}" data-emp="${p.emp}" ${zeZu() ? "disabled" : ""}>
+        <span class="za-rt"><span class="za-rm">${esc(personName(p.emp))}</span></span>
+        <span class="za-rs">${esc(p.starts)}–${esc(p.ends)}${p.lead ? " · Schichtleitung" : ""}
+          · Vorschlag aus dem Dienstplan</span>
+      </button>
+      <span class="za-mark" aria-hidden="true">+</span>
+    </div>`).join("");
+
+  const liste = st.rows.map(zaRowHtml).join("") + vor;
+
+  return `<button class="btn za-zurueck" data-act="zaback">‹ Alle Tage</button>
+    <div class="za-phead">
+      <div class="za-pnav">
+        <button class="btn arrow" data-act="zadnav" data-d="${d - 1}" ${d <= 1 ? "disabled" : ""}
+          aria-label="Vortag">‹</button>
+        <div class="za-pname">${WD_SHORT[st.wd]} ${d}. ${esc(monthLabel(k).split(" ")[0])}</div>
+        <button class="btn arrow" data-act="zadnav" data-d="${d + 1}"
+          ${d >= daysInMonth(k) || zeYmd(d + 1) > berHeute() ? "disabled" : ""} aria-label="Nächster Tag">›</button>
+      </div>
+      <div class="za-psum">${st.rows.length} ${st.rows.length === 1 ? "Schicht" : "Schichten"}
+        · ${zeHM(st.netto)} Std${st.sl ? " · davon SL " + zeHM(st.sl) : ""}
+        · ${st.fertig ? "bestätigt" : st.noetig ? "offen" : "nichts zu tun"}</div>
+    </div>
+    ${liste || `<p class="empty-note">An diesem Tag ist nichts eingetragen und nichts geplant.</p>`}
+    ${neu ? `<div class="ze-day is-open">${zeEditHtml()}</div>`
+      : zeZu() ? "" : `<button class="btn ze-add" data-act="zanew" data-d="${d}">+ Schicht hinzufügen</button>`}
+    ${zeZu() ? "" : `<div class="za-foot">
+      <div class="grow muted">${esc(
+        st.geaendert.length ? "Ein Mitarbeiter hat eine Zeit geändert — sieh sie dir an und bestätige den Tag erneut."
+        : st.fertig ? "Bestätigt und freigegeben."
+        : st.offen.length ? "Ein Haken übernimmt die " + st.offen.length + " Vorschläge aus dem Plan und gibt den Tag frei."
+        : "Ein Haken gibt die Schichten dieses Tages für die Mitarbeiter frei.")}</div>
+      ${st.frei && !st.geaendert.length
+        ? `<button class="btn ghost danger" data-act="zadayauf" data-d="${d}">Tag wieder öffnen</button>`
+        : ""}
+      <button class="btn primary" data-act="zadayok" data-d="${d}" style="min-height:46px">✓ Tag bestätigen</button>
+    </div>`}`;
 }
 
+
+/* ============================================================
+   Büro: Abschluss, Stunden, CSV
+   ============================================================ */
 function zaSumHtml(){
   const leute = zeScope();
   const geschlossen = zeZu();
@@ -2362,15 +2364,15 @@ function zaSumHtml(){
     const brutto = (zeCenti(s.normal) / 100) * Number(satz.wage) + (zeCenti(s.sl) / 100) * Number(satz.wage_lead);
     const ueber = config.limitOn && p.minijob && Number(satz.limit_amount) > 0 && brutto > Number(satz.limit_amount);
     const diff = (zeCenti(s.netto) / 100) - plan.hours;
-    /* Wer nichts erfasst hat, bekommt eine kurze Zeile statt dreier Nullen
-       und einer Betragsschätzung über 0,00 €. */
+    /* Wer nichts erfasst hat, bekommt eine kurze Zeile statt dreier
+       Nullen und einer Betragsschätzung über 0,00 €. */
     if(!s.netto) return `<div class="za-s">
       <div class="za-sn"><b>${esc(p.name)}</b>
         <span class="tiny muted">nichts erfasst${plan.hours ? " · Plan war " + dec(plan.hours, 2) + " Std" : ""}</span></div>
     </div>`;
     return `<div class="za-s">
       <div class="za-sn"><b>${esc(p.name)}</b>
-        <span class="tiny muted">${s.tage} ${s.tage === 1 ? "Arbeitstag" : "Arbeitstage"}</span>
+        <span class="tiny muted">${s.tage} ${s.tage === 1 ? "Schicht" : "Schichten"}</span>
         ${ueber ? `<span class="pill warn">über Grenze</span>` : ""}</div>
       <div class="za-sg">
         <span><b>${zeDez(s.normal)}</b>Normal</span>
@@ -2388,51 +2390,39 @@ function zaSumHtml(){
 }
 
 function zaCloseHtml(){
-  const leute = zeScope();
-  const vorbei = zeMonatVorbei(ui.monthKey);
-  const offen = leute.filter(p => {
-    const st = zaStand(p.id);
-    return !!st.probleme;
-  });
-  const nichtAb = leute.filter(p => {
-    const st = zaStand(p.id);
-    return st.p.role !== "admin" && st.sh.status !== "submitted";
-  });
+  const k = ui.monthKey;
+  const vorbei = zeMonatVorbei(k);
+  const offeneTage = zaOffeneTage();
+  const offeneHaken = zaOffeneHaken();
+  const fehlen = [];
+  offeneHaken.forEach(r => { const n = personName(r.user_id); if(fehlen.indexOf(n) < 0) fehlen.push(n); });
   const geschlossen = zeZu();
+  const bereit = vorbei && !offeneTage.length;
+
   const haken = (ok, text, sub) => `<li class="${ok ? "is-done" : ""}"><i>${ok ? "✓" : "○"}</i>
     <span style="color:inherit; font-size:14px">${esc(text)}${sub ? `<span>${esc(sub)}</span>` : ""}</span></li>`;
 
-  const bereit = vorbei && !offen.length && !nichtAb.length && leute.length > 0;
-  const grund = !vorbei ? "Der Monat läuft noch bis " + zeAbDatum(ui.monthKey) + " (abschließen ab dann)."
-    : offen.length ? "Noch zu klären: " + offen.map(p => p.name).join(", ") + "."
-    : nichtAb.length ? "Es fehlt die Endbestätigung von: " + nichtAb.map(p => p.name).join(", ") + "."
-    : !leute.length ? "In diesem Monat gibt es nichts abzuschließen." : "";
-
   return `<div class="card panel">
-      <h2>Abschluss ${esc(monthLabel(ui.monthKey))}</h2>
+      <h2>Abschluss ${esc(monthLabel(k))}</h2>
       <ul class="za-chk">
-        ${haken(vorbei, "Der Monat ist vorbei", vorbei ? "" : "geht ab " + zeAbDatum(ui.monthKey))}
-        ${haken(!offen.length, "Alle Tage belegt und vom Büro bestätigt",
-          offen.length ? zeWenige(offen.map(p => p.name)) : "")}
-        ${haken(!nichtAb.length, "Alle haben den Monat abgeschickt",
-          (leute.length - nichtAb.length) + " von " + leute.length
-          + (nichtAb.length ? " · es fehlen " + zeWenige(nichtAb.map(p => p.name)) : ""))}
+        ${haken(vorbei, "Der Monat ist vorbei", vorbei ? "" : "geht ab " + zeAbDatum(k))}
+        ${haken(!offeneTage.length, "Alle Tage vom Büro bestätigt",
+          offeneTage.length ? offeneTage.length + " offen: " + zeWenige(offeneTage.map(x => x.d + ".")) : "")}
+        ${haken(!offeneHaken.length, "Alle Schichten von den Mitarbeitern bestätigt",
+          offeneHaken.length ? "es fehlen " + offeneHaken.length + " von " + zaFreigegeben()
+            + " — " + zeWenige(fehlen) + " (hält den Abschluss nicht auf)" : "")}
       </ul>
       ${geschlossen
         ? `<div class="banner ok">Abgeschlossen${zeiten().closed_at ? " am " + zeDatum(zeiten().closed_at) : ""}.
              Niemand kann die Zeiten mehr ändern.</div>
-           <div class="za-csv">
-             <button class="btn primary" data-act="zacsv" data-wie="summen">Summen (CSV)</button>
-             <button class="btn" data-act="zacsv" data-wie="tage">Einzeltage (CSV)</button>
-           </div>
-           <p class="tiny muted" style="margin:10px 0 0">Zwei getrennte Knöpfe, weil Browser den zweiten
-             Download ohne eigenen Tipp blockieren. Am iPhone bietet Safari „In Dateien sichern“ an.</p>
            <div class="row" style="margin-top:12px">
              <button class="btn ghost danger" data-act="zareopen">Monat wieder öffnen</button>
            </div>`
         : `<button class="btn primary" data-act="zaclose" ${bereit ? "" : "disabled"}
              style="min-height:46px">Monat abschließen</button>
-           ${grund ? `<p class="tiny muted" style="margin:10px 0 0">${esc(grund)}</p>` : ""}`}
+           ${!bereit ? `<p class="tiny muted" style="margin:10px 0 0">${esc(
+               !vorbei ? "Abschließen geht ab " + zeAbDatum(k) + "."
+               : "Noch zu bestätigen: " + zeWenige(offeneTage.map(x => x.d + ".")) + ".")}</p>` : ""}`}
     </div>
     <div class="card panel">
       <h2>Stunden je Mitarbeiter
@@ -2440,264 +2430,53 @@ function zaCloseHtml(){
       <p>Aus den <b>erfassten</b> Zeiten, nicht aus dem Plan. Eine Schicht zählt zu dem Tag, an dem sie beginnt.
          ${geschlossen ? "Die Sätze sind die beim Abschluss festgeschriebenen." : "Beträge sind geschätzt und können sich noch ändern."}</p>
       ${zaSumHtml()}
+      <div class="za-csv">
+        <button class="btn primary" data-act="zacsv" data-wie="summen">Summen (CSV)</button>
+        <button class="btn" data-act="zacsv" data-wie="tage">Einzelschichten (CSV)</button>
+      </div>
+      <p class="tiny muted" style="margin:10px 0 0">Beide Dateien gehen jederzeit — auch wenn noch
+        Bestätigungen der Mitarbeiter fehlen. Zwei getrennte Knöpfe, weil Browser den zweiten Download
+        ohne eigenen Tipp blockieren. Am iPhone bietet Safari „In Dateien sichern“ an.</p>
     </div>`;
 }
 
 function adminTime(){
-  const leute = zeScope();
-  const schritt = ui.zaStep || "who";
-  let offen = 0, pruefen = 0, fertig = 0;
-  leute.forEach(p => {
-    const st = zaStand(p.id);
-    offen += st.fehlt + st.entwurf;
-    pruefen += st.pruefen;
-    if(st.sh.status === "submitted") fertig++;
-  });
+  const k = ui.monthKey;
+  const schritt = ui.zaStep === "close" ? "close" : "tage";
+  const offeneTage = zaOffeneTage();
+  const offeneHaken = zaOffeneHaken();
 
-  const stufe = (id, nr, titel, zahl, erledigt) => `<button class="za-step ${erledigt ? "is-done" : ""}"
+  const stufe = (id, titel, zahl, erledigt) => `<button class="za-step ${erledigt ? "is-done" : ""}"
     role="tab" aria-selected="${schritt === id}" data-act="zastep" data-step="${id}">
-    <b>${nr} ${titel}</b>${esc(zahl)}</button>`;
+    <b>${titel}</b>${esc(zahl)}</button>`;
 
   const kopf = `<div class="za-steps" role="tablist">
-    ${stufe("who", 1, "Wer fehlt", offen ? offen + " offen" : "niemand offen", !offen)}
-    ${stufe("check", 2, "Prüfen", pruefen ? pruefen + " zu prüfen" : "nichts offen", !pruefen)}
-    ${stufe("close", 3, "Abschluss", fertig + " von " + leute.length, zeZu())}
+    ${stufe("tage", "Tage", offeneTage.length
+      ? offeneTage.length + (offeneTage.length === 1 ? " Tag offen" : " Tage offen") : "alle bestätigt",
+      !offeneTage.length)}
+    ${stufe("close", "Abschluss", zeZu() ? "abgeschlossen"
+      : offeneHaken.length ? offeneHaken.length + " ohne Haken" : "bereit", zeZu())}
   </div>`;
 
-  const body = schritt === "check" ? zaCheckHtml()
-    : schritt === "close" ? zaCloseHtml()
-    : `<div class="za-who">${leute.map(p => zaPersonHtml(p.id)).join("")
-        || `<p class="empty-note">In diesem Monat ist niemand eingeteilt und niemand hat etwas erfasst.</p>`}</div>
-       <p class="hint" style="margin-top:14px">Tippe eine Person an, um ihre Tage zu prüfen. Jeder Tag wird
-         einzeln bestätigt: ein Tipp auf ✓ reicht, derselbe Tipp nimmt die Bestätigung zurück.
-         Freigeben kannst du jederzeit, auch mitten im Monat.</p>`;
+  const body = schritt === "close" ? zaCloseHtml()
+    : ui.zaDay ? zaTagHtml(ui.zaDay) : zaListeHtml();
 
   return monthBar()
     + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
-    + (zeZu() ? `<div class="banner ok">${esc(monthLabel(ui.monthKey))} ist abgeschlossen. Zum Ändern musst du den Monat wieder öffnen.</div>` : "")
-    + (!zeiten().on ? `<div class="banner info">Für ${esc(monthLabel(ui.monthKey))} ist keine Zeiterfassung nötig
+    + (zeZu() ? `<div class="banner ok">${esc(monthLabel(k))} ist abgeschlossen. Zum Ändern musst du den
+        Monat wieder öffnen.</div>` : "")
+    + (!zeiten().on ? `<div class="banner info">Für ${esc(monthLabel(k))} ist keine Zeiterfassung nötig
         (Einstellungen: „Zeiterfassung ab Monat“). Erfassen und Abschließen gehen trotzdem.</div>` : "")
     + kopf + body;
 }
 
-/* ============================================================
-   Zeiterfassung — Teile neu zeichnen, ohne die Liste zu bewegen
-   ============================================================ */
-function zePatchDay(uid, ymd){
-  const el = document.querySelector('.ze-day[data-ymd="' + ymd + '"]');
-  if(!el) return;
-  const x = zeTage(uid).find(y => y.ymd === ymd);
-  if(!x) return;
-  el.outerHTML = zeDayHtml(uid, x);
-  zeKopfPatch(uid);
-}
-function zeKopfPatch(uid){
-  const s = zeSumme(uid);
-  const w = document.querySelectorAll(".ze-top .ze-nv");
-  if(w.length === 3){ w[0].textContent = zeHM(s.normal); w[1].textContent = zeHM(s.sl); w[2].textContent = zeHM(s.netto); }
-  const alle = zeTage(uid);
-  const karten = alle.filter(x => !(x.zukunft && !x.e));
-  const fertig = karten.filter(x => x.e && x.e.status !== "draft").length;
-  const pill = document.querySelector(".ze-top .pill");
-  if(pill){
-    pill.innerHTML = "<b>" + fertig + "</b> von " + karten.length + (karten.length === 1 ? " Tag" : " Tagen") + " bestätigt";
-    pill.className = "pill" + (karten.length && fertig === karten.length ? " done" : "");
-  }
-  const st = document.querySelector(".ze-top .ze-state");
-  if(st) st.textContent = zeKopfText(uid, alle);
-}
-function zaPatchRow(uid, ymd){
-  const el = document.querySelector('.za-row[data-ymd="' + ymd + '"]');
-  if(!el) return;
-  const x = zeTage(uid).find(y => y.ymd === ymd);
-  if(!x) return;
-  /* der Editor steht als eigenes Element hinter der Zeile — beides ersetzen */
-  const edit = el.nextElementSibling;
-  if(edit && edit.classList.contains("ze-day") && edit.dataset.ymd === ymd) edit.remove();
-  el.outerHTML = zaRowHtml(uid, x);
-  const st = zaStand(uid);
-  const z = document.querySelector(".za-count");
-  if(z) z.textContent = st.geprueft + " von " + st.t.filter(y => !(y.zukunft && !y.e)).length;
-  /* Der Fuß muss mit: sonst fehlt „Zur Endbestätigung freigeben“, obwohl
-     gerade der letzte Tag bestätigt wurde. Er steht unter der Liste, das
-     Neuschreiben bewegt also keine Zeile. */
-  const fuss = document.querySelector(".za-foot");
-  if(fuss) fuss.innerHTML = zaFussHtml(uid);
-}
-
-/* ============================================================
-   Zeiterfassung — Bedienung
-   ============================================================ */
-function zeFormAuf(uid, ymd){
-  const x = zeTage(uid).find(y => y.ymd === ymd);
-  if(!x) return;
-  const e = x.e, plan = x.plan;
-  if(e){
-    ui.zeForm = {ymd, worked:!!e.worked, starts:e.starts || "", ends:e.ends || "",
-      brk:Number(e.break_min) || 0, lead:Number(e.lead_min) || 0,
-      note:isAdmin() ? (e.admin_note || "") : (e.note || "")};
-  } else {
-    /* Zusatztag ohne Plan: die Standardschicht dieses Wochentags vorbelegen */
-    const tpl = (templates[x.wd] || [])[0];
-    const von = plan ? plan.starts : tpl ? tpl.start : "17:00";
-    const bis = plan ? plan.ends : tpl ? tpl.end : "23:00";
-    const c = zeCalc(ymd, von, bis, 0, 0);
-    ui.zeForm = {ymd, worked:true, starts:von, ends:bis,
-      brk:c.req, lead:plan && plan.lead ? Math.max(0, c.net) : 0, note:""};
-  }
-  ui.zeOpen = ymd;
-}
-
-/* Beim Speichern wird die Schichtleitung auf die neue Arbeitszeit geklemmt —
-   sonst lehnt die Datenbank ab, wenn man die Zeiten verkürzt hat. */
-function zeNutzlast(f, rolle){
-  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
-  if(!f.worked) return {p:{worked:false, starts:null, ends:null, break_min:0, lead_min:0}, c};
-  return {p:{worked:true, starts:f.starts, ends:f.ends, break_min:c.pause, lead_min:c.sl}, c};
-}
-
-async function zeSpeichern(uid){
-  if(zeBusy || !ui.zeForm) return;
-  const f = ui.zeForm, ymd = f.ymd;
-  const n = zeNutzlast(f);
-  if(f.worked && n.c.err){ ui.formError = n.c.err; render(); return; }
-  const x = zeTage(uid).find(y => y.ymd === ymd);
-  const e = x && x.e;
-  const buero = isAdmin();
-  const nutz = Object.assign({}, n.p, buero ? {status:"adm_ok", admin_note:f.note} : {status:"emp_ok", note:f.note});
-  zeBusy = true;
-  const res = e
-    ? await zeRun(sb.from("time_entries").update(nutz).eq("id", e.id).select(ZE_SPALTEN))
-    : await zeRun(sb.from("time_entries").insert(Object.assign({user_id:uid, work_date:ymd}, nutz)).select(ZE_SPALTEN));
-  zeBusy = false;
-  if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return; }
-  const zeile = res.data && res.data[0];
-  if(zeile) zeMerke(zeile);
-  if(buero && zeile) zeBlattNach(uid, zeile.status, true);
-  ui.zeOpen = null; ui.zeForm = null; ui.formError = "";
-  /* nur die eine Karte neu zeichnen, damit die Liste stehen bleibt */
-  if(buero) zaPatchRow(uid, ymd); else zePatchDay(uid, ymd);
-}
-
-/* Was der Trigger mit dem Monat des Mitarbeiters macht, wenn das Büro nach
-   der Freigabe eingreift — hier nachgezogen, damit der Fuß ohne Neuladen
-   stimmt. Dieselbe Regel steht in guard_time_entry. */
-function zeBlattNach(uid, tagStatus, geaendert){
-  const sh = zeiten().sheets[uid];
-  if(!sh || sh.status === "open") return;
-  if(tagStatus !== "adm_ok"){
-    sh.status = "open"; sh.reopen_reason = "Das Büro hat einen Tag zurückgegeben.";
-  } else if(geaendert){
-    sh.status = "review"; sh.reopen_reason = "Das Büro hat Zeiten geändert.";
-  }
-}
-
-async function zeTapOk(uid, ymd){
-  if(zeBusy) return;
-  const x = zeTage(uid).find(y => y.ymd === ymd);
-  if(!x) return;
-  const e = x.e;
-  zeBusy = true;
-  let res;
-  if(!e){
-    const c = zeCalc(ymd, x.plan.starts, x.plan.ends, 0, 0);
-    if(c.err){ zeBusy = false; zeFormAuf(uid, ymd); render(); return; }
-    res = await zeRun(sb.from("time_entries").insert({
-      user_id:uid, work_date:ymd, worked:true, starts:x.plan.starts, ends:x.plan.ends,
-      break_min:c.pause, lead_min:x.plan.lead ? Math.max(0, c.net) : 0, status:"emp_ok"
-    }).select(ZE_SPALTEN));
-  } else {
-    res = await zeRun(sb.from("time_entries")
-      .update({status: e.status === "emp_ok" ? "draft" : "emp_ok"})
-      .eq("id", e.id).select(ZE_SPALTEN));
-  }
-  zeBusy = false;
-  if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return; }
-  if(res.data && res.data[0]) zeMerke(res.data[0]);
-  zePatchDay(uid, ymd);
-}
-
-/* Freigeben: ein Tipp, kein Dialog, kein render(). Tipps, die kurz
-   hintereinander fallen, gehen in einem Aufruf an die Datenbank — freigegeben
-   wird nur, was einzeln angetippt wurde und noch im gesehenen Stand (rev)
-   vorliegt. Hat der Mitarbeiter zwischendurch geändert, fehlt die Zeile in
-   der Antwort und die Zeile wird zurückgestellt. */
-function zaTapOk(uid, ymd){
-  const x = zeTage(uid).find(y => y.ymd === ymd);
-  if(!x || !x.e) return;
-  const e = x.e;
-  if(e.status === "adm_ok"){ zaZurueck(uid, ymd); return; }
-  if(e.status !== "emp_ok") return;
-  if(ui.zaBad) delete ui.zaBad[ymd];
-  e.status = "adm_ok";                       // zuversichtlich, die Zeile wird sofort grün
-  zaPatchRow(uid, ymd);
-  zaPend.push({uid, ymd, id:e.id, rev:e.rev});
-  clearTimeout(zaTimer);
-  zaTimer = setTimeout(zaSenden, 350);
-}
-
-async function zaSenden(){
-  const paket = zaPend.slice();
-  zaPend = [];
-  if(!paket.length) return;
-  setSync("saving");
-  let res;
-  try{
-    res = typeof sb.rpc === "function"
-      ? await sb.rpc("approve_time_entries", {p_items: paket.map(x => ({id:x.id, rev:x.rev}))})
-      : {data: paket.map(x => ({id:x.id, rev:x.rev + 1}))};
-  }catch(err){ res = {error:{message:String(err && err.message || err)}}; }
-
-  ui.zaBad = ui.zaBad || {};
-  if(res && res.error){
-    console.error(res.error);
-    setSync("bad");
-    paket.forEach(x => {
-      const e = (zeOf(x.uid)[Number(x.ymd.slice(8, 10))]);
-      if(e){ e.status = "emp_ok"; }
-      ui.zaBad[x.ymd] = res.error.message;
-      zaPatchRow(x.uid, x.ymd);
-    });
-    return;
-  }
-  const zurueck = {};
-  (res.data || []).forEach(r => { zurueck[r.id] = r.rev; });
-  paket.forEach(x => {
-    const e = zeOf(x.uid)[Number(x.ymd.slice(8, 10))];
-    if(!e) return;
-    if(zurueck[x.id] !== undefined){ e.status = "adm_ok"; e.rev = zurueck[x.id]; delete ui.zaBad[x.ymd]; }
-    else { e.status = "emp_ok"; ui.zaBad[x.ymd] = "hat sich geändert, bitte erneut ansehen"; }
-    zaPatchRow(x.uid, x.ymd);
-  });
-  setSync("ok");
-}
-
-async function zaZurueck(uid, ymd){
-  const e = zeOf(uid)[Number(ymd.slice(8, 10))];
-  if(!e) return;
-  const alt = e.rev;
-  e.status = "emp_ok";
-  zeBlattNach(uid, "emp_ok", false);        // eine zurückgenommene Freigabe hebt die Monatsfreigabe auf
-  zaPatchRow(uid, ymd);
-  const res = await zeRun(sb.from("time_entries").update({status:"emp_ok"})
-    .eq("id", e.id).eq("rev", alt).select(ZE_SPALTEN));
-  ui.zaBad = ui.zaBad || {};
-  if(!res.ok){
-    e.status = "adm_ok";
-    ui.zaBad[ymd] = res.msg;
-  } else if(res.data && res.data[0]){
-    zeMerke(res.data[0]);
-    delete ui.zaBad[ymd];
-  }
-  zaPatchRow(uid, ymd);
-}
 
 /* ============================================================
    Zeiterfassung — CSV
 
-   Semikolon, CRLF, UTF-8 mit Signatur, Dezimalkomma: so öffnet deutsches
-   Excel die Datei ohne Nachfrage. Der Monat steht als zwei Zahlenspalten,
-   sonst macht Excel daraus ein Datum.
+   Semikolon, CRLF, UTF-8 mit Signatur, Dezimalkomma: so öffnet
+   deutsches Excel die Datei ohne Nachfrage. Der Monat steht als zwei
+   Zahlenspalten, sonst macht Excel daraus ein Datum.
    ============================================================ */
 function csvFeld(v){
   let s = v === null || v === undefined ? "" : String(v);
@@ -2707,7 +2486,7 @@ function csvFeld(v){
 const csvZeile = a => a.map(csvFeld).join(";");
 
 function csvLaden(name, text){
-  const blob = new Blob(["\ufeff" + text], {type:"text/csv;charset=utf-8"});
+  const blob = new Blob(["﻿" + text], {type:"text/csv;charset=utf-8"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = name;
@@ -2717,44 +2496,141 @@ function csvLaden(name, text){
 
 function zeCsvSummen(){
   const p = parseKey(ui.monthKey);
-  const kopf = ["Jahr", "Monat", "Name", "Arbeitstage", "Stunden normal", "Stunden Schichtleitung",
-    "Stunden gesamt", "Minuten normal", "Minuten Schichtleitung"];
+  const kopf = ["Jahr", "Monat", "Name", "Schichten", "Stunden normal", "Stunden Schichtleitung",
+    "Stunden gesamt", "Minuten normal", "Minuten Schichtleitung", "Alle Schichten bestätigt"];
   const zeilen = zeScope().slice()
     .sort((a, b) => String(a.name).localeCompare(String(b.name), "de"))
     .map(x => {
       const s = zeSumme(x.id);
+      const offen = zeVon(x.id).filter(r => !r.emp_ok).length;
       return csvZeile([p.y, p.m + 1, x.name, s.tage, zeDez(s.normal), zeDez(s.sl),
-        dec((zeCenti(s.normal) + zeCenti(s.sl)) / 100, 2), s.normal, s.sl]);
+        dec((zeCenti(s.normal) + zeCenti(s.sl)) / 100, 2), s.normal, s.sl,
+        s.tage === 0 ? "" : offen ? "nein (" + offen + " offen)" : "ja"]);
     });
   return [csvZeile(kopf)].concat(zeilen).join("\r\n") + "\r\n";
 }
 
 function zeCsvTage(){
+  const p = parseKey(ui.monthKey);
   const kopf = ["Datum", "Wochentag", "Name", "Beginn", "Ende", "Ende am Folgetag", "Pause (Min)",
-    "Netto (Std)", "davon Schichtleitung (Std)", "davon normal (Std)", "Vom Büro geändert",
-    "Beginn Mitarbeiter", "Ende Mitarbeiter", "Pause Mitarbeiter", "Plan Beginn", "Plan Ende", "Anmerkung"];
-  const zeilen = [];
-  zeScope().slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "de")).forEach(x => {
-    const ein = zeOf(x.id);
-    Object.keys(ein).map(Number).sort((a, b) => a - b).forEach(d => {
-      const e = ein[d];
-      const o = e.emp_orig && zeGeaendert(e) ? e.emp_orig : null;
-      const folge = e.worked && zeMin(e.ends) <= zeMin(e.starts);
-      const anm = [e.note, e.admin_note].filter(Boolean).join(" | ");
-      zeilen.push(csvZeile([
-        String(d).padStart(2, "0") + "." + String(parseKey(ui.monthKey).m + 1).padStart(2, "0") + "." + parseKey(ui.monthKey).y,
-        WD_SHORT[weekdayOf(ui.monthKey, d)], x.name,
-        e.worked ? e.starts : "", e.worked ? e.ends : "", e.worked ? (folge ? "ja" : "nein") : "",
-        e.break_min, zeDez(e.net_min), zeDez(e.lead_min), zeDez(Math.max(0, e.net_min - e.lead_min)),
-        o ? "ja" : "nein",
-        o ? (o.starts || "") : "", o ? (o.ends || "") : "", o ? (o.break_min === undefined ? "" : o.break_min) : "",
-        e.plan_starts || "", e.plan_ends || "",
-        e.worked ? anm : ("nicht gearbeitet" + (anm ? " | " + anm : ""))
-      ]));
-    });
+    "Netto (Std)", "davon Schichtleitung (Std)", "davon normal (Std)", "Vom Büro bestätigt",
+    "Vom Mitarbeiter bestätigt", "Mitarbeiter hat geändert", "Beginn vorher", "Ende vorher",
+    "Plan Beginn", "Plan Ende", "Anmerkung"];
+  const nach = zeiten().rows.slice().sort((a, b) =>
+    String(personName(a.user_id)).localeCompare(String(personName(b.user_id)), "de")
+    || zeTagNr(a.work_date) - zeTagNr(b.work_date));
+  const zeilen = nach.map(r => {
+    const d = zeTagNr(r.work_date);
+    const o = r.emp_changed ? r.emp_orig : null;
+    const anm = [r.note, r.admin_note].filter(Boolean).join(" | ");
+    return csvZeile([
+      zePad(d) + "." + zePad(p.m + 1) + "." + p.y,
+      WD_SHORT[weekdayOf(ui.monthKey, d)], personName(r.user_id),
+      r.starts, r.ends, zeMin(r.ends) <= zeMin(r.starts) ? "ja" : "nein",
+      r.break_min, zeDez(r.net_min), zeDez(r.lead_min), zeDez(Math.max(0, r.net_min - r.lead_min)),
+      zeFrei(d) ? "ja" : "nein", r.emp_ok ? "ja" : "nein", r.emp_changed ? "ja" : "nein",
+      o ? (o.starts || "") : "", o ? (o.ends || "") : "",
+      r.plan_starts || "", r.plan_ends || "", anm
+    ]);
   });
   return [csvZeile(kopf)].concat(zeilen).join("\r\n") + "\r\n";
 }
+
+
+/* ============================================================
+   Zeiterfassung — Schreiben, angestoßen durch Tippen
+   ============================================================ */
+async function zeSpeichern(){
+  if(zeBusy || !ui.zeForm) return;
+  const f = ui.zeForm;
+  const c = zeCalc(zeYmd(f.d), f.starts, f.ends, f.brk, f.lead);
+  if(c.err){ ui.formError = c.err; render(); return; }
+  const buero = isAdmin();
+  if(buero && !f.uid){ ui.formError = "Bitte wähle, wer die Schicht gearbeitet hat."; render(); return; }
+
+  const nutz = {starts:f.starts, ends:f.ends, break_min:c.pause, lead_min:c.sl};
+  if(buero) nutz.admin_note = f.note; else nutz.note = f.note;
+
+  zeBusy = true;
+  const res = f.id
+    ? await zeRun(sb.from("time_entries")
+        .update(buero ? Object.assign({user_id:f.uid}, nutz) : nutz).eq("id", f.id).select(ZE_SPALTEN))
+    : await zeRun(sb.from("time_entries")
+        .insert(Object.assign({user_id:f.uid, work_date:zeYmd(f.d)}, nutz)).select(ZE_SPALTEN));
+  zeBusy = false;
+  if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return; }
+  if(res.data && res.data[0]) zeMerke(res.data[0]);
+  ui.zeOpen = null; ui.zeForm = null; ui.formError = "";
+  render();
+}
+
+/* Einen Tag bestätigen: erst die Vorschläge aus dem Plan übernehmen,
+   dann den Haken setzen. Zwei Schritte, beide für sich wiederholbar —
+   bricht der zweite ab, genügt ein erneuter Tipp. */
+async function zaTagOk(d){
+  if(zeBusy) return;
+  zeBusy = true;
+  const offen = zaOffenePlan(d);
+  const neu = [], weg = [];
+  offen.forEach(p => { const z = zeAusPlan(d, p); if(z) neu.push(z); else weg.push(personName(p.emp)); });
+  if(neu.length){
+    const res = await zeRun(sb.from("time_entries").insert(neu).select(ZE_SPALTEN));
+    if(!res.ok){ zeBusy = false; ui.formError = "Vorschläge nicht übernommen: " + res.msg; render(); return; }
+    (res.data || []).forEach(zeMerke);
+  }
+  const res = await zeRun(sb.from("time_days")
+    .upsert({work_date:zeYmd(d), ym:ui.monthKey, ok:true}, {onConflict:"work_date"}).select("work_date,ok"));
+  zeBusy = false;
+  if(!res.ok){ ui.formError = "Tag nicht bestätigt: " + res.msg; render(); return; }
+  await zeTagFrisch(d);
+  ui.zeOpen = null; ui.zeForm = null;
+  ui.formError = weg.length ? "Nicht übernommen (unmögliche Zeiten im Dienstplan): " + weg.join(", ") : "";
+  render();
+}
+
+/* Alle offenen Tage in einem Zug. Für einen Monat, in dem der Plan
+   stimmt, ist das der Normalfall — 31-mal tippen will niemand. */
+async function zaAlleTage(){
+  if(zeBusy) return;
+  const k = ui.monthKey;
+  const offen = zaOffeneTage();        // reicht nur bis heute
+  if(!offen.length) return;
+  const neu = [], weg = [], tage = [];
+  offen.forEach(st => {
+    st.offen.forEach(p => { const z = zeAusPlan(st.d, p); if(z) neu.push(z); else weg.push(st.d + ". " + personName(p.emp)); });
+    tage.push({work_date:st.ymd, ym:k, ok:true});
+  });
+  zeBusy = true;
+  if(neu.length){
+    const res = await zeRun(sb.from("time_entries").insert(neu).select(ZE_SPALTEN));
+    if(!res.ok){ zeBusy = false; ui.formError = "Vorschläge nicht übernommen: " + res.msg; render(); return; }
+  }
+  const res = await zeRun(sb.from("time_days").upsert(tage, {onConflict:"work_date"}).select("work_date,ok"));
+  zeBusy = false;
+  if(!res.ok){ ui.formError = "Nicht bestätigt: " + res.msg; render(); return; }
+  ui.formError = weg.length ? "Nicht übernommen (unmögliche Zeiten im Dienstplan): " + zeWenige(weg) : "";
+  await reload();
+}
+
+/* Tag wieder öffnen. Die Datenbank löscht dabei die Bestätigungen
+   dieses Tages — der Mitarbeiter muss danach erneut bestätigen. */
+async function zaTagAuf(d){
+  const st = zaTagStand(d);
+  const haken = st.rows.filter(r => r.emp_ok);
+  const text = "Den " + d + ". wieder öffnen? Die Schichten sind dann für die Mitarbeiter nicht mehr "
+    + "sichtbar, bis du den Tag erneut bestätigst."
+    + (haken.length ? " " + zeWenige(haken.map(r => personName(r.user_id)))
+        + (haken.length === 1 ? " hat" : " haben") + " schon bestätigt — das wird dabei aufgehoben." : "");
+  ask(text, "Wieder öffnen", async () => {
+    const res = await zeRun(sb.from("time_days")
+      .upsert({work_date:zeYmd(d), ym:ui.monthKey, ok:false}, {onConflict:"work_date"}).select("work_date,ok"));
+    if(!res.ok){ ui.formError = "Nicht geöffnet: " + res.msg; render(); return; }
+    await zeTagFrisch(d);
+    ui.zeOpen = null; ui.zeForm = null;
+    render();
+  });
+}
+
 
 /* ============================================================
    Zeiterfassung — Klicks
@@ -2765,222 +2641,141 @@ function zeCsvTage(){
    ============================================================ */
 async function zeClick(act, el){
   const k = ui.monthKey;
-  const uid = isAdmin() ? (ui.zaPerson || me.id) : me.id;
-  const ymd = el.dataset.ymd;
+  const id = el.dataset.id;
+  const tagN = Number(el.dataset.d);
   /* Eine Meldung gehört zur letzten Handlung: beim nächsten Tipp ist sie weg */
   ui.formError = ""; ui.zeFehler = "";
 
   switch(act){
 
-    /* ---- gemeinsamer Tages-Editor ---- */
+    /* ---- gemeinsamer Editor ---- */
     case "zeday":
     case "zarow": {
-      /* Auf- und Zuklappen ohne render(): sonst springt die Liste an den
-         Anfang und sortiert sich dabei auch noch um. */
-      const vorher = ui.zeOpen;
-      if(ui.zeOpen === ymd){ ui.zeOpen = null; ui.zeForm = null; }
-      else zeFormAuf(uid, ymd);
-      const patch = act === "zarow" ? zaPatchRow : zePatchDay;
-      if(vorher && vorher !== ymd) patch(uid, vorher);
-      patch(uid, ymd);
+      if(ui.zeOpen === id){ ui.zeOpen = null; ui.zeForm = null; }
+      else zeFormAuf(id);
+      render();
       if(ui.zeOpen){
-        const el = document.querySelector('.ze-day[data-ymd="' + ymd + '"] .ze-edit');
-        if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+        const box = document.querySelector(".ze-edit");
+        if(box && box.scrollIntoView) box.scrollIntoView({block:"nearest"});
       }
+      return true;
+    }
+    case "zezu": ui.zeOpen = null; ui.zeForm = null; render(); return true;
+    case "zanew": zeFormAuf(null, tagN, null); render(); return true;
+    case "zafromplan": {
+      const p = zaPlan(tagN).find(x => x.emp === el.dataset.emp);
+      if(p) zeFormAuf(null, tagN, p);
+      render();
       return true;
     }
 
     case "zespin": {
       if(!ui.zeForm) return true;
-      const f = el.dataset.feld, d = Number(el.dataset.d);
-      const c = zeCalc(ui.zeForm.ymd, ui.zeForm.starts, ui.zeForm.ends, ui.zeForm.brk, ui.zeForm.lead);
-      if(f === "brk") ui.zeForm.brk = Math.max(c.req, Math.min(600, (Number(ui.zeForm.brk) || 0) + d));
-      else ui.zeForm.lead = Math.max(0, Math.min(Math.max(0, c.net), (Number(ui.zeForm.lead) || 0) + d));
+      const f = el.dataset.feld, dd = Number(el.dataset.d);
+      const c = zeCalc(zeYmd(ui.zeForm.d), ui.zeForm.starts, ui.zeForm.ends, ui.zeForm.brk, ui.zeForm.lead);
+      if(f === "brk") ui.zeForm.brk = Math.max(c.req, Math.min(600, (Number(ui.zeForm.brk) || 0) + dd));
+      else ui.zeForm.lead = Math.max(0, Math.min(Math.max(0, c.net), (Number(ui.zeForm.lead) || 0) + dd));
       zePatchEdit();
       return true;
     }
     case "zeall": {
       if(!ui.zeForm) return true;
-      const c = zeCalc(ui.zeForm.ymd, ui.zeForm.starts, ui.zeForm.ends, ui.zeForm.brk, 0);
+      const c = zeCalc(zeYmd(ui.zeForm.d), ui.zeForm.starts, ui.zeForm.ends, ui.zeForm.brk, 0);
       ui.zeForm.lead = Math.max(0, c.net);
       zePatchEdit();
       return true;
     }
-    case "zesave": await zeSpeichern(uid); return true;
+    case "zesave": await zeSpeichern(); return true;
 
-    case "zeoff": {                       /* ausdrückliche Null: „nicht gearbeitet“ */
-      if(!ui.zeForm) return true;
-      ui.zeForm.worked = false;
-      await zeSpeichern(uid);
-      return true;
-    }
-    case "zeon": {
-      if(!ui.zeForm) return true;
-      const x = zeTage(uid).find(y => y.ymd === ui.zeForm.ymd);
-      const tpl = (templates[x ? x.wd : 0] || [])[0];
-      const plan = x && x.plan;
-      ui.zeForm.worked = true;
-      if(!ui.zeForm.starts) ui.zeForm.starts = plan ? plan.starts : tpl ? tpl.start : "17:00";
-      if(!ui.zeForm.ends) ui.zeForm.ends = plan ? plan.ends : tpl ? tpl.end : "23:00";
-      const c = zeCalc(ui.zeForm.ymd, ui.zeForm.starts, ui.zeForm.ends, 0, 0);
-      ui.zeForm.brk = c.req;
-      render();
-      return true;
-    }
     case "zedel": {
-      const x = zeTage(uid).find(y => y.ymd === ui.zeOpen);
-      if(!x || !x.e) return true;
-      const id = x.e.id, tag = x.day;
-      ask("Den Eintrag für den " + tag + ". wirklich löschen? Ein geplanter Tag gilt danach wieder als offen.",
+      const r = zeZeile(id);
+      if(!r) return true;
+      ask("Die Schicht von " + personName(r.user_id) + " am " + zeTagNr(r.work_date)
+        + ". wirklich löschen? Steht sie im Dienstplan, schlägt die App sie danach wieder vor.",
         "Löschen", async () => {
-          const res = await zeRun(sb.from("time_entries").delete().eq("id", id).select("id"));
+          const res = await zeRun(sb.from("time_entries").delete().eq("id", r.id).select("id"));
           if(!res.ok){ ui.formError = "Nicht gelöscht: " + res.msg; render(); return; }
-          zeVergiss(uid, tag);
+          zeVergiss(r.id);
           ui.zeOpen = null; ui.zeForm = null;
           render();
         });
       return true;
     }
 
-    /* ---- Mitarbeiter: zusätzlicher Tag, Abschicken, Einspruch ---- */
-    case "zeadd":
-    case "zaadd": ui.zeAdd = true; ui.zeNeu = ""; render(); return true;
-    case "zeaddzu": ui.zeAdd = false; render(); return true;
-    case "zeaddgo":
-    case "zaaddgo": {
-      const wer = act === "zaaddgo" ? el.dataset.emp : me.id;
-      const datum = ui.zeNeu || "";
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(datum) || datum.slice(0, 7) !== k){
-        ui.formError = "Bitte einen Tag aus " + monthLabel(k) + " wählen.";
-        render(); return true;
-      }
-      ui.zeAdd = false;
-      ui.zeExtra = {uid:wer, ymd:datum};
-      zeFormAuf(wer, datum);
-      render();
-      return true;
-    }
-
-    case "zesubmit": {
-      const s = zeSumme(me.id);
-      const chg = zeTage(me.id).filter(x => x.e && zeGeaendert(x.e));
-      let text = "Du bestätigst deine Zeiten für " + monthLabel(k) + ": "
-        + zeHM(s.netto) + " Std, davon " + zeHM(s.sl) + " Schichtleitung, an " + s.tage
-        + (s.tage === 1 ? " Tag" : " Tagen") + ".";
-      if(chg.length) text += " Das Büro hat " + chg.length + (chg.length === 1 ? " Tag" : " Tage")
-        + " geändert: " + chg.map(x => x.day + ". " + zeDiffText(x.e).replace(/<\/?b>/g, "")).join(" · ") + ".";
-      text += " Danach kannst du nichts mehr ändern.";
-      ask(text, "Monat abschicken", async () => {
-        const res = await zeRun(sb.from("time_sheets")
-          .upsert({ym:k, user_id:me.id, status:"submitted"}, {onConflict:"ym,user_id"})
-          .select("user_id,status,released_at,submitted_at,submitted_by,objection,reopen_reason"));
-        if(!res.ok){ ui.formError = "Nicht abgeschickt: " + res.msg; render(); return; }
-        await reload();
-      });
-      return true;
-    }
-    case "zeobj": ui.zeObj = true; ui.zeObjText = ""; render(); return true;
-    case "zeobjzu": ui.zeObj = false; render(); return true;
-    case "zeobjsend": {
-      if(String(ui.zeObjText || "").trim().length < 3){
-        ui.formError = "Bitte schreib kurz dazu, was nicht stimmt."; render(); return true;
-      }
-      const res = await zeRun(sb.from("time_sheets")
-        .update({status:"open", objection:String(ui.zeObjText).trim()})
-        .eq("ym", k).eq("user_id", me.id).select("user_id,status"));
-      if(!res.ok){ ui.formError = "Nicht gesendet: " + res.msg; render(); return true; }
-      ui.zeObj = false; ui.zeObjText = ""; ui.formError = "";
-      await reload();
-      return true;
-    }
-
-    /* ---- Mitarbeiter und Büro: ein Tipp auf den Haken ---- */
-    case "zeok": await zeTapOk(uid, ymd); return true;
-    case "zaok": zaTapOk(uid, ymd); return true;
-
-    /* ---- Büro: Wegweiser und Personen ---- */
-    case "zastep":
-      ui.zaStep = el.dataset.step; ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false;
-      ui.formError = ""; render(); return true;
-    case "zaperson":
-      ui.zaPerson = el.dataset.emp; ui.zaStep = "check";
-      ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false; render(); return true;
-    case "zapnav": {
-      const leute = zeScope();
-      if(!leute.length) return true;
-      const i = Math.max(0, leute.findIndex(p => p.id === ui.zaPerson));
-      const n = (i + Number(el.dataset.d) + leute.length) % leute.length;
-      ui.zaPerson = leute[n].id; ui.zaStep = "check";
-      ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false;
-      render();
-      window.scrollTo(0, 0);
-      return true;
-    }
-
-    /* ---- Büro: fehlenden Tag belegen ---- */
-    case "zafromplan":
-    case "zanowork": {
-      const x = zeTage(uid).find(y => y.ymd === ymd);
-      if(!x) return true;
-      let nutz;
-      if(act === "zanowork"){
-        nutz = {worked:false, status:"adm_ok"};
-      } else {
-        if(!x.plan) return true;
-        const c = zeCalc(ymd, x.plan.starts, x.plan.ends, 0, 0);
-        nutz = {worked:true, starts:x.plan.starts, ends:x.plan.ends, break_min:c.pause,
-          lead_min:x.plan.lead ? Math.max(0, c.net) : 0, status:"adm_ok"};
-      }
-      const res = await zeRun(sb.from("time_entries")
-        .insert(Object.assign({user_id:uid, work_date:ymd}, nutz)).select(ZE_SPALTEN));
-      if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return true; }
+    /* ---- Büro: Änderung des Mitarbeiters annehmen, Bestätigung zurücknehmen ---- */
+    case "zetake": {
+      const res = await zeRun(sb.from("time_entries").update({emp_changed:false})
+        .eq("id", id).select(ZE_SPALTEN));
+      if(!res.ok){ ui.formError = "Nicht übernommen: " + res.msg; render(); return true; }
       if(res.data && res.data[0]) zeMerke(res.data[0]);
-      zaPatchRow(uid, ymd);
+      render();
+      return true;
+    }
+    case "zeback": {
+      const r = zeZeile(id);
+      if(!r) return true;
+      ask("Die Bestätigung von " + personName(r.user_id) + " für den " + zeTagNr(r.work_date)
+        + ". zurücknehmen? Du kannst die Zeit danach ändern, " + personName(r.user_id)
+        + " muss sie erneut bestätigen.", "Zurücknehmen", async () => {
+          const res = await zeRun(sb.from("time_entries").update({emp_ok:false})
+            .eq("id", r.id).select(ZE_SPALTEN));
+          if(!res.ok){ ui.formError = "Nicht zurückgenommen: " + res.msg; render(); return; }
+          if(res.data && res.data[0]) zeMerke(res.data[0]);
+          zeFormAuf(r.id);
+          render();
+        });
       return true;
     }
 
-    /* ---- Büro: Monat einer Person ---- */
-    case "zarelease": {
-      const wer = el.dataset.emp, p = people.find(x => x.id === wer) || {name:"?"};
-      ask(p.name + " bekommt die Zeiten jetzt zur Bestätigung. Danach kann "
-        + (p.name) + " nichts mehr ändern, nur widersprechen.", "Freigeben", async () => {
-          const res = await zeRun(sb.from("time_sheets")
-            .upsert({ym:k, user_id:wer, status:"review"}, {onConflict:"ym,user_id"})
-            .select("user_id,status"));
-          if(!res.ok){ ui.formError = "Nicht freigegeben: " + res.msg; render(); return; }
-          await reload();
-        });
+    /* ---- Büro: Tage ---- */
+    case "zastep":
+      ui.zaStep = el.dataset.step; ui.zaDay = null;
+      ui.zeOpen = null; ui.zeForm = null; render(); return true;
+    case "zaday":
+      ui.zaDay = tagN; ui.zaStep = "tage";
+      ui.zeOpen = null; ui.zeForm = null; render(); window.scrollTo(0, 0); return true;
+    case "zaback":
+      ui.zaDay = null; ui.zeOpen = null; ui.zeForm = null; render(); return true;
+    case "zadnav":
+      ui.zaDay = Math.max(1, Math.min(daysInMonth(k), tagN));
+      ui.zeOpen = null; ui.zeForm = null; render(); window.scrollTo(0, 0); return true;
+    case "zadayok": await zaTagOk(tagN); return true;
+    case "zadayauf": await zaTagAuf(tagN); return true;
+    case "zaalle": {
+      const offen = zaOffeneTage();
+      const vor = offen.reduce((n, st) => n + st.offen.length, 0);
+      ask("Alle " + offen.length + " offenen Tage bestätigen"
+        + (vor ? " und dabei " + vor + (vor === 1 ? " Schicht" : " Schichten") + " aus dem Dienstplan übernehmen" : "")
+        + "? Danach sehen die Mitarbeiter ihre Schichten und können sie bestätigen. Einzelne Tage kannst du "
+        + "jederzeit wieder öffnen.", "Alle bestätigen", zaAlleTage);
       return true;
     }
-    case "zasubmitfor": {
-      const wer = el.dataset.emp, p = people.find(x => x.id === wer) || {name:"?"};
-      ask("Du bestätigst den Monat für " + p.name + ", ohne dass "
-        + p.name + " es selbst getan hat. Das bleibt gespeichert. Nur sinnvoll, wenn es abgestimmt ist "
-        + "oder der Zugang nicht mehr geht.", "Stellvertretend abschicken", async () => {
-          const res = await zeRun(sb.from("time_sheets").update({status:"submitted"})
-            .eq("ym", k).eq("user_id", wer).select("user_id,status"));
-          if(!res.ok){ ui.formError = "Nicht abgeschickt: " + res.msg; render(); return; }
-          await reload();
-        });
-      return true;
-    }
-    case "zareturn": {
-      const wer = el.dataset.emp, p = people.find(x => x.id === wer) || {name:"?"};
-      ask("Den Monat an " + p.name + " zurückgeben? " + p.name + " kann dann wieder Tage ändern, "
-        + "und du musst danach erneut freigeben.", "Zurückgeben", async () => {
-          const res = await zeRun(sb.from("time_sheets")
-            .update({status:"open", reopen_reason:"Das Büro hat den Monat zurückgegeben."})
-            .eq("ym", k).eq("user_id", wer).select("user_id,status"));
-          if(!res.ok){ ui.formError = "Nicht zurückgegeben: " + res.msg; render(); return; }
-          await reload();
+
+    /* ---- Mitarbeiter: Monat bestätigen ---- */
+    case "zemonat": {
+      const s = zeSumme(me.id);
+      const offen = zeVon(me.id).filter(r => !r.emp_ok);
+      ask("Du bestätigst " + offen.length + (offen.length === 1 ? " Schicht" : " Schichten")
+        + " für " + monthLabel(k) + ": zusammen " + zeHM(s.netto) + " Std, davon " + zeHM(s.sl)
+        + " Schichtleitung. Danach kannst du nichts mehr ändern — nur das Büro kann die Bestätigung "
+        + "wieder aufheben.", "Monat bestätigen", async () => {
+          const res = await zeRun(sb.from("time_entries").update({emp_ok:true})
+            .eq("ym", k).eq("user_id", me.id).eq("emp_ok", false).select(ZE_SPALTEN));
+          if(!res.ok){ ui.formError = "Nicht bestätigt: " + res.msg; render(); return; }
+          (res.data || []).forEach(zeMerke);
+          ui.zeOpen = null; ui.zeForm = null;
+          render();
         });
       return true;
     }
 
     /* ---- Büro: Monat abschließen, wieder öffnen, CSV ---- */
-    case "zaclose":
-      ask(monthLabel(k) + " abschließen? Danach kann niemand mehr Zeiten ändern — auch du nicht, "
-        + "bis du den Monat wieder öffnest. Die Lohnsätze werden dabei festgeschrieben.",
+    case "zaclose": {
+      const offeneHaken = zaOffeneHaken();
+      ask(monthLabel(k) + " abschließen? Danach kann niemand mehr Zeiten ändern — auch du nicht, bis du "
+        + "den Monat wieder öffnest. Die Lohnsätze werden dabei festgeschrieben."
+        + (offeneHaken.length ? " Es fehlen noch " + offeneHaken.length + " Bestätigungen von Mitarbeitern; "
+            + "die Stunden stehen trotzdem fest und der Punkt bleibt sichtbar offen." : ""),
         "Abschließen", async () => {
           const res = await zeRun(sb.from("time_months")
             .upsert({ym:k, closed:true}, {onConflict:"ym"}).select("ym,closed"));
@@ -2988,6 +2783,7 @@ async function zeClick(act, el){
           await reload();
         });
       return true;
+    }
     case "zareopen":
       ask(monthLabel(k) + " wieder öffnen? Eine schon an die Steuerberatung gegebene CSV-Datei passt "
         + "danach vielleicht nicht mehr zu den Zeiten.", "Wieder öffnen", async () => {
@@ -2998,14 +2794,14 @@ async function zeClick(act, el){
       return true;
     case "zacsv": {
       /* ohne await, sonst zählt der Browser den Download nicht mehr als Benutzeraktion */
-      const name = "Rennbahn_Zeiten_" + k + (el.dataset.wie === "tage" ? "_Einzeltage" : "_Summen") + ".csv";
+      const name = "Rennbahn_Zeiten_" + k + (el.dataset.wie === "tage" ? "_Einzelschichten" : "_Summen") + ".csv";
       csvLaden(name, el.dataset.wie === "tage" ? zeCsvTage() : zeCsvSummen());
       return true;
     }
 
     /* ---- Sprung aus der Planung in den Abschluss ---- */
     case "zagoto":
-      ui.adminTab = "time"; ui.zaStep = "close"; render(); return true;
+      ui.adminTab = "time"; ui.zaStep = "close"; ui.zaDay = null; render(); return true;
 
     /* ---- Einstellung: ab welchem Monat die Zeiterfassung Pflicht ist ---- */
     case "zasavefirst": {
@@ -3024,72 +2820,35 @@ async function zeClick(act, el){
   return false;
 }
 
-/* Nur den grauen Rechenkasten, die Stepper und den Knopf neu schreiben —
-   nicht die ganze Seite, sonst springt die Liste und der Fokus geht verloren. */
-function zePatchEdit(){
-  const f = ui.zeForm;
-  if(!f) return;
-  /* Zeiten geändert: die Mindestpause kann gestiegen sein (dann hebt sie die
-     Datenbank ohnehin an), und die Schichtleitung muss auf die neue
-     Arbeitszeit geklemmt werden — sonst lehnt der Trigger ab. */
-  if(f.worked){
-    const c0 = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
-    if(f.brk < c0.req) f.brk = c0.req;
-    if(f.lead > Math.max(0, c0.net)) f.lead = Math.max(0, c0.net);
-  }
-  const box = document.querySelector('.ze-day[data-ymd="' + f.ymd + '"] .ze-calc');
-  if(box) box.innerHTML = zeCalcHtml(f);
-  const c = zeCalc(f.ymd, f.starts, f.ends, f.brk, f.lead);
-  document.querySelectorAll('.ze-day[data-ymd="' + f.ymd + '"] .ze-mini').forEach(p => {
-    p.textContent = zeMinText(p.dataset.min, c);
-  });
-  document.querySelectorAll('.ze-day[data-ymd="' + f.ymd + '"] .ze-spinv').forEach(inp => {
-    const feld = inp.dataset.ze;
-    if(document.activeElement === inp) return;              // nicht beim Tippen dazwischenfahren
-    inp.value = zeHM(feld === "brk" ? f.brk : Math.min(f.lead, Math.max(0, c.net)));
-  });
-  document.querySelectorAll('.ze-day[data-ymd="' + f.ymd + '"] .ze-spinb').forEach(b => {
-    const feld = b.dataset.feld, d = Number(b.dataset.d);
-    if(d > 0) b.disabled = false;
-    else b.disabled = feld === "brk" ? f.brk <= c.req : f.lead <= 0;
-  });
-  const save = document.querySelector('.ze-day[data-ymd="' + f.ymd + '"] [data-act="zesave"]');
-  if(save) save.disabled = !!(f.worked && c.err);
-}
-
 /* Zusatz für die Dialoge „Zuteilungen leeren“ und „Monat zurücksetzen“:
    erfasste Zeiten überleben beides (sie hängen nicht am Plan), aber das
    Büro soll es vorher wissen. */
 function zeHinweisPlan(){
   const t = zeiten();
-  const n = Object.keys(t.entries).reduce((s, id) => s + Object.keys(t.entries[id]).length, 0);
+  const n = t.rows.length;
   if(!n) return "";
-  let s = " Für diesen Monat sind schon " + n + (n === 1 ? " Tag" : " Tage")
-    + " Zeiterfassung erfasst. Die bleiben erhalten; danach verlangt die Zeiterfassung "
-    + "aber keine geplanten Tage mehr.";
-  if(t.closed) s += " Der Monat ist in der Zeiterfassung abgeschlossen — eine schon "
-    + "ausgelieferte CSV passt danach nicht mehr zum Plan.";
+  let s = " Für diesen Monat sind schon " + n + (n === 1 ? " Schicht" : " Schichten")
+    + " in der Zeiterfassung erfasst. Die bleiben erhalten; die Vorschläge aus dem Plan sind danach aber weg.";
+  if(t.closed) s += " Der Monat ist in der Zeiterfassung abgeschlossen — eine schon ausgelieferte CSV "
+    + "passt danach nicht mehr zum Plan.";
   return s;
 }
 
 /* Beim Wechsel von Reiter oder Monat alles Halboffene zumachen */
 function zeSchliessen(){
-  ui.zeOpen = null; ui.zeForm = null; ui.zeAdd = false; ui.zeNeu = "";
-  ui.zeObj = false; ui.zeObjText = ""; ui.zeExtra = null; ui.zaBad = null;
+  ui.zeOpen = null; ui.zeForm = null; ui.zaDay = null;
 }
 
 /* Eingaben im Editor: Zustand merken und nur den Rechenkasten nachführen */
 function zeInput(t){
   const feld = t.dataset.ze;
-  if(feld === "neu"){ ui.zeNeu = t.value; return true; }
-  if(feld === "obj"){ ui.zeObjText = t.value; return true; }
   if(!ui.zeForm) return true;
   if(feld === "brk" || feld === "lead") ui.zeForm[feld] = zeParseHM(t.value);
+  else if(feld === "uid"){ ui.zeForm.uid = t.value; render(); return true; }
   else ui.zeForm[feld] = t.value;
   zePatchEdit();
   return true;
 }
-
 /* ============================================================
    Dialog und Druckvorschau
    ============================================================ */
