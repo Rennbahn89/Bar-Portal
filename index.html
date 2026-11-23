@@ -551,6 +551,14 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-rm{flex:1; min-width:0; font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .za-rs{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .za-dev{color:var(--accent); font-weight:700}
+/* Tageszeile der Übersicht: drei fette Felder nebeneinander, keine
+   zweite Zeile und nichts in Grau. Am Handy darf „Ist" umbrechen. */
+.za-row .za-rb.za-tag{flex-direction:row; align-items:center; justify-content:flex-start;
+  gap:0; flex-wrap:wrap; row-gap:3px}
+.za-tag > span{font-weight:700; font-size:13px; white-space:nowrap; color:var(--ink)}
+.za-tag .za-rd{width:46px}
+.za-tag .za-rp{min-width:118px; padding-right:8px}
+.za-tag .za-ri{min-width:90px}
 /* Das Zeichen zum Auf- und Zuklappen: + wenn zu, − wenn offen. */
 .za-zu{flex:none; width:26px; text-align:center; font-size:18px; font-weight:700; color:var(--ink-3)}
 /* Das Zeichen rechts in der Tagesliste ist ein Zustand, kein Knopf: kein
@@ -563,7 +571,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-weg:hover{background:var(--no-soft)}
 .za-mark{flex:none; width:36px; text-align:center; font-size:19px; font-weight:700; color:var(--ink-2)}
 .za-mark.is-ok{color:var(--ok)}
-.za-row.is-leer{opacity:.62}
+.za-row.is-leer{opacity:.8}
 .za-ok{flex:none; width:52px; height:52px; padding:0; border-radius:14px; font-size:15px; font-weight:700;
   border:1.5px solid var(--line); background:var(--surface); color:var(--ink-3);
   display:grid; place-items:center; line-height:1}
@@ -634,10 +642,14 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
    sie wird nicht auf 1240 px gestreckt. Die Büro-Zeile wird zweispaltig. */
 @media (min-width:761px){
   .ze-top, .ze-days{max-width:760px}
-  /* Tageszeile am Rechner zweispaltig; die Schichtzeile im Tag bleibt
-     einzeilig, damit das Zeichen zum Aufklappen rechts außen sitzt. */
-  .za-row:not(.is-schicht):not(.is-miss) .za-rb{display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:center}
+  /* Am Rechner ist Platz für Trennstriche zwischen den drei Feldern;
+     am Handy fallen sie weg, weil „Ist" dort umbrechen darf. */
+  .za-row .za-rb.za-tag{flex-wrap:nowrap}
+  .za-tag > span{font-size:14px}
+  .za-tag .za-rd{width:52px}
+  .za-tag .za-rp, .za-tag .za-ri{border-left:1px solid var(--line);
+    padding-left:16px; margin-left:16px}
+  .za-tag .za-rp{min-width:160px}
   .za-rs{padding-right:4px}
   .za-sum, .za-chk{max-width:860px}
   .za-step{font-size:12.5px}
@@ -689,7 +701,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 16:35 Uhr";
+const PATCH_AM  = "23.11.2026 um 16:55 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -2311,25 +2323,15 @@ function zaListeHtml(){
   const zeile = st => {
     const cls = ["za-row", st.fertig ? "is-adm"
       : st.geaendert.length ? "is-chg" : st.noetig ? "is-miss" : "is-leer"].filter(Boolean).join(" ");
-    const mitte = st.rows.length
-      ? st.rows.length + (st.rows.length === 1 ? " Schicht" : " Schichten") + " · " + zeHM(st.netto) + " Std"
-      : st.plan.length ? st.plan.length + (st.plan.length === 1 ? " Schicht" : " Schichten") + " im Plan"
-      : "nichts geplant";
-    /* Keine Namensvorschau: die zweite Zeile steht nur da, wenn es
-       etwas zu tun gibt. */
-    const unten = st.fertig && !st.rows.length ? "abgeschlossen, keine Schicht erfasst"
-      : st.geaendert.length
-      ? `<span class="za-dev">${st.geaendert.length === 1 ? "Eine Zeit" : st.geaendert.length + " Zeiten"}
-          vom Mitarbeiter geändert</span>`
-      : st.ohneHaken.length
-        ? `<span class="za-dev">${st.ohneHaken.length} noch nicht bestätigt</span>`
-      : st.offen.length
-        ? `<span class="za-dev">${st.offen.length} aus dem Plan nicht übernommen</span>` : "";
+    /* Eine einzige fette Zeile: Datum, was geplant war, was erfasst ist.
+       Die Zahlen sagen von selbst, wo etwas fehlt — darum steht darunter
+       kein grauer Kommentar mehr. */
+    const zahl = n => n ? n + (n === 1 ? " Schicht" : " Schichten") : "—";
     return `<div class="${cls}" data-d="${st.d}">
-      <button class="za-rb" data-act="zaday" data-d="${st.d}">
-        <span class="za-rt"><span class="za-rd">${WD_SHORT[st.wd]} ${st.d}.</span>
-          <span class="za-rm">${mitte}</span></span>
-        ${unten ? `<span class="za-rs">${unten}</span>` : ""}
+      <button class="za-rb za-tag" data-act="zaday" data-d="${st.d}">
+        <span class="za-rd">${WD_SHORT[st.wd]} ${st.d}.</span>
+        <span class="za-rp">Plan: ${zahl(st.plan.length)}</span>
+        <span class="za-ri">Ist: ${zahl(st.rows.length)}</span>
       </button>
       <span class="za-mark ${st.fertig ? "is-ok" : ""}" aria-hidden="true">${st.fertig ? "✓" : "○"}</span>
     </div>`;
