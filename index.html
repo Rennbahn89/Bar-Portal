@@ -125,9 +125,12 @@ header.top{position:sticky; top:0; z-index:30; background:var(--surface); border
 /* Knopf „neu laden“: das Zeichen dreht sich, solange geladen wird. */
 @keyframes dreht{to{transform:rotate(360deg)}}
 .btn .ic{display:inline-block; line-height:1}
-/* Die zwei Zeichenknöpfe im Kopf sind gleich groß und quadratisch. */
-.btn.ic-btn{width:36px; min-width:36px; height:36px; padding:0;
+/* Die zwei Zeichenknöpfe im Kopf: quadratisch und so hoch wie der Knopf
+   „Abmelden“ daneben. Die Zeichen sind gezeichnet, keine Schriftzeichen —
+   so sind sie auf jedem Gerät gleich groß, egal welche Schrift einspringt. */
+.btn.ic-btn{width:31px; min-width:31px; height:31px; padding:0;
   display:inline-flex; align-items:center; justify-content:center}
+.btn.ic-btn .ic{width:18px; height:18px; display:block}
 .btn.is-busy{pointer-events:none; opacity:.7}
 .btn.is-busy .ic{animation:dreht .9s linear infinite}
 @media (prefers-reduced-motion:reduce){ .btn.is-busy .ic{animation:none} }
@@ -636,7 +639,6 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .tpl .times{grid-column:1 / 2; grid-row:2}
   .tpl .rm{grid-column:2 / 3; grid-row:2}
   .sync{display:none}
-  .btn.ic-btn{width:40px; min-width:40px; height:40px}
   main{padding-bottom:120px}
   /* Zeiterfassung am Handy: Knöpfe teilen sich die Zeile, nichts ragt heraus */
   .za-foot .btn{flex:1 1 auto; min-width:46%}
@@ -713,10 +715,20 @@ const SUPABASE_ANON_KEY = "sb_publishable_UM3VJ8ya07n8WMKR5hc76Q_0xbaGla-";
 const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 const WD_SHORT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+/* Die zwei Zeichen im Kopf. Gezeichnet statt getippt: ein Schriftzeichen
+   wie ⟳ fällt je nach Gerät auf eine andere Schrift zurück und ist dann
+   mal winzig, mal groß. */
+const IC_NEU = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+  stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5v5h-5"/></svg>`;
+const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+  <circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="2.2"/>
+  <path d="M12 3.2a8.8 8.8 0 0 0 0 17.6z" fill="currentColor"/></svg>`;
+
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 18:05 Uhr";
+const PATCH_AM  = "23.11.2026 um 18:40 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -1180,9 +1192,9 @@ function headerBar(title, sub, tabs, activeTab){
       <div class="who grow">${esc(title)}<span>${esc(sub)}</span></div>
       <span class="sync"></span>
       <button class="btn ghost ic-btn" data-act="refresh" title="Daten neu laden"
-        aria-label="Daten neu laden"><span class="ic">⟳</span></button>
+        aria-label="Daten neu laden">${IC_NEU}</button>
       <button class="btn ghost ic-btn" data-act="theme" title="Hell oder dunkel"
-        aria-label="Hell oder dunkel"><span>◐</span></button>
+        aria-label="Hell oder dunkel">${IC_FARBE}</button>
       <button class="btn sm" data-act="logout">Abmelden</button>
     </div>
     ${tabs ? `<div class="tabs" role="tablist">${tabs.map(t =>
@@ -2358,7 +2370,7 @@ function staffTime(){
   /* Hat das Büro eine Schicht vergessen, trägt er sie selbst nach. Sie
      geht dort als Änderung ein und wartet auf den Haken. */
   const neuAuf = ui.zeOpen === "neu" && ui.zeForm && !ui.zeForm.id;
-  const nachtragen = zeZu() || !zeiten().on ? ""
+  const nachtragen = zeZu() || (!zeiten().on && !rows.length) ? ""
     : neuAuf ? `<div class="ze-day is-open">${zeEditHtml()}</div>`
     : `<button class="btn ze-add" data-act="zeneu">+ Fehlende Schicht nachtragen</button>
        <p class="hint">Hast du eine Schicht gearbeitet, die hier fehlt? Trag sie nach — das Büro
