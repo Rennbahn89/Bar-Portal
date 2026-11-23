@@ -689,7 +689,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 16:10 Uhr";
+const PATCH_AM  = "23.11.2026 um 16:25 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -972,6 +972,8 @@ async function loadAll(depth){
     admin ? sb.from("settings").select("time_first_ym").eq("id", 1).maybeSingle()
           : Promise.resolve({data:null}),
     admin ? sb.from("time_skips").select("work_date,user_id").eq("ym", ym)
+          : Promise.resolve({data:[]}),
+    admin ? sb.from("time_days").select("work_date,closed,closed_at").eq("ym", ym)
           : Promise.resolve({data:[]})
   ].map(q => Promise.resolve(q).catch(e => ({error:{message:String(e && e.message || e)}}))))]);
 
@@ -1034,6 +1036,12 @@ async function loadAll(depth){
     skips: (rz[5] && rz[5].data || []).reduce((o, x) => {
       const d = Number(String(x.work_date).slice(8, 10));
       (o[d] = o[d] || {})[x.user_id] = true;
+      return o;
+    }, {}),
+    /* Abgeschlossene Tage: der Arbeitsstand des Büros. Ein Tag wird
+       nicht von selbst grün — das Büro schließt ihn ausdrücklich ab. */
+    days: (rz[6] && rz[6].data || []).reduce((o, x) => {
+      if(x.closed) o[Number(String(x.work_date).slice(8, 10))] = x.closed_at || true;
       return o;
     }, {})
   };
@@ -1828,6 +1836,8 @@ function zaPlan(d){
 /* Verworfen = das Büro hat gesagt, diese geplante Schicht hat nicht
    stattgefunden. Sie taucht dann nicht mehr als Vorschlag auf. */
 const zeVerworfen = d => (zeiten().skips || {})[d] || {};
+/* Hat das Büro diesen Tag abgeschlossen? */
+const zeTagZu = d => !!(zeiten().days || {})[d];
 const zaOffenePlan = d => {
   const da = zeAmTag(d), weg = zeVerworfen(d);
   return zaPlan(d).filter(p => !weg[p.emp] && !da.some(e => e.user_id === p.emp));
@@ -1861,12 +1871,13 @@ function zaTagStand(d){
     d, ymd: zeYmd(d), wd: weekdayOf(ui.monthKey, d),
     rows, plan, offen: zaOffenePlan(d), geaendert, ohneHaken,
     noetig: rows.length > 0 || plan.length > 0,
-    /* Fertig heißt: nichts mehr zu tun. Jede erfasste Schicht hat ihren
-       Haken, keine trägt eine offene Änderung, und kein Vorschlag aus
-       dem Plan wartet noch auf eine Antwort. Ein Tag, an dem niemand
-       gearbeitet hat, wird damit durch das Verwerfen seiner Vorschläge
-       fertig — ohne dass eine Schicht eingetragen werden müsste. */
-    fertig: !ohneHaken.length && !geaendert.length && !zaOffenePlan(d).length,
+    /* Abgeschlossen ist ein gespeicherter Zustand, kein Rechenergebnis:
+       das Büro schließt den Tag ausdrücklich ab. Ein Tag wird nie von
+       selbst grün — sonst sähe ein Tag, dessen letzte Schicht
+       versehentlich gelöscht wurde, aus wie erledigt. */
+    fertig: zeTagZu(d),
+    /* Was dem Abschluss noch im Weg steht */
+    bereit: !ohneHaken.length && !geaendert.length,
     netto: rows.reduce((s, r) => s + Number(r.net_min || 0), 0),
     sl: rows.reduce((s, r) => s + Number(r.lead_min || 0), 0)
   };
@@ -1874,16 +1885,17 @@ function zaTagStand(d){
 
 /* Was das Büro noch anfassen muss — dieselbe Zählung wie
    time_open_shifts in der Datenbank. Daran hängt der Abschluss. */
-const zaOffeneSchichten = () => zeiten().rows.filter(r => !r.adm_ok || r.emp_changed);
 
 /* Tage, an denen noch etwas zu tun ist: offene Schichten, oder ein
    Tag, an dem der Plan jemanden vorsieht und noch nichts steht. */
+/* Jeder Kalendertag bis heute braucht seinen Abschluss — auch ein
+   Ruhetag. Nur so ist ein Tag ohne Schichten von einem vergessenen
+   Tag zu unterscheiden. Für den Alltag gibt es den Sammelknopf. */
 function zaOffeneTage(){
   const n = daysInMonth(ui.monthKey), heute = berHeute(), out = [];
   for(let d = 1; d <= n; d++){
     if(zeYmd(d) > heute) break;          // was noch nicht war, ist nicht offen
-    const st = zaTagStand(d);
-    if(st.noetig && !st.fertig) out.push(st);
+    if(!zeTagZu(d)) out.push(zaTagStand(d));
   }
   return out;
 }
@@ -2295,19 +2307,18 @@ function zaListeHtml(){
   }
   if(!tage.length) return `<p class="empty-note">${esc(monthLabel(k))} hat noch nicht begonnen.</p>`;
 
-  const offen = tage.filter(x => x.noetig && !x.fertig);
-  const offeneSchichten = zaOffeneSchichten().length
-    + offen.reduce((n, st) => n + st.offen.length, 0);
+  const offen = tage.filter(x => !x.fertig);
   const zeile = st => {
-    const cls = ["za-row", !st.noetig ? "is-leer"
-      : st.geaendert.length ? "is-chg" : st.fertig ? "is-adm" : "is-miss"].filter(Boolean).join(" ");
+    const cls = ["za-row", st.fertig ? "is-adm"
+      : st.geaendert.length ? "is-chg" : st.noetig ? "is-miss" : "is-leer"].filter(Boolean).join(" ");
     const mitte = st.rows.length
       ? st.rows.length + (st.rows.length === 1 ? " Schicht" : " Schichten") + " · " + zeHM(st.netto) + " Std"
       : st.plan.length ? st.plan.length + (st.plan.length === 1 ? " Schicht" : " Schichten") + " im Plan"
       : "nichts geplant";
     /* Keine Namensvorschau: die zweite Zeile steht nur da, wenn es
        etwas zu tun gibt. */
-    const unten = st.geaendert.length
+    const unten = st.fertig && !st.rows.length ? "abgeschlossen, keine Schicht erfasst"
+      : st.geaendert.length
       ? `<span class="za-dev">${st.geaendert.length === 1 ? "Eine Zeit" : st.geaendert.length + " Zeiten"}
           vom Mitarbeiter geändert</span>`
       : st.ohneHaken.length
@@ -2320,18 +2331,19 @@ function zaListeHtml(){
           <span class="za-rm">${mitte}</span></span>
         ${unten ? `<span class="za-rs">${unten}</span>` : ""}
       </button>
-      <span class="za-mark ${st.noetig && st.fertig ? "is-ok" : ""}" aria-hidden="true">${
-        !st.noetig ? "·" : st.fertig ? "✓" : "○"}</span>
+      <span class="za-mark ${st.fertig ? "is-ok" : ""}" aria-hidden="true">${st.fertig ? "✓" : "○"}</span>
     </div>`;
   };
 
   return `<div class="za-rows">${tage.map(zeile).join("")}</div>
-    ${offeneSchichten && !zeZu() ? `<button class="btn ze-add primary" data-act="zaalle">✓ Alle
-      ${offeneSchichten} offenen Schichten übernehmen und bestätigen</button>` : ""}
+    ${offen.length && !zeZu() ? `<button class="btn ze-add primary" data-act="zaalle">${offen.length === 1
+      ? "✓ Den offenen Tag" : "✓ Alle " + offen.length + " offenen Tage"
+      } übernehmen, bestätigen und abschließen</button>` : ""}
     <p class="hint" style="margin-top:14px">Tippe einen Tag an: dort stehen die Schichten so, wie sie im
       Dienstplan stehen. Du kannst Zeiten ändern, Personen tauschen und die Schichtleitung setzen. Bestätigt
       wird jede Schicht einzeln — damit sieht der Mitarbeiter sie und kann sie abhaken. Sind alle Schichten
-      eines Tages bestätigt, ist der Tag fertig.</p>`;
+      bestätigt, schließt du den Tag ab; erst dann wird er grün. Ein Tag ohne Schichten lässt sich ebenfalls
+      abschließen, die App fragt dann nach.</p>`;
 }
 
 
@@ -2406,7 +2418,23 @@ function zaTagHtml(d){
     ${weg.length ? `<p class="hint" style="margin-top:12px">Verworfen (hat nicht stattgefunden):
       <b>${esc(zeWenige(weg.map(p => personName(p.emp))))}</b>
       ${zeZu() ? "" : `<button class="btn sm" data-act="zaskipback" data-d="${d}"
-        style="margin-left:6px">Zurückholen</button>`}</p>` : ""}`;
+        style="margin-left:6px">Zurückholen</button>`}</p>` : ""}
+    ${zeZu() ? "" : `<div class="za-foot">
+      <div class="grow muted">${esc(
+        st.fertig ? "Dieser Tag ist abgeschlossen. Änderst du etwas an den Schichten, geht er wieder auf."
+        : !st.bereit ? st.ohneHaken.length + (st.ohneHaken.length === 1 ? " Schicht ist" : " Schichten sind")
+            + " noch nicht bestätigt" + (st.geaendert.length ? ", " + st.geaendert.length
+            + " mit einer Änderung des Mitarbeiters" : "") + "."
+        : !st.rows.length ? "An diesem Tag ist keine Schicht erfasst"
+            + (st.offen.length ? " — " + st.offen.length + (st.offen.length === 1
+                ? " Vorschlag aus dem Dienstplan ist" : " Vorschläge aus dem Dienstplan sind")
+                + " nicht übernommen" : "") + "."
+        : "Alle Schichten bestätigt.")}</div>
+      ${st.fertig
+        ? `<button class="btn ghost danger" data-act="zadayopen" data-d="${d}">Tag wieder öffnen</button>`
+        : `<button class="btn primary" data-act="zadayclose" data-d="${d}"
+             style="min-height:46px">✓ Tag abschließen</button>`}
+    </div>`}`;
 }
 
 
@@ -2454,7 +2482,7 @@ function zaSumHtml(){
 function zaCloseHtml(){
   const k = ui.monthKey;
   const vorbei = zeMonatVorbei(k);
-  const offeneS = zaOffeneSchichten();
+  const offeneT = zaOffeneTage();
   const liegen = zaLiegenGeblieben();
   const offeneHaken = zaOffeneHaken();
   const fehlen = [];
@@ -2463,7 +2491,7 @@ function zaCloseHtml(){
   /* Dasselbe Tor wie guard_time_month: nur offene Schichten halten auf.
      Nicht übernommene Vorschläge aus dem Plan nicht — die stehen als
      Hinweis darunter. */
-  const bereit = vorbei && !offeneS.length;
+  const bereit = vorbei && !offeneT.length;
   const tageVon = liste => zeWenige(liste.map(x => (x.d || zeTagNr(x.work_date)) + "."));
 
   const haken = (ok, text, sub) => `<li class="${ok ? "is-done" : ""}"><i>${ok ? "✓" : "○"}</i>
@@ -2473,8 +2501,9 @@ function zaCloseHtml(){
       <h2>Abschluss ${esc(monthLabel(k))}</h2>
       <ul class="za-chk">
         ${haken(vorbei, "Der Monat ist vorbei", vorbei ? "" : "geht ab " + zeAbDatum(k))}
-        ${haken(!offeneS.length, "Alle Schichten vom Büro bestätigt",
-          offeneS.length ? offeneS.length + " offen am " + tageVon(offeneS) : "")}
+        ${haken(!offeneT.length, "Alle Tage vom Büro abgeschlossen",
+          offeneT.length ? offeneT.length + (offeneT.length === 1 ? " Tag" : " Tage")
+            + " offen: " + tageVon(offeneT) : "")}
         ${haken(!offeneHaken.length, "Alle Schichten von den Mitarbeitern bestätigt",
           offeneHaken.length ? "es fehlen " + offeneHaken.length + " von " + zaFreigegeben()
             + " — " + zeWenige(fehlen) + " (hält den Abschluss nicht auf)" : "")}
@@ -2494,8 +2523,8 @@ function zaCloseHtml(){
              style="min-height:46px">Monat abschließen</button>
            ${!bereit ? `<p class="tiny muted" style="margin:10px 0 0">${esc(
                !vorbei ? "Abschließen geht ab " + zeAbDatum(k) + "."
-               : "Noch zu bestätigen: " + offeneS.length
-                 + (offeneS.length === 1 ? " Schicht am " : " Schichten am ") + tageVon(offeneS))}</p>` : ""}`}
+               : "Noch abzuschließen: " + offeneT.length
+                 + (offeneT.length === 1 ? " Tag, der " : " Tage, der ") + tageVon(offeneT))}</p>` : ""}`}
     </div>
     <div class="card panel">
       <h2>Stunden je Mitarbeiter
@@ -2684,11 +2713,38 @@ async function zaAlleSchichten(){
       .eq("ym", k).eq(filter[0], filter[1]).select("id"));
     if(!res.ok && res.data === null){ zeBusy = false; ui.formError = "Nicht bestätigt: " + res.msg; render(); return; }
   }
+  /* Erst wenn alle Haken sitzen, lassen sich die Tage abschließen —
+     die Datenbank lehnt es sonst ab. */
+  const tage = [];
+  for(let d = 1; d <= n; d++){
+    if(zeYmd(d) > heute) break;
+    if(!zeTagZu(d)) tage.push({work_date:zeYmd(d), ym:k, closed:true});
+  }
+  if(tage.length){
+    const res = await zeRun(sb.from("time_days").upsert(tage, {onConflict:"work_date"})
+      .select("work_date,closed"));
+    if(!res.ok){ zeBusy = false; ui.formError = "Tage nicht abgeschlossen: " + res.msg; render(); return; }
+  }
   zeBusy = false;
   ui.formError = weg.length ? "Nicht übernommen (unmögliche Zeiten im Dienstplan): " + zeWenige(weg) : "";
   await reload();
 }
 
+
+/* Einen Tag abschließen. Der Riegel in der Datenbank prüft noch einmal
+   mit, ob wirklich alle Schichten dieses Tages bestätigt sind. */
+async function zaSchliesseTag(d){
+  if(zeBusy) return;
+  zeBusy = true;
+  const res = await zeRun(sb.from("time_days")
+    .upsert({work_date:zeYmd(d), ym:ui.monthKey, closed:true}, {onConflict:"work_date"})
+    .select("work_date,closed,closed_at"));
+  zeBusy = false;
+  if(!res.ok){ ui.formError = "Tag nicht abgeschlossen: " + res.msg; render(); return; }
+  zeiten().days[d] = (res.data && res.data[0] && res.data[0].closed_at) || true;
+  ui.zeOpen = null; ui.zeForm = null; ui.formError = "";
+  render();
+}
 
 /* ============================================================
    Zeiterfassung — Klicks
@@ -2818,6 +2874,42 @@ async function zeClick(act, el){
       render();
       return true;
     }
+    /* ---- Tag abschließen und wieder öffnen ---- */
+    case "zadayclose": {
+      const st = zaTagStand(tagN);
+      if(!st.bereit){
+        sag("Dieser Tag lässt sich noch nicht abschließen: "
+          + (st.ohneHaken.length ? st.ohneHaken.length
+              + (st.ohneHaken.length === 1 ? " Schicht ist" : " Schichten sind") + " noch nicht bestätigt"
+            : "")
+          + (st.ohneHaken.length && st.geaendert.length ? ", und " : "")
+          + (st.geaendert.length ? st.geaendert.length
+              + (st.geaendert.length === 1 ? " Schicht trägt" : " Schichten tragen")
+              + " eine Änderung des Mitarbeiters, die du noch nicht angenommen hast" : "")
+          + ". Setz dort erst den Haken.");
+        return true;
+      }
+      if(!st.rows.length){
+        ask("An diesem Tag ist keine Schicht erfasst"
+          + (st.offen.length ? " — " + st.offen.length
+             + (st.offen.length === 1 ? " Vorschlag aus dem Dienstplan ist" : " Vorschläge aus dem Dienstplan sind")
+             + " nicht übernommen" : "")
+          + ". Tag ohne Schichten abschließen?", "Abschließen", () => zaSchliesseTag(tagN));
+        return true;
+      }
+      await zaSchliesseTag(tagN);
+      return true;
+    }
+    case "zadayopen": {
+      const res = await zeRun(sb.from("time_days")
+        .upsert({work_date:zeYmd(tagN), ym:k, closed:false}, {onConflict:"work_date"})
+        .select("work_date,closed"));
+      if(!res.ok){ ui.formError = "Nicht geöffnet: " + res.msg; render(); return true; }
+      delete zeiten().days[tagN];
+      render();
+      return true;
+    }
+
     case "zaskipback": {
       const res = await zeRun(sb.from("time_skips").delete()
         .eq("work_date", zeYmd(tagN)).select("work_date"));
@@ -2827,14 +2919,15 @@ async function zeClick(act, el){
       return true;
     }
     case "zaalle": {
-      const offeneS = zaOffeneSchichten().length;
+      const tage = zaOffeneTage().length;
       let vor = 0;
       const n = daysInMonth(k), heute = berHeute();
       for(let d = 1; d <= n && zeYmd(d) <= heute; d++) vor += zaOffenePlan(d).length;
-      ask("Alle offenen Schichten bestätigen"
-        + (vor ? " und dabei " + vor + (vor === 1 ? " Schicht" : " Schichten") + " aus dem Dienstplan übernehmen" : "")
-        + "? Danach sehen die Mitarbeiter ihre Schichten und können sie abhaken. Einzelne Schichten kannst du "
-        + "jederzeit wieder aufmachen.", "Alle bestätigen", zaAlleSchichten);
+      ask("Das übernimmt " + vor + (vor === 1 ? " Schicht" : " Schichten") + " aus dem Dienstplan, bestätigt "
+        + "alle offenen Schichten und schließt " + tage + (tage === 1 ? " Tag" : " Tage")
+        + " ab — auch die ohne Schichten. Danach sehen die Mitarbeiter ihre Schichten und können sie "
+        + "abhaken. Einzelne Tage kannst du jederzeit wieder aufmachen.",
+        "Alles abschließen", zaAlleSchichten);
       return true;
     }
 
@@ -2942,13 +3035,15 @@ function zeInput(t){
    Dialog und Druckvorschau
    ============================================================ */
 function ask(text, okLabel, cb){ pending = {text, okLabel, cb}; render(); }
+/* Reine Meldung: ein Knopf, nichts zu entscheiden. */
+function sag(text){ pending = {text, okLabel:"Verstanden", cb:null, nurOk:true}; render(); }
 
 function viewDialog(){
   if(!pending) return "";
   return `<div class="overlay"><div class="card dialog">
     <p>${esc(pending.text)}</p>
     <div class="row">
-      <button class="btn" data-act="dlg-no">Abbrechen</button>
+      ${pending.nurOk ? "" : `<button class="btn" data-act="dlg-no">Abbrechen</button>`}
       <button class="btn primary" data-act="dlg-yes">${esc(pending.okLabel)}</button>
     </div>
   </div></div>`;
@@ -3180,7 +3275,8 @@ async function handleClick(e){
 
   switch(act){
     case "dlg-no": pending = null; render(); return;
-    case "dlg-yes": { const p = pending; pending = null; render(); if(p) await p.cb(); return; }
+    /* Reine Meldungen (sag) haben nichts zu tun — nur zumachen. */
+    case "dlg-yes": { const p = pending; pending = null; render(); if(p && p.cb) await p.cb(); return; }
     case "sheet-close": ui.sheetOpen = false; render(); return;
     case "sheet-print": buildPrint(); try{ window.print(); }catch(err){} return;
 
