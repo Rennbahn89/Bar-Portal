@@ -728,7 +728,7 @@ const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 18:40 Uhr";
+const PATCH_AM  = "23.11.2026 um 18:50 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -2373,8 +2373,8 @@ function staffTime(){
   const nachtragen = zeZu() || (!zeiten().on && !rows.length) ? ""
     : neuAuf ? `<div class="ze-day is-open">${zeEditHtml()}</div>`
     : `<button class="btn ze-add" data-act="zeneu">+ Fehlende Schicht nachtragen</button>
-       <p class="hint">Hast du eine Schicht gearbeitet, die hier fehlt? Trag sie nach — das Büro
-         bekommt sie als offenen Punkt und bestätigt sie.</p>`;
+       <p class="hint" style="margin-top:10px">Fehlt hier eine Schicht, die du gearbeitet hast,
+         trag sie nach — das Büro bekommt sie als offenen Punkt.</p>`;
 
   const fuss = !zeZu() && vorbei && offen.length
     ? `<div class="sticky-bar"><div class="sticky-in ze-fuss">
@@ -2392,10 +2392,9 @@ function staffTime(){
         bestätigt erneut.</div>` : "")
     + liste
     + nachtragen
-    + (rows.length ? `<p class="hint" style="margin-top:14px">Zwei Haken je Schicht: der <b>linke</b> ist der
-        des Büros, der <b>rechte</b> deiner. Das Büro trägt die Schichten ein; stimmt eine Zeit nicht, tippe die
-        Schicht an und ändere sie — sie geht dann beim Büro wieder auf. Zum Monatsende bestätigst du alles
-        auf einmal. Eine Schicht zählt zu dem Tag, an dem sie <b>beginnt</b>.</p>` : "")
+    + (rows.length ? `<p class="hint" style="margin-top:16px">Der <b>linke</b> Haken ist der des Büros, der
+        <b>rechte</b> deiner — stimmt eine Zeit nicht, tippe die Schicht an und ändere sie, bestätigen kannst
+        du zum Monatsende alles auf einmal.</p>` : "")
     + fuss;
 }
 
