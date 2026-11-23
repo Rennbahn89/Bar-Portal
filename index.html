@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Safari am iPhone hält die Seite sonst tagelang fest; der Abgleich
+     unten im Skript fängt den Rest ab. -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>Dienstplan — Bar Rennbahn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -728,7 +732,7 @@ const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 18:50 Uhr";
+const PATCH_AM  = "23.11.2026 um 18:21 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -1110,6 +1114,44 @@ async function createMonth(ym){
     if(res.error){ setSync("bad"); ui.formError = res.error.message; return; }
   }
   setSync("ok");
+}
+
+/* ============================================================
+   Steht eine neuere Fassung der App auf dem Server?
+
+   Am Handy hält Safari die Seite hartnäckig im Zwischenspeicher — der
+   Knopf „neu laden“ holt sonst nur frische Daten in eine alte
+   Oberfläche. Deshalb wird die Datei selbst geholt (ohne
+   Zwischenspeicher) und ihr Patch-Stand mit dem der laufenden
+   verglichen.
+   ============================================================ */
+const seiteOhneAnhang = () => location.href.split("#")[0].split("?")[0];
+
+async function neueFassungDa(){
+  /* Nur wenn die Seite wirklich von einem Server kommt — als lokale
+     Datei geöffnet verbietet der Browser das Nachladen ohnehin. */
+  if(location.protocol !== "http:" && location.protocol !== "https:") return false;
+  try{
+    const r = await fetch(seiteOhneAnhang() + "?stand=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) return false;
+    const m = (await r.text()).match(/const PATCH_AM\s*=\s*"([^"]+)"/);
+    return !!m && m[1] !== PATCH_AM;
+  }catch(e){ return false; }
+}
+
+/* Mit Zeitstempel in der Adresse, sonst reicht Safari wieder die alte
+   Datei heraus. */
+function neuLaden(){ location.replace(seiteOhneAnhang() + "?stand=" + Date.now()); }
+
+/* Einmal je Sitzung beim Start: liegt eine neuere Fassung, kommt sie
+   sofort. Die Sperre verhindert, dass sich das im Kreis dreht, falls
+   der Abgleich einmal nicht aufgeht. */
+const FASSUNG_KEY = "rennbahn_fassung";
+async function fassungPruefen(){
+  try{ if(sessionStorage.getItem(FASSUNG_KEY)) return; }catch(e){}
+  if(!(await neueFassungDa())) return;
+  try{ sessionStorage.setItem(FASSUNG_KEY, "1"); }catch(e){}
+  neuLaden();
 }
 
 async function reload(){
@@ -3421,6 +3463,9 @@ async function handleClick(e){
       if(ui.sync === "load") return;
       el.classList.add("is-busy");
       zeSchliessen();
+      /* Erst die App, dann die Daten: eine neue Fassung macht das
+         Nachladen der Daten ohnehin überflüssig. */
+      if(await neueFassungDa()){ neuLaden(); return; }
       await reload();
       return;
     }
@@ -4105,6 +4150,7 @@ async function boot(){
   ui.screen = "app";
   ui.monthKey = monthKey(new Date());   // beim Öffnen immer der laufende Monat
   await reload();
+  fassungPruefen();                     // im Hintergrund, hält nichts auf
 }
 
 try{
