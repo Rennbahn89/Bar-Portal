@@ -555,6 +555,12 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-zu{flex:none; width:26px; text-align:center; font-size:18px; font-weight:700; color:var(--ink-3)}
 /* Das Zeichen rechts in der Tagesliste ist ein Zustand, kein Knopf: kein
    Rahmen, keine Fläche — sonst tippt man darauf und es passiert nichts. */
+/* Das rote Kreuz am Vorschlag: „hat nicht stattgefunden". Eigene
+   Tippfläche neben der Zeile, nicht Teil des Aufklappens. */
+.za-weg{flex:none; width:40px; height:40px; border-radius:50%; display:grid; place-items:center;
+  border:1.5px solid var(--no-line); background:var(--surface); color:var(--no);
+  font-size:15px; font-weight:700; line-height:1}
+.za-weg:hover{background:var(--no-soft)}
 .za-mark{flex:none; width:36px; text-align:center; font-size:19px; font-weight:700; color:var(--ink-2)}
 .za-mark.is-ok{color:var(--ok)}
 .za-row.is-leer{opacity:.62}
@@ -621,6 +627,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .ze-fuss .btn{flex:1 1 0; min-width:0; white-space:normal}
   /* Am Handy sind die Haken Tippflächen in voller Größe */
   .ze-h{width:44px; height:44px}
+  .za-weg{width:44px; height:44px}
 }
 
 /* Zeiterfassung am Rechner: die Liste ist Lesetext, keine Tabelle —
@@ -682,7 +689,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 14:15 Uhr";
+const PATCH_AM  = "23.11.2026 um 16:10 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -963,7 +970,9 @@ async function loadAll(depth){
     admin ? sb.from("time_month_rates").select("ym,wage,wage_lead,limit_amount").eq("ym", ym).maybeSingle()
           : Promise.resolve({data:null}),
     admin ? sb.from("settings").select("time_first_ym").eq("id", 1).maybeSingle()
-          : Promise.resolve({data:null})
+          : Promise.resolve({data:null}),
+    admin ? sb.from("time_skips").select("work_date,user_id").eq("ym", ym)
+          : Promise.resolve({data:[]})
   ].map(q => Promise.resolve(q).catch(e => ({error:{message:String(e && e.message || e)}}))))]);
 
   const bad = r.find(x => x && x.error);
@@ -1019,7 +1028,14 @@ async function loadAll(depth){
     closed_at: rz[1].data ? rz[1].data.closed_at : null,
     closed_by: rz[1].data ? rz[1].data.closed_by : null,
     rates: rz[3] && rz[3].data ? rz[3].data : null,
-    rows: rz[0].data || []
+    rows: rz[0].data || [],
+    /* Verworfene Vorschläge, je Tag die Menge der Personen: „war
+       eingeteilt, hat aber nicht gearbeitet". */
+    skips: (rz[5] && rz[5].data || []).reduce((o, x) => {
+      const d = Number(String(x.work_date).slice(8, 10));
+      (o[d] = o[d] || {})[x.user_id] = true;
+      return o;
+    }, {})
   };
 
   /* Büro öffnet einen noch nicht angelegten Monat: aus den Vorlagen aufbauen */
@@ -1809,9 +1825,16 @@ function zaPlan(d){
   return day.shifts.filter(s => s.emp)
     .map(s => ({emp:s.emp, starts:s.start, ends:s.end, lead:!!s.sl, label:s.label}));
 }
+/* Verworfen = das Büro hat gesagt, diese geplante Schicht hat nicht
+   stattgefunden. Sie taucht dann nicht mehr als Vorschlag auf. */
+const zeVerworfen = d => (zeiten().skips || {})[d] || {};
 const zaOffenePlan = d => {
-  const da = zeAmTag(d);
-  return zaPlan(d).filter(p => !da.some(e => e.user_id === p.emp));
+  const da = zeAmTag(d), weg = zeVerworfen(d);
+  return zaPlan(d).filter(p => !weg[p.emp] && !da.some(e => e.user_id === p.emp));
+};
+const zaVerworfenePlan = d => {
+  const weg = zeVerworfen(d);
+  return zaPlan(d).filter(p => weg[p.emp]);
 };
 
 /* Eine Plan-Schicht als Eintrag. null, wenn die Zeiten unmöglich sind —
@@ -1838,7 +1861,12 @@ function zaTagStand(d){
     d, ymd: zeYmd(d), wd: weekdayOf(ui.monthKey, d),
     rows, plan, offen: zaOffenePlan(d), geaendert, ohneHaken,
     noetig: rows.length > 0 || plan.length > 0,
-    fertig: rows.length > 0 && !ohneHaken.length && !geaendert.length,
+    /* Fertig heißt: nichts mehr zu tun. Jede erfasste Schicht hat ihren
+       Haken, keine trägt eine offene Änderung, und kein Vorschlag aus
+       dem Plan wartet noch auf eine Antwort. Ein Tag, an dem niemand
+       gearbeitet hat, wird damit durch das Verwerfen seiner Vorschläge
+       fertig — ohne dass eine Schicht eingetragen werden müsste. */
+    fertig: !ohneHaken.length && !geaendert.length && !zaOffenePlan(d).length,
     netto: rows.reduce((s, r) => s + Number(r.net_min || 0), 0),
     sl: rows.reduce((s, r) => s + Number(r.lead_min || 0), 0)
   };
@@ -1866,7 +1894,7 @@ function zaLiegenGeblieben(){
   for(let d = 1; d <= n; d++){
     if(zeYmd(d) > heute) break;
     const st = zaTagStand(d);
-    if(st.fertig && st.offen.length) out.push(st);
+    if(st.offen.length) out.push(st);
   }
   return out;
 }
@@ -2347,8 +2375,15 @@ function zaTagHtml(d){
             · Vorschlag aus dem Dienstplan</span></span>
         <span class="za-zu" aria-hidden="true">${auf ? "−" : "+"}</span>
       </button>
+      ${zeZu() ? "" : `<button class="za-weg" data-act="zaskip" data-d="${d}" data-emp="${p.emp}"
+        aria-label="Hat nicht stattgefunden" title="Hat nicht stattgefunden — Vorschlag verwerfen">✕</button>`}
     </div>${auf ? `<div class="ze-day is-open">${zeEditHtml()}</div>` : ""}`;
   }).join("");
+
+  /* Verworfene Vorschläge stehen nicht mehr in der Liste, aber sie
+     dürfen nicht spurlos sein — sonst wäre ein Fehlgriff nicht mehr
+     rückgängig zu machen. */
+  const weg = zaVerworfenePlan(d);
 
   const neuLeer = neu && !st.offen.some(p => p.emp === ui.zeForm.uid);
   const liste = st.rows.map(zaRowHtml).join("") + vor;
@@ -2364,9 +2399,14 @@ function zaTagHtml(d){
       </div>
     </div>
     <div class="za-rows">${liste
-      || `<p class="empty-note">An diesem Tag ist nichts eingetragen und nichts geplant.</p>`}</div>
+      || `<p class="empty-note">An diesem Tag ist nichts eingetragen${
+           weg.length ? " — die geplanten Schichten hast du verworfen" : " und nichts geplant"}.</p>`}</div>
     ${neuLeer ? `<div class="ze-day is-open">${zeEditHtml()}</div>`
-      : zeZu() ? "" : `<button class="btn ze-add" data-act="zanew" data-d="${d}">+ Schicht hinzufügen</button>`}`;
+      : zeZu() ? "" : `<button class="btn ze-add" data-act="zanew" data-d="${d}">+ Schicht hinzufügen</button>`}
+    ${weg.length ? `<p class="hint" style="margin-top:12px">Verworfen (hat nicht stattgefunden):
+      <b>${esc(zeWenige(weg.map(p => personName(p.emp))))}</b>
+      ${zeZu() ? "" : `<button class="btn sm" data-act="zaskipback" data-d="${d}"
+        style="margin-left:6px">Zurückholen</button>`}</p>` : ""}`;
 }
 
 
@@ -2441,8 +2481,9 @@ function zaCloseHtml(){
       </ul>
       ${liegen.length ? `<p class="tiny muted" style="margin:-6px 0 14px">Dazu stehen
         <b>${liegen.reduce((n, x) => n + x.offen.length, 0)}</b> Schichten im Dienstplan, zu denen nichts
-        erfasst ist (${esc(tageVon(liegen))}) — wer geplant war und nicht gearbeitet hat, hält den Abschluss
-        nicht auf. Diese Schichten zählen dann aber auch nicht mit.</p>` : ""}
+        erfasst ist (${esc(tageVon(liegen))}). Das hält den Abschluss nicht auf — sie zählen dann aber auch
+        nicht mit. Wer nicht gearbeitet hat, wird im Tag mit dem roten Kreuz verworfen; dann ist der Tag
+        erledigt.</p>` : ""}
       ${geschlossen
         ? `<div class="banner ok">Abgeschlossen${zeiten().closed_at ? " am " + zeDatum(zeiten().closed_at) : ""}.
              Niemand kann die Zeiten mehr ändern.</div>
@@ -2592,6 +2633,8 @@ async function zeSpeichern(){
   zeBusy = false;
   if(!res.ok){ ui.formError = "Nicht gespeichert: " + res.msg; render(); return; }
   if(res.data && res.data[0]) zeMerke(res.data[0]);
+  const t = zeiten();
+  if(t.skips[f.d]) delete t.skips[f.d][f.uid];
   ui.zeOpen = null; ui.zeForm = null; ui.formError = "";
   render();
 }
@@ -2761,6 +2804,28 @@ async function zeClick(act, el){
       ui.zaDay = Math.max(1, Math.min(daysInMonth(k), tagN));
       ui.zeOpen = null; ui.zeForm = null; render(); window.scrollTo(0, 0); return true;
     case "zaok": await zaHaken(id); return true;
+
+    /* ---- Vorschlag verwerfen und zurückholen ---- */
+    case "zaskip": {
+      const wer = el.dataset.emp;
+      const res = await zeRun(sb.from("time_skips")
+        .upsert({work_date:zeYmd(tagN), ym:k, user_id:wer}, {onConflict:"work_date,user_id"})
+        .select("work_date,user_id"));
+      if(!res.ok){ ui.formError = "Nicht verworfen: " + res.msg; render(); return true; }
+      const t = zeiten();
+      (t.skips[tagN] = t.skips[tagN] || {})[wer] = true;
+      ui.zeOpen = null; ui.zeForm = null;
+      render();
+      return true;
+    }
+    case "zaskipback": {
+      const res = await zeRun(sb.from("time_skips").delete()
+        .eq("work_date", zeYmd(tagN)).select("work_date"));
+      if(!res.ok){ ui.formError = "Nicht zurückgeholt: " + res.msg; render(); return true; }
+      delete zeiten().skips[tagN];
+      render();
+      return true;
+    }
     case "zaalle": {
       const offeneS = zaOffeneSchichten().length;
       let vor = 0;
