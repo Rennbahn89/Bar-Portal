@@ -573,13 +573,12 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-s:first-child{border-top:none}
 .za-sn{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
 .za-sn b{font-size:15px}
-.za-sg{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:5px}
+.za-sg{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin-top:5px}
 .za-sg span{background:var(--surface-2); border-radius:8px; padding:5px 8px; font-size:12px;
   color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .za-sg span b{display:block; color:var(--ink); font-size:14.5px}
-.za-sg span.is-geld{background:var(--accent-soft)}
-.za-sg span.is-geld b{color:var(--ink)}
 .za-sx{display:block; font-size:12px; color:var(--ink-3); margin-top:4px}
+.za-sx.is-warn{color:var(--no); font-weight:600}
 .za-total{border-top:2px solid var(--line); padding-top:9px; margin-top:4px; font-weight:700}
 .za-chk{list-style:none; margin:0 0 14px; padding:0}
 .za-chk li{display:flex; gap:9px; align-items:baseline; padding:5px 0; font-size:14px}
@@ -634,7 +633,6 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
     grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:center}
   .za-rs{padding-right:4px}
   .za-sum, .za-chk{max-width:860px}
-  .za-sg{grid-template-columns:repeat(4,minmax(0,1fr))}
   .za-step{font-size:12.5px}
   .za-step b{font-size:14px}
 }
@@ -684,7 +682,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 11:40 Uhr";
+const PATCH_AM  = "23.11.2026 um 14:15 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -2380,41 +2378,37 @@ function zaSumHtml(){
   const geschlossen = zeZu();
   const r = zeiten().rates;
   const satz = geschlossen && r ? r : {wage:config.wage, wage_lead:config.wageSL, limit_amount:config.limit};
-  let gN = 0, gS = 0, gB = 0;
+  let gN = 0, gS = 0;
 
   const zeilen = leute.map(p => {
     const s = zeSumme(p.id);
     gN += s.normal; gS += s.sl;
-    const plan = payroll(p.id);
-    const brutto = (zeCenti(s.normal) / 100) * Number(satz.wage) + (zeCenti(s.sl) / 100) * Number(satz.wage_lead);
-    gB += brutto;
-    const ueber = config.limitOn && p.minijob && Number(satz.limit_amount) > 0 && brutto > Number(satz.limit_amount);
-    const diff = (zeCenti(s.netto) / 100) - plan.hours;
-    /* Wer nichts erfasst hat, bekommt eine kurze Zeile statt dreier
-       Nullen und einer Betragsschätzung über 0,00 €. */
+    /* Hier stehen Stunden, keine Beträge. Gerechnet wird der Lohn nur,
+       um zu wissen, ob jemand über die Minijob-Grenze läuft — die Zahl
+       selbst verlässt diese Funktion nicht. */
+    const ueber = config.limitOn && p.minijob && Number(satz.limit_amount) > 0
+      && (zeCenti(s.normal) / 100) * Number(satz.wage)
+       + (zeCenti(s.sl) / 100) * Number(satz.wage_lead) > Number(satz.limit_amount);
+    /* Wer nichts erfasst hat, bekommt eine kurze Zeile statt dreier Nullen. */
     if(!s.netto) return `<div class="za-s">
       <div class="za-sn"><b>${esc(p.name)}</b>
-        <span class="tiny muted">nichts erfasst${plan.hours ? " · Plan war " + dec(plan.hours, 2) + " Std" : ""}</span></div>
+        <span class="tiny muted">nichts erfasst</span></div>
     </div>`;
     return `<div class="za-s">
       <div class="za-sn"><b>${esc(p.name)}</b>
         <span class="tiny muted">${s.tage} ${s.tage === 1 ? "Schicht" : "Schichten"}</span>
-        ${ueber ? `<span class="pill warn">über Grenze</span>` : ""}</div>
+        ${ueber ? `<span class="pill warn">über der Minijob-Grenze</span>` : ""}</div>
       <div class="za-sg">
         <span><b>${zeDez(s.normal)}</b>Normal</span>
         <span><b>${zeDez(s.sl)}</b>Schichtleitung</span>
-        <span><b>${zeDez(s.netto)}</b>Stunden gesamt</span>
-        <span class="is-geld"><b>${eur(brutto)}</b>Brutto${geschlossen ? "" : " (vorläufig)"}</span>
+        <span><b>${zeDez(s.netto)}</b>Gesamt</span>
       </div>
-      <span class="za-sx">${zeDez(s.normal)} × ${eur(Number(satz.wage))}
-        ${s.sl ? "+ " + zeDez(s.sl) + " × " + eur(Number(satz.wage_lead)) + " " : ""}·
-        Plan war ${dec(plan.hours, 2)} Std · Differenz ${diff >= 0 ? "+" : "−"}${dec(Math.abs(diff), 2)} Std</span>
     </div>`;
   }).join("");
 
   return `<div class="za-sum">${zeilen || `<p class="empty-note">Niemand in diesem Monat.</p>`}
     ${leute.length ? `<div class="za-total">Summe: ${zeDez(gN)} Normal · ${zeDez(gS)} Schichtleitung
-      · ${dec((zeCenti(gN) + zeCenti(gS)) / 100, 2)} Stunden · ${eur(gB)} brutto</div>` : ""}</div>`;
+      · ${dec((zeCenti(gN) + zeCenti(gS)) / 100, 2)} Stunden gesamt</div>` : ""}</div>`;
 }
 
 function zaCloseHtml(){
@@ -2466,7 +2460,7 @@ function zaCloseHtml(){
       <h2>Stunden je Mitarbeiter
         ${geschlossen ? "" : `<span class="pill warn" style="margin-left:8px">vorläufig</span>`}</h2>
       <p>Aus den <b>erfassten</b> Zeiten, nicht aus dem Plan. Eine Schicht zählt zu dem Tag, an dem sie beginnt.
-         ${geschlossen ? "Die Sätze sind die beim Abschluss festgeschriebenen." : "Beträge sind geschätzt und können sich noch ändern."}</p>
+         ${geschlossen ? "" : "Solange der Monat offen ist, können sich die Stunden noch ändern."}</p>
       ${zaSumHtml()}
       <div class="za-csv">
         <button class="btn primary" data-act="zacsv" data-wie="summen">Summen (CSV)</button>
@@ -2490,8 +2484,8 @@ function adminTime(){
 
   const kopf = `<div class="za-steps" role="tablist">
     ${stufe("tage", "Tage", offeneTage.length
-      ? offeneTage.length + (offeneTage.length === 1 ? " Tag offen" : " Tage offen") : "alle bestätigt",
-      !offeneTage.length)}
+      ? offeneTage.length + (offeneTage.length === 1 ? " Tag zu prüfen" : " Tage zu prüfen")
+      : "alle bestätigt", !offeneTage.length)}
     ${stufe("close", "Abschluss", zeZu() ? "abgeschlossen"
       : offeneHaken.length ? offeneHaken.length + " ohne Haken" : "bereit", zeZu())}
   </div>`;
@@ -2534,22 +2528,14 @@ function csvLaden(name, text){
 
 function zeCsvSummen(){
   const p = parseKey(ui.monthKey);
-  const r = zeiten().rates;
-  const satz = zeZu() && r ? r : {wage:config.wage, wage_lead:config.wageSL};
-  const kopf = ["Jahr", "Monat", "Name", "Schichten", "Stunden normal", "Stunden Schichtleitung",
-    "Stunden gesamt", "Minuten normal", "Minuten Schichtleitung",
-    "Satz normal", "Satz Schichtleitung", "Brutto", "Alle Schichten bestätigt"];
+  /* Bewusst schmal: Name und die zwei Stundenzahlen. Mehr braucht die
+     Lohnabrechnung nicht, und Beträge gehören nicht in diese Datei. */
+  const kopf = ["Jahr", "Monat", "Name", "Stunden normal", "Stunden Schichtleitung"];
   const zeilen = zeScope().slice()
     .sort((a, b) => String(a.name).localeCompare(String(b.name), "de"))
     .map(x => {
       const s = zeSumme(x.id);
-      const offen = zeVon(x.id).filter(r => !r.emp_ok).length;
-      const brutto = (zeCenti(s.normal) / 100) * Number(satz.wage)
-                   + (zeCenti(s.sl) / 100) * Number(satz.wage_lead);
-      return csvZeile([p.y, p.m + 1, x.name, s.tage, zeDez(s.normal), zeDez(s.sl),
-        dec((zeCenti(s.normal) + zeCenti(s.sl)) / 100, 2), s.normal, s.sl,
-        dec(Number(satz.wage), 2), dec(Number(satz.wage_lead), 2), dec(brutto, 2),
-        s.tage === 0 ? "" : offen ? "nein (" + offen + " offen)" : "ja"]);
+      return csvZeile([p.y, p.m + 1, x.name, zeDez(s.normal), zeDez(s.sl)]);
     });
   return [csvZeile(kopf)].concat(zeilen).join("\r\n") + "\r\n";
 }
