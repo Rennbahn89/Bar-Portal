@@ -122,6 +122,15 @@ header.top{position:sticky; top:0; z-index:30; background:var(--surface); border
 .top-in{display:flex; align-items:center; gap:10px; padding:9px 0; min-height:52px}
 .who{font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:0}
 .who span{display:block; font-size:12px; font-weight:500; color:var(--ink-2); letter-spacing:0}
+/* Knopf „neu laden“: das Zeichen dreht sich, solange geladen wird. */
+@keyframes dreht{to{transform:rotate(360deg)}}
+.btn .ic{display:inline-block; line-height:1}
+/* Die zwei Zeichenknöpfe im Kopf sind gleich groß und quadratisch. */
+.btn.ic-btn{width:36px; min-width:36px; height:36px; padding:0;
+  display:inline-flex; align-items:center; justify-content:center}
+.btn.is-busy{pointer-events:none; opacity:.7}
+.btn.is-busy .ic{animation:dreht .9s linear infinite}
+@media (prefers-reduced-motion:reduce){ .btn.is-busy .ic{animation:none} }
 .sync{font-size:12px; font-weight:600; color:var(--ink-3); white-space:nowrap}
 .sync.saving{color:var(--accent)}
 .sync.bad{color:var(--no)}
@@ -627,6 +636,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .tpl .times{grid-column:1 / 2; grid-row:2}
   .tpl .rm{grid-column:2 / 3; grid-row:2}
   .sync{display:none}
+  .btn.ic-btn{width:40px; min-width:40px; height:40px}
   main{padding-bottom:120px}
   /* Zeiterfassung am Handy: Knöpfe teilen sich die Zeile, nichts ragt heraus */
   .za-foot .btn{flex:1 1 auto; min-width:46%}
@@ -706,7 +716,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 17:50 Uhr";
+const PATCH_AM  = "23.11.2026 um 18:05 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -1169,7 +1179,10 @@ function headerBar(title, sub, tabs, activeTab){
     <div class="top-in">
       <div class="who grow">${esc(title)}<span>${esc(sub)}</span></div>
       <span class="sync"></span>
-      <button class="btn ghost" data-act="theme" title="Hell oder dunkel" aria-label="Hell oder dunkel">◐</button>
+      <button class="btn ghost ic-btn" data-act="refresh" title="Daten neu laden"
+        aria-label="Daten neu laden"><span class="ic">⟳</span></button>
+      <button class="btn ghost ic-btn" data-act="theme" title="Hell oder dunkel"
+        aria-label="Hell oder dunkel"><span>◐</span></button>
       <button class="btn sm" data-act="logout">Abmelden</button>
     </div>
     ${tabs ? `<div class="tabs" role="tablist">${tabs.map(t =>
@@ -3391,6 +3404,15 @@ async function handleClick(e){
       ui.authError = ""; ui.authInfo = ""; ui.authDetail = ""; render(); return;
     case "logout": await sb.auth.signOut(); return;
     case "theme": toggleTheme(); return;
+    /* Neu laden, ohne die Seite neu aufzubauen: die Ansicht bleibt, wo
+       sie ist, nur die Daten kommen frisch aus der Datenbank. */
+    case "refresh": {
+      if(ui.sync === "load") return;
+      el.classList.add("is-busy");
+      zeSchliessen();
+      await reload();
+      return;
+    }
     case "tab":
       if(isAdmin()) ui.adminTab = el.dataset.tab; else ui.empTab = el.dataset.tab;
       ui.selection = null; ui.formError = ""; ui.formInfo = "";
