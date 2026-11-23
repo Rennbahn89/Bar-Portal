@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="">
+<html lang="de" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -8,6 +8,18 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <title>Dienstplan — Bar Rennbahn</title>
+<script data-zweck="erscheinungsbild">
+/* Erscheinungsbild festlegen, bevor irgendetwas gezeichnet wird: die
+   eigene Wahl, sonst die des Geräts. So gibt es die dunklen Farben nur
+   einmal im Stylesheet, und beim Laden blitzt nichts hell auf. */
+(function(){
+  var t = null;
+  try{ t = localStorage.getItem("rennbahn_theme"); }catch(e){}
+  if(t !== "dark" && t !== "light")
+    t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", t);
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,16 +35,6 @@
   --no:#A8332B; --no-soft:#F8E3E1; --no-line:#E0A9A4;
   --shadow:0 1px 2px rgba(20,26,36,.07), 0 10px 28px rgba(20,26,36,.06);
   --r:10px; --pad:14px;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#12151C; --surface:#1A1F29; --surface-2:#232A36; --line:#2F3743;
-    --ink:#E7EAF0; --ink-2:#99A2B1; --ink-3:#727C8B;
-    --accent:#E0A33C; --accent-ink:#1C1403; --accent-soft:#33291A;
-    --ok:#63C695; --ok-soft:#173627; --ok-line:#2C5C45;
-    --no:#EC8479; --no-soft:#3A1E1C; --no-line:#663631;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.35);
-  }
 }
 :root[data-theme="dark"]{
   --bg:#12151C; --surface:#1A1F29; --surface-2:#232A36; --line:#2F3743;
@@ -67,6 +69,12 @@ button{cursor:pointer}
 .small{font-size:13px}
 .tiny{font-size:12px}
 .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow)}
+/* Lesespalte: alles außer der Planungstafel ist Text und Liste, keine
+   Tabelle — am Rechner wird es deshalb nicht auf volle Breite gezogen. */
+.spalte{max-width:880px}
+.luft{margin-top:14px}
+/* Kleine Nachbemerkung unter einem Knopf oder einer Liste */
+.nb{margin:10px 0 0; font-size:12px; color:var(--ink-2)}
 
 .btn{
   border:1px solid var(--line); background:var(--surface); color:var(--ink);
@@ -96,8 +104,8 @@ button{cursor:pointer}
 .pill.done{background:var(--ok-soft); border-color:var(--ok-line); color:var(--ok)}
 .pill.done b{color:var(--ok)}
 .pill.warn{background:var(--no-soft); border-color:var(--no-line); color:var(--no)}
-.pill.wait{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
 .pill.warn b{color:var(--no)}
+.pill.wait{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
 
 .banner{padding:12px 14px; border-radius:var(--r); font-size:14px; margin-bottom:14px; border:1px solid}
 .banner.ok{background:var(--ok-soft); border-color:var(--ok-line); color:var(--ok)}
@@ -125,16 +133,17 @@ button{cursor:pointer}
 header.top{position:sticky; top:0; z-index:30; background:var(--surface); border-bottom:1px solid var(--line)}
 .top-in{display:flex; align-items:center; gap:10px; padding:9px 0; min-height:52px}
 .who{font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:0}
-.who span{display:block; font-size:12px; font-weight:500; color:var(--ink-2); letter-spacing:0}
-/* Knopf „neu laden“: das Zeichen dreht sich, solange geladen wird. */
-@keyframes dreht{to{transform:rotate(360deg)}}
-.btn .ic{display:inline-block; line-height:1}
-/* Die zwei Zeichenknöpfe im Kopf: quadratisch und so hoch wie der Knopf
-   „Abmelden“ daneben. Die Zeichen sind gezeichnet, keine Schriftzeichen —
-   so sind sie auf jedem Gerät gleich groß, egal welche Schrift einspringt. */
-.btn.ic-btn{width:31px; min-width:31px; height:31px; padding:0;
-  display:inline-flex; align-items:center; justify-content:center}
+.who span{display:block; font-size:12px; font-weight:500; color:var(--ink-2); letter-spacing:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+/* Die Zeichenknöpfe im Kopf (Anleitung, neu laden, hell/dunkel):
+   quadratisch und so hoch wie der Knopf „Abmelden“ daneben. Die Zeichen
+   sind gezeichnet, keine Schriftzeichen — so sind sie auf jedem Gerät
+   gleich groß, egal welche Schrift einspringt. */
+.top-ic{display:flex; align-items:center; gap:2px; flex:none}
+.btn.ic-btn{width:31px; min-width:31px; height:31px; padding:0}
 .btn.ic-btn .ic{width:18px; height:18px; display:block}
+/* „Neu laden“ dreht sich, solange geladen wird */
+@keyframes dreht{to{transform:rotate(360deg)}}
 .btn.is-busy{pointer-events:none; opacity:.7}
 .btn.is-busy .ic{animation:dreht .9s linear infinite}
 @media (prefers-reduced-motion:reduce){ .btn.is-busy .ic{animation:none} }
@@ -149,9 +158,9 @@ header.top{position:sticky; top:0; z-index:30; background:var(--surface); border
   -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 22px), transparent)}
 .tabs.passt{mask-image:none; -webkit-mask-image:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{scroll-snap-align:start}
 .tab{border:none; background:transparent; color:var(--ink-2); font-weight:600; font-size:14px;
-  padding:7px 12px; border-radius:8px; white-space:nowrap}
+  padding:7px 12px; border-radius:8px; white-space:nowrap; scroll-snap-align:start}
+.tab:hover{color:var(--ink)}
 .tab[aria-selected="true"]{background:var(--surface-2); color:var(--ink)}
 main{padding:16px 0 110px}
 
@@ -194,12 +203,19 @@ main{padding:16px 0 110px}
 .wsep{height:1px; background:var(--line); margin:6px 2px}
 .hint{margin:0 0 12px; font-size:14px; color:var(--ink-2)}
 .legend{display:flex; gap:16px; flex-wrap:wrap; margin:12px 0 0; font-size:13px; color:var(--ink-2)}
-.legend i{width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:-1px}
+.legend i{width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:-1px;
+  border:1px solid var(--line); background:var(--surface)}
+.legend .lg-no{background:var(--no-soft); border-color:var(--no-line)}
+.legend .lg-ok{background:var(--ok-soft); border-color:var(--ok-line)}
+.legend .lg-chg{background:var(--accent-soft); border-color:var(--accent)}
+.legend .lg-zu{background:var(--surface-2); border-style:dashed}
+.legend .lg-offen{border-style:dashed; border-color:var(--ink-3)}
 
 .sticky-bar{position:fixed; left:0; right:0; bottom:0; z-index:40;
   background:var(--surface); border-top:1px solid var(--line);
   padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom))}
-.sticky-in{max-width:1240px; margin:0 auto; display:flex; align-items:center; gap:12px}
+.sticky-in{max-width:1240px; margin:0 auto}
+.sticky-in .spalte{display:flex; align-items:center; gap:12px}
 
 /* ============================================================
    7 — Planung
@@ -358,7 +374,12 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .pcard.dragging{opacity:.4}
 .pcard.dropbefore{box-shadow:inset 0 3px 0 0 var(--accent)}
 .pcard.dropafter{box-shadow:inset 0 -3px 0 0 var(--accent)}
-.pswitches{display:flex; flex-direction:column; max-width:390px; margin-top:6px}
+/* Die Schalter einer Person stehen nebeneinander, so viele wie passen:
+   zwei am Handy, fünf am Rechner. Eine Karte ist dann zwei, drei Zeilen
+   hoch statt sieben. */
+.pswitches{display:grid; grid-template-columns:repeat(auto-fill,minmax(136px,1fr)); column-gap:22px; margin-top:4px}
+.pswitches .sw, .pswitches .swnum{border-top:none}
+.pswitches .swnum{grid-column:span 2}
 .renameform{display:flex; align-items:center; gap:6px; flex:1; min-width:0}
 .renameform input{flex:1; min-width:0; padding:6px 9px; font-size:15px; font-weight:600;
   border:1px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink)}
@@ -391,18 +412,31 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   border:1px solid var(--line); background:var(--surface); color:var(--ink-3);
   font-size:15px; line-height:1; display:inline-flex; align-items:center; justify-content:center}
 .tpl .rm:hover{border-color:var(--no-line); color:var(--no)}
-.switchrow{display:flex; align-items:center; gap:10px; padding:10px 0}
-.switchrow input{width:18px; height:18px; accent-color:var(--accent); flex:none}
 .two-col{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+/* Aufklappbare Erläuterung unter einer Liste */
+.mehr{margin-top:14px; font-size:13px; color:var(--ink-2)}
+.mehr summary{cursor:pointer; font-weight:600; color:var(--ink); padding:6px 0; list-style:none}
+.mehr summary::-webkit-details-marker{display:none}
+.mehr summary::before{content:"▸ "; color:var(--ink-3)}
+.mehr[open] summary::before{content:"▾ "}
+.mehr p{margin:6px 0 0; line-height:1.55}
 
 /* ============================================================
    9 — Dienstplan für Mitarbeiter
    ============================================================ */
-.plan-day{border:1px solid var(--line); border-radius:var(--r); padding:11px 13px; margin-bottom:8px; background:var(--surface)}
+.plan-filter{display:flex; gap:6px; margin-bottom:12px}
+.plan-day{border:1px solid var(--line); border-radius:var(--r); padding:10px 13px; margin-bottom:8px; background:var(--surface)}
 .plan-day.mine{border-color:var(--accent); background:var(--accent-soft)}
-.plan-day .hd{font-weight:700; margin-bottom:5px}
-.plan-day .sh{display:flex; justify-content:space-between; gap:12px; font-size:14px; padding:2px 0}
-.plan-day .sh .me{color:var(--accent); font-weight:700}
+.plan-day .hd{font-weight:700; margin-bottom:4px}
+/* Eine Zeile je Schicht: Zeit, Bezeichnung, Person — in festen Spalten,
+   damit das Auge in jeder Zeile an derselben Stelle findet, was es sucht. */
+.plan-day .sh{display:grid; grid-template-columns:98px minmax(0,1fr) auto; gap:10px;
+  align-items:baseline; font-size:14px; padding:2px 0}
+.plan-day .sh .zt{font-weight:600; white-space:nowrap}
+.plan-day .sh .lb{color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.plan-day .sh .wn{white-space:nowrap; font-weight:600}
+.plan-day .sh .wn.offen{color:var(--ink-3); font-weight:500}
+.plan-day .sh.me .zt, .plan-day .sh.me .wn{color:var(--accent); font-weight:700}
 .plan-day .cm{font-size:13px; color:var(--ink-2); margin-top:6px; font-style:italic}
 
 /* ============================================================
@@ -447,8 +481,8 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 
 /* ============================================================
    11 — Zeiterfassung
-   Zwei Präfixe: ze- für den Mitarbeiter und den Tages-Editor, der
-   in beiden Rollen benutzt wird, za- für das Büro. Zustände stehen
+   Zwei Präfixe: ze- für den Mitarbeiter und den Editor einer Schicht,
+   der in beiden Rollen benutzt wird, za- für das Büro. Zustände stehen
    als is-* am Elternelement, damit keine fremde Regel hereinwirkt.
    Alles ist für 390 px gebaut; breiter wird nur ergänzt.
    ============================================================ */
@@ -459,19 +493,19 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .ze-nv{display:block; font-size:17px; font-weight:700; letter-spacing:-.02em; white-space:nowrap}
 .ze-nl{display:block; font-size:11px; font-weight:600; color:var(--ink-2); white-space:nowrap;
   overflow:hidden; text-overflow:ellipsis}
-.ze-top .pill{margin-top:10px}
-.ze-top .pill + .pill{margin-left:8px}
+.ze-pills{display:flex; flex-wrap:wrap; gap:7px; margin-top:10px}
 
+/* ---- Eine Schicht in der Liste des Mitarbeiters ---- */
 .ze-days{display:flex; flex-direction:column; gap:6px}
 .ze-day{background:var(--surface); border:1px solid var(--line); border-radius:var(--r)}
 .ze-day.is-adm{border-color:var(--ok-line); background:var(--ok-soft)}
-/* Hat der Mitarbeiter nachträglich eine Zeit geändert, ist die Schicht
-   hinterlegt: in beiden Erscheinungsbildern der warme Akzentton. */
+/* Hat der Mitarbeiter eine Zeit geändert oder eine Schicht nachgetragen,
+   ist sie hinterlegt: in beiden Erscheinungsbildern der warme Akzentton. */
 .ze-day.is-chg{border-color:var(--accent); background:var(--accent-soft)}
 .ze-day.is-open{border-color:var(--accent); border-style:solid}
-/* Der Editor für eine neue Schicht steht unter der Tagesliste — er
-   braucht denselben Abstand wie der Knopf „+ Schicht hinzufügen". */
-.za-rows + .ze-day{margin-top:8px}
+/* Ein Editor, der unter einer Liste aufgeht (neue Schicht), braucht
+   denselben Abstand wie der Knopf, an dessen Stelle er tritt. */
+.za-rows + .ze-day, .ze-days + .ze-day{margin-top:8px}
 
 .ze-row{display:flex; align-items:center; gap:8px; padding:0 8px 0 11px}
 .ze-head{flex:1; min-width:0; display:flex; align-items:center; gap:10px; text-align:left;
@@ -483,15 +517,23 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .ze-times{display:block; font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .ze-times small{font-weight:600; font-size:11.5px; color:var(--ink-2); margin-left:5px}
 .ze-sub{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-/* Zwei Haken nebeneinander: links der des Mitarbeiters, rechts der des
-   Büros. Nur Anzeige — bestätigt wird der Monat als Ganzes. */
+.ze-day > .ze-diff{margin:0 11px 11px}
+
+/* Die zwei Haken nebeneinander, in der Reihenfolge, in der sie gesetzt
+   werden: links der des Büros, rechts der des Mitarbeiters. Beim Büro
+   ist der linke ein Knopf, beim Mitarbeiter sind beide nur Anzeige. */
 .ze-ok2{flex:none; display:flex; gap:4px; padding-right:3px}
 .ze-h{width:40px; height:40px; border-radius:50%; display:grid; place-items:center;
   border:1.5px solid var(--line); background:var(--surface); color:var(--ink-3);
-  font-size:13px; font-weight:700; line-height:1}
+  font-size:13px; font-weight:700; line-height:1; padding:0}
 .ze-h.is-on{border-color:var(--ok); background:var(--ok); color:var(--surface)}
+/* wartet auf das Büro: der Mitarbeiter hat etwas geändert */
+.ze-h.is-chg{border-color:var(--accent); color:var(--accent)}
+button.ze-h:disabled{cursor:not-allowed}
 
+/* ---- Der Editor einer Schicht ---- */
 .ze-edit{display:grid; gap:10px; padding:11px 12px 12px; border-top:1px solid var(--line)}
+.ze-day.is-open > .ze-edit:first-child{border-top:none}
 .ze-two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px}
 .ze-t{font-size:16px; padding:10px 8px}
 /* Alle Felder im Editor bleiben Tippflächen — auch das Auswahlfeld für
@@ -521,19 +563,22 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .ze-warn{display:block; color:var(--no); font-size:12.5px; font-weight:700; margin-top:3px}
 .ze-btns{display:flex; gap:8px}
 .ze-btns .btn{min-height:46px; flex:1; white-space:normal; line-height:1.2}
-/* Das rote Kreuz schließt die Schicht und löscht sie: ein Quadrat neben
-   dem breiten Bestätigen-Knopf. Die Regel braucht dieselbe Tiefe wie
-   die Zeile darüber, sonst gewinnt dort flex:1. */
+/* Das Kreuz neben dem breiten Hauptknopf: ein Quadrat. Die Regel braucht
+   dieselbe Tiefe wie die Zeile darüber, sonst gewinnt dort flex:1. */
 .ze-btns .ze-x{flex:0 0 46px; width:46px; min-width:46px; padding:0; font-size:17px}
 .ze-diff{font-size:12.5px; line-height:1.45; background:var(--accent-soft); border:1px solid var(--line);
   border-radius:var(--r); padding:8px 10px}
 .ze-diff b{font-weight:700}
+.ze-diff .btn{margin-left:6px}
 .ze-anote{font-size:12.5px; color:var(--ink-2); font-style:italic}
+/* Breiter Knopf unter oder über einer Liste */
 .ze-add{display:block; width:100%; margin-top:8px; min-height:46px;
   white-space:normal; line-height:1.3; padding:10px 12px}
+.ze-add.oben{margin:0 0 10px}
+.ze-add + .hint{margin-top:10px}
 .ze-fuss .btn{min-height:46px}
 
-/* ---- Büro ---- */
+/* ---- Büro: die zwei Schritte ---- */
 .za-steps{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin-bottom:13px}
 .za-step{border:1px solid var(--line); background:var(--surface); border-radius:var(--r);
   padding:8px 6px; min-height:54px; color:var(--ink-2); font-size:11.5px; font-weight:600;
@@ -543,13 +588,15 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-step.is-done{border-color:var(--ok-line)}
 .za-step.is-done b::after{content:" ✓"; color:var(--ok)}
 
-.za-phead{display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap}
+/* ---- Büro: Kopf eines Tages — zurück, und Tag für Tag blättern ---- */
+.za-phead{display:flex; align-items:center; gap:8px; margin-bottom:10px}
+.za-zurueck{flex:none; min-height:46px}
 .za-pnav{display:flex; align-items:center; gap:8px; flex:1; min-width:0}
 .za-pnav .arrow{width:46px; height:46px}
-.za-pnav .za-pname{flex:1; min-width:0; font-size:17px; font-weight:700; letter-spacing:-.02em;
+.za-pname{flex:1; min-width:0; font-size:17px; font-weight:700; letter-spacing:-.02em;
   text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.za-psum{flex-basis:100%; font-size:12.5px; color:var(--ink-2)}
 
+/* ---- Büro: Zeilen (Tage in der Übersicht, Schichten im Tag) ---- */
 .za-rows{display:flex; flex-direction:column; gap:8px}
 /* Spalten einer Flexbox schrumpfen sonst nicht unter ihren Inhalt — der
    aufgeklappte Editor würde die Seite breiter machen als den Bildschirm. */
@@ -559,72 +606,68 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .za-row.is-adm{border-color:var(--ok-line); background:var(--ok-soft)}
 .za-row.is-miss{border-style:dashed}
 .za-row.is-chg{border-color:var(--accent); background:var(--accent-soft)}
+.za-row.is-leer{opacity:.8}
 .za-rb{flex:1; min-width:0; align-self:stretch; text-align:left; background:none; border:none;
-  color:inherit; font:inherit; padding:6px 0; display:flex; flex-direction:column; justify-content:center}
-/* Eine Schichtzeile im Tag hat nur Name und Zeichen — die nebeneinander */
-.za-row.is-schicht .za-rb{flex-direction:row; align-items:center; gap:10px}
-.za-row.is-schicht .za-rm{flex:1; min-width:0}
-/* Beim Vorschlag steht das Zeichen rechts neben den zwei Textzeilen */
-.za-row.is-miss .za-rb{flex-direction:row; align-items:center; gap:10px}
+  color:inherit; font:inherit; padding:6px 0; display:flex; align-items:center; gap:10px}
 .za-rb:disabled{cursor:default}
-.za-rt{display:flex; align-items:baseline; gap:9px; min-width:0; flex:1}
 .za-rd{flex:none; width:52px; font-weight:700; font-size:14px; white-space:nowrap}
 .za-rm{flex:1; min-width:0; font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.za-rs{display:block; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.za-dev{color:var(--accent); font-weight:700}
+.za-rs{display:block; min-width:0; font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+/* Vorschlag aus dem Plan: Name oben, Zeit darunter. Nebeneinander ginge
+   am Handy der Name verloren, weil die Zeitzeile nicht schrumpft. */
+.za-rt{flex:1; min-width:0; display:flex; flex-direction:column; gap:1px}
+.za-rt .za-rm{flex:none}
 /* Tageszeile der Übersicht: drei fette Felder nebeneinander, keine
-   zweite Zeile und nichts in Grau. Am Handy darf „Ist" umbrechen. */
-.za-row .za-rb.za-tag{flex-direction:row; align-items:center; justify-content:flex-start;
-  gap:0; flex-wrap:wrap; row-gap:3px}
+   zweite Zeile und nichts in Grau. */
+.za-tag{gap:0}
 .za-tag > span{font-weight:700; font-size:13px; white-space:nowrap; color:var(--ink)}
 .za-tag .za-rd{width:46px}
 .za-tag .za-rp{min-width:118px; padding-right:8px}
 .za-tag .za-ri{min-width:90px}
 /* Das Zeichen zum Auf- und Zuklappen: + wenn zu, − wenn offen. */
 .za-zu{flex:none; width:26px; text-align:center; font-size:18px; font-weight:700; color:var(--ink-3)}
-/* Das Zeichen rechts in der Tagesliste ist ein Zustand, kein Knopf: kein
-   Rahmen, keine Fläche — sonst tippt man darauf und es passiert nichts. */
 /* Das rote Kreuz am Vorschlag: „hat nicht stattgefunden". Eigene
    Tippfläche neben der Zeile, nicht Teil des Aufklappens. */
 .za-weg{flex:none; width:40px; height:40px; border-radius:50%; display:grid; place-items:center;
   border:1.5px solid var(--no-line); background:var(--surface); color:var(--no);
-  font-size:15px; font-weight:700; line-height:1}
+  font-size:15px; font-weight:700; line-height:1; padding:0}
 .za-weg:hover{background:var(--no-soft)}
+/* Das Zeichen rechts in der Tagesliste ist ein Zustand, kein Knopf: kein
+   Rahmen, keine Fläche — sonst tippt man darauf und es passiert nichts. */
 .za-mark{flex:none; width:36px; text-align:center; font-size:19px; font-weight:700; color:var(--ink-2)}
 .za-mark.is-ok{color:var(--ok)}
-.za-row.is-leer{opacity:.8}
-.za-ok{flex:none; width:52px; height:52px; padding:0; border-radius:14px; font-size:15px; font-weight:700;
-  border:1.5px solid var(--line); background:var(--surface); color:var(--ink-3);
-  display:grid; place-items:center; line-height:1}
-.za-ok.is-adm{border-color:var(--ok); background:var(--ok); color:var(--surface)}
-.za-ok:disabled{font-size:11px; font-weight:700; color:var(--ink-2); cursor:default; border-style:dashed}
-.za-zurueck{min-height:46px; margin-bottom:10px}
 .za-foot{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px}
 .za-foot .btn{min-height:46px}
 .za-foot .grow{font-size:13px}
 
-.za-sum{margin-top:4px}
-.za-s{border-top:1px solid var(--line); padding:9px 0}
-.za-s:first-child{border-top:none}
-.za-sn{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
-.za-sn b{font-size:15px}
-.za-sg{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin-top:5px}
-.za-sg span{background:var(--surface-2); border-radius:8px; padding:5px 8px; font-size:12px;
-  color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.za-sg span b{display:block; color:var(--ink); font-size:14.5px}
-.za-sx{display:block; font-size:12px; color:var(--ink-3); margin-top:4px}
-.za-sx.is-warn{color:var(--no); font-weight:600}
-.za-total{border-top:2px solid var(--line); padding-top:9px; margin-top:4px; font-weight:700}
+/* ---- Büro: Abschluss ---- */
 .za-chk{list-style:none; margin:0 0 14px; padding:0}
 .za-chk li{display:flex; gap:9px; align-items:baseline; padding:5px 0; font-size:14px}
 .za-chk li i{flex:none; font-style:normal; font-weight:700; color:var(--ink-3); width:18px}
 .za-chk li.is-done i{color:var(--ok)}
-.za-chk li span{color:var(--ink-2); font-size:12.5px; display:block}
-.za-csv{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+.za-chk li small{display:block; color:var(--ink-2); font-size:12.5px}
+/* Stunden je Mitarbeiter als Tabelle: ein Name, drei Zahlen. Rechts-
+   bündig und mit festen Ziffernbreiten, damit die Spalten sich lesen
+   wie auf einem Lohnzettel. */
+.za-tab{margin-top:4px}
+.za-tr{display:grid; grid-template-columns:minmax(0,1fr) 62px 62px 68px; gap:8px; align-items:center;
+  padding:8px 0; border-top:1px solid var(--line); font-size:14px}
+.za-tr > span{text-align:right; white-space:nowrap}
+.za-tr > .za-tn{text-align:left; white-space:normal; min-width:0}
+.za-th{border-top:none; padding:0 0 6px; font-size:11.5px; font-weight:700; color:var(--ink-3)}
+.za-th .lang{display:none}
+.za-tn b{display:block; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.za-tn small{display:block; font-size:12px; color:var(--ink-2)}
+.za-tn .pill{margin-top:4px; padding:2px 8px; font-size:11.5px}
+.za-tg{font-weight:700}
+.za-tr.is-leer > span{color:var(--ink-3)}
+.za-tr.is-leer > .za-tn b{color:var(--ink)}
+.za-tsum{border-top:2px solid var(--line); font-weight:700}
+.za-csv{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
 .za-csv .btn{flex:1; min-height:46px; min-width:140px}
 
 /* ============================================================
-   12 — Kleine Bildschirme
+   12 — Kleine und große Bildschirme
    ============================================================ */
 @media (max-width:760px){
   .macts{width:100%; margin-left:0}
@@ -644,6 +687,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .tpl .rm{grid-column:2 / 3; grid-row:2}
   .sync{display:none}
   main{padding-bottom:120px}
+  .plan-day .sh{grid-template-columns:92px minmax(0,1fr) auto; gap:8px}
   /* Zeiterfassung am Handy: Knöpfe teilen sich die Zeile, nichts ragt heraus */
   .za-foot .btn{flex:1 1 auto; min-width:46%}
   .za-foot .grow{flex-basis:100%}
@@ -651,7 +695,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
      sprengen; Beschriftung und Stellfläche bleiben nebeneinander. */
   .ze-line{flex-wrap:wrap}
   .ze-line .btn.sm{order:3; flex:1 1 100%}
-  .ze-fuss{flex-wrap:wrap; row-gap:9px}
+  .sticky-in .spalte{flex-wrap:wrap; row-gap:9px}
   .ze-fuss .grow{flex-basis:100%; white-space:nowrap}
   .ze-fuss .btn{flex:1 1 0; min-width:0; white-space:normal}
   /* Am Handy sind die Haken Tippflächen in voller Größe */
@@ -659,26 +703,79 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
   .za-weg{width:44px; height:44px}
 }
 
-/* Zeiterfassung am Rechner: die Liste ist Lesetext, keine Tabelle —
-   sie wird nicht auf 1240 px gestreckt. Die Büro-Zeile wird zweispaltig. */
 @media (min-width:761px){
-  .ze-top, .ze-days{max-width:760px}
-  /* Am Rechner ist Platz für Trennstriche zwischen den drei Feldern;
-     am Handy fallen sie weg, weil „Ist" dort umbrechen darf. */
-  .za-row .za-rb.za-tag{flex-wrap:nowrap}
+  .pswitches{grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); column-gap:30px}
+  /* Zeiterfassung: dichtere Zeilen, und Platz für Trennstriche zwischen
+     den drei Feldern der Tageszeile. */
+  .za-row{min-height:54px}
   .za-tag > span{font-size:14px}
   .za-tag .za-rd{width:52px}
   .za-tag .za-rp, .za-tag .za-ri{border-left:1px solid var(--line);
     padding-left:16px; margin-left:16px}
   .za-tag .za-rp{min-width:160px}
-  .za-rs{padding-right:4px}
-  .za-sum, .za-chk{max-width:860px}
+  .za-rt{flex-direction:row; align-items:baseline; gap:14px}
   .za-step{font-size:12.5px}
   .za-step b{font-size:14px}
+  .za-tr{grid-template-columns:minmax(0,1fr) 120px 120px 120px; gap:12px}
+  .za-th .lang{display:inline}
+  .za-th .kurz{display:none}
 }
 
 /* ============================================================
-   13 — Druck
+   13 — Anleitung
+   Die Abbildungen (.h-fig) enthalten die echten Bausteine der App,
+   stillgelegt. Eigene Regeln gibt es nur für den Rahmen und für die
+   wenigen Stellen, an denen ein span einen Knopf oder ein Feld mimt.
+   ============================================================ */
+.hilfe{max-width:760px}
+.hilfe section{scroll-margin-top:110px}
+.hilfe h2{font-size:20px; margin:30px 0 10px; padding-top:18px; border-top:1px solid var(--line)}
+.hilfe h3{font-size:15px; margin:18px 0 6px}
+.hilfe p, .hilfe li{font-size:15px; line-height:1.55}
+.hilfe p{margin:0 0 10px}
+.hilfe ol, .hilfe ul{margin:0 0 12px; padding-left:22px}
+.hilfe li{margin-bottom:5px}
+.h-vor{font-size:16px!important}
+.h-inhalt{display:flex; flex-wrap:wrap; gap:6px; margin:14px 0 0}
+.h-fig{margin:12px 0 16px; border:1px solid var(--line); border-radius:14px; background:var(--bg); overflow:hidden}
+.h-bild{padding:12px; user-select:none}
+.h-bild > :last-child{margin-bottom:0}
+.h-fig figcaption{padding:9px 12px; border-top:1px solid var(--line); background:var(--surface);
+  font-size:13px; line-height:1.6; color:var(--ink-2)}
+.h-nr{display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; flex:none;
+  background:var(--ink); color:var(--bg); font-size:11.5px; font-weight:700; line-height:1;
+  vertical-align:1px; margin:0 3px}
+.h-tipp{border-left:3px solid var(--accent); background:var(--accent-soft);
+  padding:10px 12px; border-radius:0 var(--r) var(--r) 0; font-size:14px!important; margin:12px 0 14px!important}
+/* Der Ablauf des Monats als Kette nummerierter Karten */
+.h-kette{list-style:none; counter-reset:kette; display:grid; gap:8px; padding:0!important; margin:12px 0 4px!important;
+  grid-template-columns:repeat(auto-fit,minmax(132px,1fr))}
+.h-kette li{counter-increment:kette; background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:10px 12px 10px 42px; position:relative; font-size:13px!important; line-height:1.45!important;
+  color:var(--ink-2); margin:0!important}
+.h-kette li::before{content:counter(kette); position:absolute; left:11px; top:11px; width:22px; height:22px;
+  border-radius:50%; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:700;
+  display:grid; place-items:center}
+.h-kette li b{display:block; color:var(--ink); font-size:14px}
+/* Kopfzeile, Fußleiste und Tafelspalte als Ausschnitt */
+.h-kopf{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:0 12px}
+.h-kopf .tabs{align-items:center; flex-wrap:wrap; overflow:visible}
+.h-kopf .tab{padding:7px 9px}
+.h-bild .ds{display:grid; place-items:center}
+.h-leiste{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r); padding:10px 12px; margin-top:8px}
+.h-spalten{display:flex; gap:12px}
+.h-spalten .col{flex:0 1 270px; max-width:100%}
+.h-feld{display:grid; place-items:center; text-align:center}
+.ze-spinv.h-feld{height:44px; padding:0}
+.sw-b.h-an{background:var(--accent); border-color:var(--accent)}
+.sw-b.h-an::after{transform:translateX(16px)}
+.h-bild .slot-bot, .h-bild .macts, .h-bild .daystrip, .h-bild .chips, .h-bild .plan-filter,
+.h-bild .za-foot, .h-bild .za-row, .h-bild .drow, .h-bild .ze-row{align-items:center}
+.h-bild .daystrip{overflow:visible; flex-wrap:wrap; padding-bottom:10px; margin:0}
+
+/* ============================================================
+   14 — Druck
    ============================================================ */
 #printRoot{display:none}
 @media print{
@@ -707,6 +804,30 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 "use strict";
 
 /* ============================================================
+   Dienstplan Bar Rennbahn — eine Datei, kein Build, kein Framework.
+
+   Aufbau dieses Skripts, von oben nach unten:
+     Zugang und Festwerte ...... Supabase-Adresse, Monatsnamen, Zeichen
+     Zustand ................... me, people, month, config und ui
+     Kleine Helfer ............. Datum, Sortierung, Lohnvorschau
+     Datenbank ................. laden, schreiben, Fassungsabgleich
+     Ansichten ................. Anmeldung, Mitarbeiter, Büro
+     Zeiterfassung ............. Rechenkern, Daten, Editor, Ansichten,
+                                 CSV, Schreiben, Klicks
+     Anleitung ................. die Seiten hinter dem Fragezeichen
+     Dialog und Druck
+     Planungslogik ............. einteilen, automatischer Vorschlag
+     Klicks .................... handleClick() verteilt auf Bereiche
+     Ziehen, Formulare, Zeichnen, Start
+
+   Grundsätze: Jede Ansicht ist eine Funktion, die HTML zurückgibt;
+   render() setzt es ein. Jeder Knopf trägt data-act, und genau eine
+   Stelle wertet es aus. Was jemand darf, entscheidet die Datenbank
+   (Zugriffsregeln und Riegel in schema.sql) — die Oberfläche zeigt
+   nur an, was dort ohnehin gilt.
+   ============================================================ */
+
+/* ============================================================
    HIER EINTRAGEN
    Beide Werte stehen im Supabase-Projekt unter Project Settings,
    API. Der anon key ist öffentlich, das ist so vorgesehen:
@@ -719,11 +840,14 @@ const SUPABASE_ANON_KEY = "sb_publishable_UM3VJ8ya07n8WMKR5hc76Q_0xbaGla-";
 const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 const WD_SHORT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
-/* Die zwei Zeichen im Kopf. Gezeichnet statt getippt: ein Schriftzeichen
-   wie ⟳ fällt je nach Gerät auf eine andere Schrift zurück und ist dann
-   mal winzig, mal groß. */
-const IC_NEU = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none"
-  stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+/* Die Zeichen im Kopf. Gezeichnet statt getippt: ein Schriftzeichen wie
+   ⟳ fällt je nach Gerät auf eine andere Schrift zurück und ist dann mal
+   winzig, mal groß. */
+const IC_STRICH = `class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+  stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`;
+const IC_HILFE = `<svg ${IC_STRICH}><circle cx="12" cy="12" r="8.8"/>
+  <path d="M9.5 9.6a2.6 2.6 0 1 1 3.9 2.2c-.9.5-1.4 1-1.4 2"/><path d="M12 17v.01"/></svg>`;
+const IC_NEU = `<svg ${IC_STRICH}>
   <path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5v5h-5"/></svg>`;
 const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
   <circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="2.2"/>
@@ -732,7 +856,7 @@ const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 18:21 Uhr";
+const PATCH_AM  = "23.11.2026 um 19:12 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -792,6 +916,9 @@ const ui = {
   editingShift: null,
   renaming: null,            // Person, deren Name gerade geändert wird
   sheetOpen: false,
+  help: null,                // null | "staff" | "admin" — die Anleitung liegt über der App
+  helpZurueck: 0,            // Rollstand der App, während die Anleitung offen ist
+  planNurMeine: false,       // Mitarbeiter-Dienstplan: nur die eigenen Schichten
   checkOpen: true,
   jumpTo: null,
   sync: "",
@@ -816,6 +943,10 @@ const feldWert = (form, name) => {
   return el ? el.value : "";
 };
 const toNum = v => { const x = parseFloat(String(v).replace(/\s/g,"").replace(",",".")); return isNaN(x) ? 0 : x; };
+/* Zahl mit passendem Wort: „1 Schicht“, „3 Schichten“ */
+const mz = (n, ein, viele) => n + " " + (n === 1 ? ein : viele);
+const anzSchichten = n => mz(n, "Schicht", "Schichten");
+const anzTage = n => mz(n, "Tag", "Tage");
 
 function monthKey(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0"); }
 function parseKey(k){ const p = k.split("-"); return {y:Number(p[0]), m:Number(p[1])-1}; }
@@ -1127,38 +1258,73 @@ async function createMonth(ym){
    ============================================================ */
 const seiteOhneAnhang = () => location.href.split("#")[0].split("?")[0];
 
-async function neueFassungDa(){
+/* Der Patch-Stand der Datei auf dem Server, oder "" wenn er sich nicht
+   holen lässt. */
+async function fassungAufServer(){
   /* Nur wenn die Seite wirklich von einem Server kommt — als lokale
      Datei geöffnet verbietet der Browser das Nachladen ohnehin. */
-  if(location.protocol !== "http:" && location.protocol !== "https:") return false;
+  if(location.protocol !== "http:" && location.protocol !== "https:") return "";
   try{
     const r = await fetch(seiteOhneAnhang() + "?stand=" + Date.now(), {cache:"no-store"});
-    if(!r.ok) return false;
+    if(!r.ok) return "";
     const m = (await r.text()).match(/const PATCH_AM\s*=\s*"([^"]+)"/);
-    return !!m && m[1] !== PATCH_AM;
-  }catch(e){ return false; }
+    return m ? m[1] : "";
+  }catch(e){ return ""; }
+}
+async function neueFassungDa(){
+  const f = await fassungAufServer();
+  return !!f && f !== PATCH_AM;
 }
 
 /* Mit Zeitstempel in der Adresse, sonst reicht Safari wieder die alte
    Datei heraus. */
 function neuLaden(){ location.replace(seiteOhneAnhang() + "?stand=" + Date.now()); }
 
-/* Einmal je Sitzung beim Start: liegt eine neuere Fassung, kommt sie
-   sofort. Die Sperre verhindert, dass sich das im Kreis dreht, falls
-   der Abgleich einmal nicht aufgeht. */
+/* Von selbst (beim Start und nach einer Pause): liegt eine neuere
+   Fassung, kommt sie sofort. Dieselbe Fassung wird je Sitzung nur einmal
+   angefordert — kommt sie trotz Neuladen nicht an, dreht sich sonst
+   alles im Kreis. */
 const FASSUNG_KEY = "rennbahn_fassung";
 async function fassungPruefen(){
-  try{ if(sessionStorage.getItem(FASSUNG_KEY)) return; }catch(e){}
-  if(!(await neueFassungDa())) return;
-  try{ sessionStorage.setItem(FASSUNG_KEY, "1"); }catch(e){}
+  const f = await fassungAufServer();
+  if(!f || f === PATCH_AM) return false;
+  try{
+    if(sessionStorage.getItem(FASSUNG_KEY) === f) return false;
+    sessionStorage.setItem(FASSUNG_KEY, f);
+  }catch(e){}
   neuLaden();
+  return true;
 }
+
+/* Wann die Daten zuletzt frisch aus der Datenbank kamen */
+let zuletztFrisch = Date.now();
 
 async function reload(){
   setSync("load");
   await loadAll(0);
+  zuletztFrisch = Date.now();
   setSync("");
   render();
+}
+
+/* Kommt jemand nach einer Pause zur App zurück, sind die Daten alt: im
+   Büro wurde inzwischen bestätigt, ein Kollege hat abgesagt. Dann wird
+   still neu geladen — aber nur, wenn gerade nichts offen ist, das dabei
+   verloren ginge. */
+const PAUSE_MS = 5 * 60 * 1000;
+function nichtsOffen(){
+  if(ui.screen !== "app" || !month || ui.help || pending || ui.sheetOpen) return false;
+  if(ui.zeForm || ui.editingShift || ui.renaming || ui.sync === "saving" || ui.sync === "load") return false;
+  const reiter = isAdmin() ? ui.adminTab : ui.empTab;
+  if(reiter === "settings" || reiter === "account") return false;   // dort stehen ungespeicherte Eingaben
+  const feld = document.activeElement;
+  return !(feld && /^(INPUT|TEXTAREA|SELECT)$/.test(feld.tagName));
+}
+async function nachPause(){
+  if(document.visibilityState !== "visible" || Date.now() - zuletztFrisch < PAUSE_MS || !nichtsOffen()) return;
+  zuletztFrisch = Date.now();
+  if(await fassungPruefen()) return;
+  await reload();
 }
 
 /* ============================================================
@@ -1227,16 +1393,21 @@ function viewOnboard(){
    ============================================================ */
 const fussnote = () => `<p class="patch">Letzter Patch am ${esc(PATCH_AM)} (durch ${esc(PATCH_VON)})</p>`;
 
-function headerBar(title, sub, tabs, activeTab){
+/* Ein Zeichenknopf im Kopf */
+const kopfKnopf = (act, titel, zeichen) => `<button class="btn ghost ic-btn" data-act="${act}"
+  title="${titel}" aria-label="${titel}">${zeichen}</button>`;
+
+function headerBar(tabs, activeTab){
   return `
   <header class="top"><div class="wrap">
     <div class="top-in">
-      <div class="who grow">${esc(title)}<span>${esc(sub)}</span></div>
+      <div class="who grow">Dienstplan<span>${esc(me.name)} · ${isAdmin() ? "Büro" : "Team"}</span></div>
       <span class="sync"></span>
-      <button class="btn ghost ic-btn" data-act="refresh" title="Daten neu laden"
-        aria-label="Daten neu laden">${IC_NEU}</button>
-      <button class="btn ghost ic-btn" data-act="theme" title="Hell oder dunkel"
-        aria-label="Hell oder dunkel">${IC_FARBE}</button>
+      <div class="top-ic">
+        ${kopfKnopf("help", "Anleitung", IC_HILFE)}
+        ${kopfKnopf("refresh", "Neu laden", IC_NEU)}
+        ${kopfKnopf("theme", "Hell oder dunkel", IC_FARBE)}
+      </div>
       <button class="btn sm" data-act="logout">Abmelden</button>
     </div>
     ${tabs ? `<div class="tabs" role="tablist">${tabs.map(t =>
@@ -1269,8 +1440,8 @@ function viewStaff(){
   if(tab === "plan" && !month.published) tab = "avail";
   const body = tab === "plan" ? staffPlan() : tab === "time" ? staffTime()
     : tab === "account" ? accountPanel() : staffAvail();
-  return headerBar("Dienstplan", "Angemeldet als Mitarbeiter", tabs, tab)
-    + `<main><div class="wrap">${body}${fussnote()}</div></main>`;
+  return headerBar(tabs, tab)
+    + `<main><div class="wrap"><div class="spalte">${body}</div>${fussnote()}</div></main>`;
 }
 
 function staffAvail(){
@@ -1306,38 +1477,46 @@ function staffAvail(){
     + (locked ? "" : `<p class="hint">Tippe die Tage an, an denen du nicht verfügbar bist. In der Mitte steht, wer schon abgesagt hat.</p>`)
     + `<div class="days">${zeilen}</div>
        <div class="legend">
-         <span><i style="background:var(--no-soft); border:1px solid var(--no-line)"></i>Ich kann nicht</span>
-         <span><i style="background:var(--surface-2); border:1px dashed var(--line)"></i>Ruhetag</span>
+         <span><i class="lg-no"></i>Ich kann nicht</span>
+         <span><i class="lg-zu"></i>Ruhetag</span>
        </div>`
     + (locked ? "" : `
-      <div class="sticky-bar"><div class="sticky-in">
+      <div class="sticky-bar"><div class="sticky-in"><div class="spalte">
         <div class="grow small muted">${count === 0
           ? "Du kannst diesen Monat an allen Tagen"
-          : count + (count === 1 ? " Tag" : " Tage") + " markiert"}</div>
+          : anzTage(count) + " markiert"}</div>
         <button class="btn primary" data-act="confirm">${a.confirmed ? "Änderung bestätigen" : "Bestätigen"}</button>
-      </div></div>`);
+      </div></div></div>`);
 }
 
 function staffPlan(){
   const k = ui.monthKey;
   const n = daysInMonth(k);
+  const nurMeine = !!ui.planNurMeine;
   let mine = 0, hrs = 0, out = "";
   for(let d = 1; d <= n; d++){
     const day = month.days[d];
     if(!day || day.closed) continue;
-    const has = day.shifts.some(s => s.emp === me.id);
-    if(has) day.shifts.forEach(s => { if(s.emp === me.id){ mine++; hrs += hoursOf(s); } });
-    out += `<div class="plan-day ${has ? "mine" : ""}">
+    const meine = day.shifts.filter(s => s.emp === me.id);
+    meine.forEach(s => { mine++; hrs += hoursOf(s); });
+    if(nurMeine && !meine.length) continue;
+    out += `<div class="plan-day ${meine.length ? "mine" : ""}">
       <div class="hd">${WD_LONG[weekdayOf(k, d)]}, ${d}. ${MONTHS[parseKey(k).m]}</div>
-      ${day.shifts.map(s => `<div class="sh"><b>${esc(s.label)}</b>
-        <span class="${s.emp === me.id ? "me" : ""}">${s.emp ? esc(personName(s.emp)) + (s.sl ? " (SL)" : "") : "offen"} · ${s.start}–${s.end}</span>
+      ${(nurMeine ? meine : day.shifts).map(s => `<div class="sh ${s.emp === me.id ? "me" : ""}">
+        <span class="zt">${s.start}–${s.end}</span>
+        <span class="lb">${esc(s.label)}</span>
+        <span class="wn ${s.emp ? "" : "offen"}">${s.emp ? esc(personName(s.emp)) + (s.sl ? " (SL)" : "") : "offen"}</span>
       </div>`).join("")}
       ${day.comment ? `<div class="cm">${esc(day.comment)}</div>` : ""}
     </div>`;
   }
+  const wahl = (an, text) => `<button class="chip ${nurMeine === an ? "sel" : ""}" data-act="planfilter"
+    data-nur="${an ? 1 : 0}" aria-pressed="${nurMeine === an}">${text}</button>`;
   return monthBar()
-    + `<div class="banner ok">Deine Schichten: <b>${mine}</b> · rund <b>${dec(hrs)}</b> Stunden</div>`
-    + out;
+    + `<div class="banner ok">Deine Schichten: <b>${mine}</b> · rund <b>${dec(hrs)}</b> Stunden</div>
+       <div class="plan-filter">${wahl(false, "Alle Schichten")}${wahl(true, "Nur meine")}</div>`
+    + (out || `<p class="empty-note">${nurMeine ? "Du bist in diesem Monat nicht eingeteilt."
+        : "In diesem Monat stehen keine Schichten im Plan."}</p>`);
 }
 
 function accountPanel(){
@@ -1372,13 +1551,16 @@ function viewAdmin(){
     {id:"settings", label:"Einstellungen"},
     {id:"account", label:"Konto"}
   ];
-  const body = ui.adminTab === "team" ? adminTeam()
-    : ui.adminTab === "time" ? adminTime()
-    : ui.adminTab === "settings" ? adminSettings()
-    : ui.adminTab === "account" ? accountPanel()
+  /* Planung und Team nutzen die volle Breite, alles andere ist Lesespalte */
+  const t = ui.adminTab;
+  const body = t === "team" ? adminTeam()
+    : t === "time" ? adminTime()
+    : t === "settings" ? adminSettings()
+    : t === "account" ? accountPanel()
     : adminPlan();
-  return headerBar("Dienstplan", "Angemeldet als Administrator", tabs, ui.adminTab)
-    + `<main><div class="wrap">${body}${fussnote()}</div></main>`;
+  const breit = t === "plan" || t === "team";
+  return headerBar(tabs, t)
+    + `<main><div class="wrap">${breit ? body : `<div class="spalte">${body}</div>`}${fussnote()}</div></main>`;
 }
 
 function adminPlan(){
@@ -1683,47 +1865,57 @@ function adminTeam(){
 
     ${karten || `<p class="muted">Noch niemand eingeladen.</p>`}
 
-    <p class="tiny muted" style="margin:14px 0 0">
-      Die Liste ist in vier Blöcke geteilt: Admin, Festangestellte, Minijob und alles, was nicht eingeplant
-      wird. Innerhalb eines Blocks kannst du am Rechner die Reihenfolge selbst bestimmen — dazu die Karte am
-      Griff <b>⠿</b> links neben dem Namen an ihren Platz ziehen. In dieser Reihenfolge stehen die Leute dann
-      auch in der Auswahlliste beim Planen und in der Liste der Eintragungen.
-      <br><br>
-      <b>Aktiv</b> aus nimmt jemanden ganz heraus, der Zugang bleibt bestehen; endgültig gelöscht wird ein Konto im
-      Supabase-Dashboard. Über das Stiftsymbol änderst du den Namen einer Person — so steht er später im
-      ausgedruckten Dienstplan. <b>Admin</b> gibt Zugriff auf Planung, Löhne und Freigabe und nimmt die Person aus dem
-      Dienstplan — den eigenen Zugang kannst du dir nicht entziehen, und der letzte verbliebene bleibt bestehen.
-      <b>Wird eingeplant</b> entscheidet, ob jemand im Dienstplan auftaucht. <b>Schichtleiter</b> entscheidet, wer
-      die Schichtleitung übernehmen darf — nur diese Leute lassen sich im Plan mit SL kennzeichnen.
-      <b>Minijob</b> an heißt, die Verdienstgrenze wird für diese Person überwacht. Ist er aus, trägst du
-      stattdessen die <b>Vertragsstunden</b> ein — die Planung sorgt dafür, dass die Person diese Stunden im
-      Monat erreicht, und warnt, wenn sie darüber hinausgeht. 0 heißt: kein Soll hinterlegt.
-    </p>
+    <details class="mehr">
+      <summary>Was bedeuten die Schalter?</summary>
+      <p><b>Aktiv</b> aus nimmt jemanden ganz heraus, der Zugang bleibt bestehen; endgültig gelöscht wird ein
+        Konto im Supabase-Dashboard. <b>Admin</b> gibt Zugriff auf Planung, Löhne und Freigabe und nimmt die
+        Person aus dem Dienstplan — den eigenen Zugang kannst du dir nicht entziehen.
+        <b>Wird eingeplant</b> entscheidet, ob jemand im Dienstplan auftaucht. <b>Schichtleiter</b> entscheidet,
+        wer die Schichtleitung übernehmen darf — nur diese Leute lassen sich im Plan mit SL kennzeichnen.
+        <b>Minijob</b> an heißt, die Verdienstgrenze wird für diese Person überwacht. Ist er aus, trägst du
+        stattdessen die <b>Vertragsstunden</b> ein — die Planung sorgt dafür, dass die Person diese Stunden im
+        Monat erreicht, und warnt, wenn sie darüber hinausgeht. 0 heißt: kein Soll hinterlegt.</p>
+      <p>Die Liste ist in vier Blöcke geteilt: Admin, Festangestellte, Minijob und alles, was nicht eingeplant
+        wird. Innerhalb eines Blocks bestimmst du am Rechner die Reihenfolge selbst — die Karte am Griff
+        <b>⠿</b> links neben dem Namen an ihren Platz ziehen. So stehen die Leute dann auch in der Auswahl beim
+        Planen. Über das Stiftsymbol änderst du einen Namen; so steht er später im ausgedruckten Dienstplan.</p>
+    </details>
   </div>`;
 }
 
 function adminSettings(){
+  /* Starttermin der Zeiterfassung: Monat und Jahr zum Auswählen statt
+     eines Textfelds, in das man „2026-11“ tippen muss. */
+  const jetzt = new Date();
+  const tf = /^\d{4}-\d{2}$/.test(config.timeFirstYm || "") ? config.timeFirstYm : monthKey(jetzt);
+  const tfJ = Number(tf.slice(0, 4)), tfM = Number(tf.slice(5, 7));
+  const jahre = [];
+  for(let y = Math.min(tfJ, jetzt.getFullYear() - 1); y <= Math.max(tfJ, jetzt.getFullYear() + 2); y++) jahre.push(y);
+
   return `
   <div class="card panel">
     <h2>Löhne und Grenze</h2>
-    <p>Grundlage für die Lohnvorschau. Nur das Büro kann diese Werte lesen und ändern.</p>
+    <p>Grundlage für die Lohnvorschau in der Planung. Nur das Büro kann diese Werte lesen und ändern.</p>
     <div class="two-col">
       <div><label class="lbl" for="w-n">Stundenlohn</label>
         <input class="field" id="w-n" inputmode="decimal" data-cfg="wage" value="${dec(config.wage,2)}"></div>
       <div><label class="lbl" for="w-s">Stundenlohn Schichtleitung</label>
         <input class="field" id="w-s" inputmode="decimal" data-cfg="wageSL" value="${dec(config.wageSL,2)}"></div>
     </div>
-    <div class="switchrow" style="margin-top:8px">
-      <input type="checkbox" id="lim-on" data-act="togglelimiton" ${config.limitOn ? "checked" : ""}>
-      <label for="lim-on">Grenze überwachen und beim Überschreiten rot markieren</label>
+    <div class="luft">
+      <label class="sw">
+        <span class="sw-t">Minijob-Grenze überwachen und beim Überschreiten rot markieren</span>
+        <input type="checkbox" data-act="togglelimiton" ${config.limitOn ? "checked" : ""}>
+        <span class="sw-b"></span>
+      </label>
     </div>
     ${config.limitOn ? `
-      <div>
+      <div class="luft">
         <label class="lbl" for="w-l">Grenze pro Monat</label>
         <input class="field" id="w-l" inputmode="decimal" data-cfg="limit" value="${dec(config.limit,2)}">
       </div>
-      <p class="tiny muted" style="margin:10px 0 0">Für wen die Grenze gilt, stellst du unter Team mit dem Regler „Minijob“ ein.</p>` : ""}
-    <div class="row" style="margin-top:14px">
+      <p class="nb">Für wen die Grenze gilt, stellst du unter Team mit dem Schalter „Minijob“ ein.</p>` : ""}
+    <div class="row luft">
       <button class="btn primary" data-act="savesettings">Übernehmen</button>
       ${ui.formInfo ? `<span class="okmsg">${esc(ui.formInfo)}</span>` : ""}
     </div>
@@ -1733,19 +1925,21 @@ function adminSettings(){
     <h2>Zeiterfassung</h2>
     <p>Ab welchem Monat die Zeiterfassung verbindlich ist. Für Monate davor fehlt niemand,
        und der Abschluss ist freiwillig — gut für einen Probemonat.</p>
-    <div style="max-width:220px">
-      <label class="lbl" for="w-tf">Zeiterfassung ab Monat</label>
-      <input class="field" id="w-tf" inputmode="numeric" placeholder="2026-11"
-        data-cfgtext="timeFirstYm" value="${esc(config.timeFirstYm || "")}">
+    <div class="ze-two" style="max-width:340px">
+      <div><label class="lbl" for="w-tfm">Verbindlich ab</label>
+        <select class="field" id="w-tfm" data-cfgym="m">${MONTHS.map((m, i) =>
+          `<option value="${zePad(i + 1)}" ${i + 1 === tfM ? "selected" : ""}>${m}</option>`).join("")}</select></div>
+      <div><label class="lbl" for="w-tfj">Jahr</label>
+        <select class="field" id="w-tfj" data-cfgym="j">${jahre.map(y =>
+          `<option value="${y}" ${y === tfJ ? "selected" : ""}>${y}</option>`).join("")}</select></div>
     </div>
-    <div class="row" style="margin-top:12px">
+    <div class="row luft">
       <button class="btn primary" data-act="zasavefirst">Übernehmen</button>
       ${ui.zeFehler ? `<span class="err">${esc(ui.zeFehler)}</span>`
         : ui.formInfo ? `<span class="okmsg">${esc(ui.formInfo)}</span>` : ""}
     </div>
-    <p class="tiny muted" style="margin:10px 0 0">Format Jahr und Monat, also zum Beispiel
-      <b>2026-11</b>. Die Sammelbestätigung der Mitarbeiter und der Abschluss gehen immer erst,
-      wenn der Monat vorbei ist.</p>
+    <p class="nb">Die Sammelbestätigung der Mitarbeiter und der Abschluss
+      gehen immer erst, wenn ein Monat vorbei ist.</p>
   </div>
 
   <div class="card panel">
@@ -1863,13 +2057,14 @@ function zeParseHM(v){
 
    Das Büro trägt alle Schichten ein, Tag für Tag, mit den Zeiten aus
    dem Dienstplan als Vorschlag. Bestätigt wird jede Schicht einzeln
-   (adm_ok) — damit ist sie für den Mitarbeiter sichtbar und
-   freigegeben; was nicht bestätigt ist, sieht er gar nicht. Sind alle
-   Schichten eines Tages bestätigt, gilt der Tag als erledigt; das
-   rechnet die Oberfläche aus, gespeichert wird es nicht. Der
-   Mitarbeiter kann eine Zeit korrigieren — dann ist die Schicht beim
-   Büro wieder offen und markiert — und bestätigt nach Monatswechsel
-   alle auf einmal. Danach ist die Schicht auch für das Büro zu.
+   (adm_ok) — damit ist sie für den Mitarbeiter sichtbar; was nicht
+   bestätigt ist, sieht er nicht. Sind alle Schichten eines Tages
+   bestätigt, schließt das Büro den Tag ausdrücklich ab (time_days);
+   jede spätere Änderung an den Schichten macht ihn wieder auf.
+   Der Mitarbeiter kann eine Zeit korrigieren oder eine vergessene
+   Schicht nachtragen — beides landet beim Büro als offener, gelb
+   markierter Punkt — und bestätigt nach Monatswechsel alle Schichten
+   auf einmal. Danach ist die Schicht auch für das Büro zu.
    ============================================================ */
 const ZE_SPALTEN = "id,user_id,work_date,ym,starts,ends,break_min,lead_min,gross_min,net_min," +
   "adm_ok,adm_ok_at,emp_ok,emp_ok_at,emp_changed,emp_orig,emp_added,plan_starts,plan_ends,note,admin_note";
@@ -1879,6 +2074,16 @@ const zeZu    = () => !!zeiten().closed;
 const zeTagNr = ymd => Number(String(ymd).slice(8, 10));
 const zePad   = d => String(d).padStart(2, "0");
 const zeYmd   = d => ui.monthKey + "-" + zePad(d);
+
+/* Die Tage des gezeigten Monats bis einschließlich heute (Berlin). Was
+   noch nicht war, gibt es in der Zeiterfassung nicht. */
+function zeTageBisHeute(){
+  const n = daysInMonth(ui.monthKey), heute = berHeute(), out = [];
+  for(let d = 1; d <= n && zeYmd(d) <= heute; d++) out.push(d);
+  return out;
+}
+/* Den Editor zumachen, ohne zu speichern */
+const zeEditorZu = () => { ui.zeOpen = null; ui.zeForm = null; };
 
 const zeAmTag = d => zeiten().rows.filter(r => zeTagNr(r.work_date) === d);
 const zeVon   = uid => zeiten().rows.filter(r => r.user_id === uid);
@@ -1942,9 +2147,7 @@ function zeAusPlan(d, p){
     lead_min: p.lead && per && per.can_lead ? Math.max(0, c.net) : 0};
 }
 
-/* Zustand eines Tages. Gespeichert wird davon nichts: bestätigt werden
-   die einzelnen Schichten, der Tag ist fertig, wenn alle seine Schichten
-   bestätigt sind. */
+/* Zustand eines Tages aus Sicht des Büros */
 function zaTagStand(d){
   const rows = zeAmTag(d).slice().sort((a, b) =>
     zeMin(a.starts) - zeMin(b.starts) || String(personName(a.user_id)).localeCompare(String(personName(b.user_id)), "de"));
@@ -1952,7 +2155,7 @@ function zaTagStand(d){
   const geaendert = rows.filter(r => r.emp_changed);
   const ohneHaken = rows.filter(r => !r.adm_ok);
   return {
-    d, ymd: zeYmd(d), wd: weekdayOf(ui.monthKey, d),
+    d, wd: weekdayOf(ui.monthKey, d),
     rows, plan, offen: zaOffenePlan(d), geaendert, ohneHaken,
     noetig: rows.length > 0 || plan.length > 0,
     /* Abgeschlossen ist ein gespeicherter Zustand, kein Rechenergebnis:
@@ -1960,40 +2163,18 @@ function zaTagStand(d){
        selbst grün — sonst sähe ein Tag, dessen letzte Schicht
        versehentlich gelöscht wurde, aus wie erledigt. */
     fertig: zeTagZu(d),
-    /* Was dem Abschluss noch im Weg steht */
-    bereit: !ohneHaken.length && !geaendert.length,
-    netto: rows.reduce((s, r) => s + Number(r.net_min || 0), 0),
-    sl: rows.reduce((s, r) => s + Number(r.lead_min || 0), 0)
+    /* Steht dem Abschluss noch etwas im Weg? */
+    bereit: !ohneHaken.length && !geaendert.length
   };
 }
 
-/* Was das Büro noch anfassen muss — dieselbe Zählung wie
-   time_open_shifts in der Datenbank. Daran hängt der Abschluss. */
-
-/* Tage, an denen noch etwas zu tun ist: offene Schichten, oder ein
-   Tag, an dem der Plan jemanden vorsieht und noch nichts steht. */
 /* Jeder Kalendertag bis heute braucht seinen Abschluss — auch ein
    Ruhetag. Nur so ist ein Tag ohne Schichten von einem vergessenen
    Tag zu unterscheiden. Für den Alltag gibt es den Sammelknopf. */
-function zaOffeneTage(){
-  const n = daysInMonth(ui.monthKey), heute = berHeute(), out = [];
-  for(let d = 1; d <= n; d++){
-    if(zeYmd(d) > heute) break;          // was noch nicht war, ist nicht offen
-    if(!zeTagZu(d)) out.push(zaTagStand(d));
-  }
-  return out;
-}
-/* Vorschläge aus dem Plan, die an einem sonst erledigten Tag liegen
-   geblieben sind. Sie halten nichts auf, sollen aber sichtbar sein. */
-function zaLiegenGeblieben(){
-  const n = daysInMonth(ui.monthKey), heute = berHeute(), out = [];
-  for(let d = 1; d <= n; d++){
-    if(zeYmd(d) > heute) break;
-    const st = zaTagStand(d);
-    if(st.offen.length) out.push(st);
-  }
-  return out;
-}
+const zaOffeneTage = () => zeTageBisHeute().filter(d => !zeTagZu(d)).map(zaTagStand);
+/* Vorschläge aus dem Plan, zu denen nichts erfasst ist. Sie halten
+   nichts auf, sollen aber sichtbar sein. */
+const zaLiegenGeblieben = () => zeTageBisHeute().map(zaTagStand).filter(st => st.offen.length);
 /* Bestätigte Schichten, die noch kein Mitarbeiter abgehakt hat. Das
    Büro bestätigt seine eigenen Schichten nicht noch einmal als
    Mitarbeiter — sonst bliebe der dritte Punkt ewig offen. */
@@ -2031,30 +2212,19 @@ function zeSumme(uid){
   return {normal, sl, tage, netto: normal + sl};
 }
 
-/* Was hat der Mitarbeiter geändert? Entschieden wird durch Vergleich,
-   nicht am Kennzeichen — ändert er etwas und stellt es zurück, soll
-   keine Phantom-Änderung stehen bleiben. */
 /* Nachgetragen und noch nicht vom Büro angesehen. */
 const zeNachtrag = r => !!r.emp_added && !r.adm_ok;
-
-/* Der letzte Tag, für den sich etwas nachtragen lässt: heute, oder das
-   Monatsende, wenn der Monat schon vorbei ist. */
-function zeLetzterTagImMonat(){
-  const k = ui.monthKey, n = daysInMonth(k), heute = berHeute();
-  for(let d = n; d >= 1; d--) if(zeYmd(d) <= heute) return d;
-  return 1;
-}
 
 /* Tage, an denen der Mitarbeiter noch nichts stehen hat — mehr als eine
    Schicht pro Tag und Person lässt die Datenbank nicht zu. */
 function zeFreieTage(){
   const belegt = {};
   zeVon(me.id).forEach(r => { belegt[zeTagNr(r.work_date)] = true; });
-  const out = [];
-  for(let d = 1; d <= zeLetzterTagImMonat(); d++) if(!belegt[d]) out.push(d);
-  return out;
+  return zeTageBisHeute().filter(d => !belegt[d]);
 }
 
+/* Was hat der Mitarbeiter geändert? Entschieden wird durch Vergleich
+   mit dem festgehaltenen Stand des Büros, nicht am Kennzeichen. */
 function zeDiffText(r){
   const o = r.emp_orig;
   if(!o) return "";
@@ -2091,7 +2261,7 @@ async function zeRun(builder){
   const rows = res && res.data ? [].concat(res.data) : null;
   if(rows && rows.length === 0){
     setSync("bad");
-    return {ok:false, msg:"gesperrt — bitte lade die Seite neu", data:[]};
+    return {ok:false, msg:"gesperrt — tippe oben auf „Neu laden“ und versuch es noch einmal", data:[]};
   }
   setSync("ok");
   return {ok:true, msg:"", data:rows};
@@ -2251,7 +2421,9 @@ function zeEditHtml(){
     <div class="ze-btns">
       <button class="btn primary" data-act="zesave"
         ${c.err || (buero && !f.uid) || (!buero && !f.id && !frei.length) ? "disabled" : ""}>${
-        !buero && !f.id ? "✓ Nachtragen" : "✓ Bestätigen"}</button>
+        /* „Bestätigen“ heißt beim Büro: Haken setzen. Der Mitarbeiter
+           bestätigt erst am Monatsende — hier speichert er nur. */
+        buero ? "✓ Bestätigen" : f.id ? "✓ Änderung speichern" : "✓ Nachtragen"}</button>
       ${f.id && (buero || zeNachtrag(r))
         ? `<button class="btn danger ze-x" data-act="zedel" data-id="${f.id}"
              aria-label="Schicht löschen" title="Schicht löschen">✕</button>`
@@ -2353,11 +2525,9 @@ function zeDayHtml(r){
       ${zeHaken(r, false)}
     </div>
     ${zeNachtrag(r) && !auf
-      ? `<div class="ze-diff" style="margin:0 11px 11px">Von dir nachgetragen — das Büro
-           sieht es sich noch an.</div>`
+      ? `<div class="ze-diff">Von dir nachgetragen — das Büro sieht es sich noch an.</div>`
       : r.emp_changed && !auf && zeDiffText(r)
-      ? `<div class="ze-diff" style="margin:0 11px 11px">Von dir geändert: ${zeDiffText(r)}
-           — das Büro sieht es sich noch an.</div>` : ""}
+      ? `<div class="ze-diff">Von dir geändert: ${zeDiffText(r)} — das Büro sieht es sich noch an.</div>` : ""}
     ${auf ? zeEditHtml() : ""}
   </div>`;
 }
@@ -2378,8 +2548,8 @@ function staffTime(){
   if(zeZu()) banner = `<div class="banner ok">Der Monat ist abgeschlossen. Hier ist nichts mehr zu tun.</div>`;
   else if(!rows.length)
     banner = `<div class="banner info">Für ${esc(monthLabel(k))} hat das Büro noch keine Schichten freigegeben.
-      Sobald es das tut, stehen sie hier — und du prüfst und bestätigst sie. Fehlt eine Schicht,
-      die du gearbeitet hast, kannst du sie unten selbst nachtragen.</div>`;
+      Sobald es das tut, stehen sie hier — und du prüfst und bestätigst sie.${zeiten().on
+        ? " Fehlt eine Schicht, die du gearbeitet hast, kannst du sie unten selbst nachtragen." : ""}</div>`;
   else if(!offen.length && !nach.length)
     banner = `<div class="banner ok">Alles bestätigt. Danke — das Büro hat deine Zeiten.</div>`;
   else if(!vorbei)
@@ -2390,19 +2560,21 @@ function staffTime(){
     <div class="ze-state">${esc(
       zeZu() ? "Abgeschlossen."
       : !rows.length ? "Noch keine freigegebenen Schichten."
-      : offen.length ? offen.length + (offen.length === 1 ? " Schicht" : " Schichten") + " noch zu bestätigen."
-      : frei.length ? "Alle " + frei.length + (frei.length === 1 ? " Schicht" : " Schichten") + " bestätigt."
+      : offen.length ? anzSchichten(offen.length) + " noch zu bestätigen."
+      : frei.length ? "Alle " + anzSchichten(frei.length) + " bestätigt."
       : "Noch keine freigegebenen Schichten.")}</div>
     <div class="ze-nums">
       <div class="ze-num"><span class="ze-nv">${zeHM(s.normal)}</span><span class="ze-nl">Normal</span></div>
       <div class="ze-num"><span class="ze-nv">${zeHM(s.sl)}</span><span class="ze-nl">Schichtleitung</span></div>
       <div class="ze-num"><span class="ze-nv">${zeHM(s.netto)}</span><span class="ze-nl">Gesamt</span></div>
     </div>
-    <span class="pill ${frei.length && !offen.length ? "done" : ""}"><b>${frei.length - offen.length}</b>
-      von ${frei.length} ${frei.length === 1 ? "Schicht" : "Schichten"} bestätigt</span>
-    ${nach.length ? `<span class="pill wait">${nach.length}
-      ${nach.length === 1 ? "nachgetragene Schicht wartet" : "nachgetragene Schichten warten"}
-      auf das Büro</span>` : ""}
+    <div class="ze-pills">
+      <span class="pill ${frei.length && !offen.length ? "done" : ""}"><b>${frei.length - offen.length}</b>
+        von ${anzSchichten(frei.length)} bestätigt</span>
+      ${nach.length ? `<span class="pill wait">${nach.length}
+        ${nach.length === 1 ? "nachgetragene Schicht wartet" : "nachgetragene Schichten warten"}
+        auf das Büro</span>` : ""}
+    </div>
   </div>`;
 
   const liste = rows.length
@@ -2415,26 +2587,26 @@ function staffTime(){
   const nachtragen = zeZu() || (!zeiten().on && !rows.length) ? ""
     : neuAuf ? `<div class="ze-day is-open">${zeEditHtml()}</div>`
     : `<button class="btn ze-add" data-act="zeneu">+ Fehlende Schicht nachtragen</button>
-       <p class="hint" style="margin-top:10px">Fehlt hier eine Schicht, die du gearbeitet hast,
+       <p class="hint">Fehlt hier eine Schicht, die du gearbeitet hast,
          trag sie nach — das Büro bekommt sie als offenen Punkt.</p>`;
 
   const fuss = !zeZu() && vorbei && offen.length
-    ? `<div class="sticky-bar"><div class="sticky-in ze-fuss">
+    ? `<div class="sticky-bar"><div class="sticky-in ze-fuss"><div class="spalte">
          <div class="grow small muted">${zeHM(s.netto)} Std${s.sl ? " · davon SL " + zeHM(s.sl) : ""}</div>
          <button class="btn primary" data-act="zemonat">✓ Monat bestätigen</button>
-       </div></div>`
+       </div></div></div>`
     : "";
 
   return monthBar()
     + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
     + banner + kopf
-    + (geaendert.length ? `<div class="ze-diff" style="margin-bottom:10px">Du hast <b>${geaendert.length}</b>
-        ${geaendert.length === 1 ? "Schicht" : "Schichten"} geändert (${
+    + (geaendert.length ? `<div class="ze-diff" style="margin-bottom:10px">Du hast
+        <b>${anzSchichten(geaendert.length)}</b> geändert (${
           geaendert.map(r => zeTagNr(r.work_date) + ".").join(", ")}). Das Büro sieht sich das an und
         bestätigt erneut.</div>` : "")
     + liste
     + nachtragen
-    + (rows.length ? `<p class="hint" style="margin-top:16px">Der <b>linke</b> Haken ist der des Büros, der
+    + (rows.length ? `<p class="hint luft">Der <b>linke</b> Haken ist der des Büros, der
         <b>rechte</b> deiner — stimmt eine Zeit nicht, tippe die Schicht an und ändere sie, bestätigen kannst
         du zum Monatsende alles auf einmal.</p>` : "")
     + fuss;
@@ -2445,22 +2617,16 @@ function staffTime(){
    Büro: Reiter Zeiterfassung — Liste der Tage
    ============================================================ */
 function zaListeHtml(){
-  const k = ui.monthKey, n = daysInMonth(k), heute = berHeute();
-  const tage = [];
-  for(let d = 1; d <= n; d++){
-    if(zeYmd(d) > heute) break;                // was noch nicht war, ist nicht zu bestätigen
-    tage.push(zaTagStand(d));
-  }
-  if(!tage.length) return `<p class="empty-note">${esc(monthLabel(k))} hat noch nicht begonnen.</p>`;
+  const k = ui.monthKey;
+  const stand = zeTageBisHeute().map(zaTagStand);
+  if(!stand.length) return `<p class="empty-note">${esc(monthLabel(k))} hat noch nicht begonnen.</p>`;
 
-  const offen = tage.filter(x => !x.fertig);
+  const offen = stand.filter(x => !x.fertig);
+  /* Eine einzige fette Zeile: Datum, was geplant war, was erfasst ist.
+     Die Zahlen sagen von selbst, wo etwas fehlt. */
+  const zahl = n => n ? anzSchichten(n) : "—";
   const zeile = st => {
-    const cls = ["za-row", st.fertig ? "is-adm"
-      : st.geaendert.length ? "is-chg" : st.noetig ? "is-miss" : "is-leer"].filter(Boolean).join(" ");
-    /* Eine einzige fette Zeile: Datum, was geplant war, was erfasst ist.
-       Die Zahlen sagen von selbst, wo etwas fehlt — darum steht darunter
-       kein grauer Kommentar mehr. */
-    const zahl = n => n ? n + (n === 1 ? " Schicht" : " Schichten") : "—";
+    const cls = "za-row " + (st.fertig ? "is-adm" : st.geaendert.length ? "is-chg" : st.noetig ? "is-miss" : "is-leer");
     return `<div class="${cls}" data-d="${st.d}">
       <button class="za-rb za-tag" data-act="zaday" data-d="${st.d}">
         <span class="za-rd">${WD_SHORT[st.wd]} ${st.d}.</span>
@@ -2471,15 +2637,18 @@ function zaListeHtml(){
     </div>`;
   };
 
-  return `<div class="za-rows">${tage.map(zeile).join("")}</div>
-    ${offen.length && !zeZu() ? `<button class="btn ze-add primary" data-act="zaalle">${offen.length === 1
+  /* Der Sammelknopf steht oben: bei 31 Zeilen findet ihn unten niemand. */
+  return `${offen.length && !zeZu() ? `<button class="btn ze-add oben primary" data-act="zaalle">${offen.length === 1
       ? "✓ Den offenen Tag" : "✓ Alle " + offen.length + " offenen Tage"
       } übernehmen, bestätigen und abschließen</button>` : ""}
-    <p class="hint" style="margin-top:14px">Tippe einen Tag an: dort stehen die Schichten so, wie sie im
-      Dienstplan stehen. Du kannst Zeiten ändern, Personen tauschen und die Schichtleitung setzen. Bestätigt
-      wird jede Schicht einzeln — damit sieht der Mitarbeiter sie und kann sie abhaken. Sind alle Schichten
-      bestätigt, schließt du den Tag ab; erst dann wird er grün. Ein Tag ohne Schichten lässt sich ebenfalls
-      abschließen, die App fragt dann nach.</p>`;
+    <div class="za-rows">${stand.map(zeile).join("")}</div>
+    <div class="legend">
+      <span><i class="lg-ok"></i>abgeschlossen</span>
+      <span><i class="lg-chg"></i>Mitarbeiter hat geändert</span>
+      <span><i class="lg-offen"></i>noch offen</span>
+    </div>
+    <p class="hint luft">Tippe einen Tag an, prüfe die Schichten und bestätige sie — dann schließt du den Tag ab.
+      Erst damit wird er grün. Wie das im Einzelnen geht, steht in der Anleitung hinter dem Fragezeichen oben.</p>`;
 }
 
 
@@ -2491,42 +2660,64 @@ function zaListeHtml(){
    zugeklappten Zeile wären sie nur Beiwerk. */
 function zaRowHtml(r){
   const auf = ui.zeOpen === r.id;
+  const wer = esc(personName(r.user_id));
   const cls = ["za-row is-schicht", r.emp_changed ? "is-chg" : r.adm_ok ? "is-adm" : "",
     auf ? "is-open" : ""].filter(Boolean).join(" ");
+  /* Der Hinweis steht nur an der zugeklappten Zeile — aufgeklappt
+     wiederholt ihn der Editor, und zweimal untereinander liest ihn
+     niemand lieber. */
+  const hinweis = auf ? ""
+    : zeNachtrag(r)
+      ? `<div class="ze-diff">${wer} hat diese Schicht nachgetragen — sie stand nicht im Dienstplan.
+           Mit dem Haken nimmst du sie an.</div>`
+    : r.emp_changed && zeDiffText(r)
+      ? `<div class="ze-diff">${wer} hat geändert: ${zeDiffText(r)}
+           <button class="btn sm" data-act="zetake" data-id="${r.id}">Übernehmen</button></div>`
+    : "";
   return `<div class="${cls}" data-id="${r.id}">
       <button class="za-rb" data-act="zarow" data-id="${r.id}" ${zeZu() ? "disabled" : ""}>
-        <span class="za-rm">${esc(personName(r.user_id))}</span>
+        <span class="za-rm">${wer}</span>
         <span class="za-zu" aria-hidden="true">${auf ? "−" : "+"}</span>
       </button>
       ${zeHaken(r, !zeZu())}
     </div>
-    ${zeNachtrag(r)
-      ? `<div class="ze-diff">${esc(personName(r.user_id))} hat diese Schicht nachgetragen
-           — sie stand nicht im Dienstplan. Mit dem Haken nimmst du sie an.</div>`
-      : r.emp_changed && zeDiffText(r)
-      ? `<div class="ze-diff">${esc(personName(r.user_id))} hat geändert: ${zeDiffText(r)}
-           <button class="btn sm" data-act="zetake" data-id="${r.id}"
-             style="margin-left:6px">Übernehmen</button></div>` : ""}
+    ${hinweis}
     ${auf ? `<div class="ze-day is-open">${zeEditHtml()}</div>` : ""}`;
+}
+
+/* Was unter einem Tag steht, bevor man ihn abschließt */
+function zaTagFuss(st){
+  if(st.fertig) return "Dieser Tag ist abgeschlossen. Änderst du etwas an den Schichten, geht er wieder auf.";
+  if(!st.bereit){
+    const teile = [];
+    if(st.ohneHaken.length) teile.push(mz(st.ohneHaken.length, "Schicht ist", "Schichten sind") + " noch nicht bestätigt");
+    if(st.geaendert.length) teile.push(mz(st.geaendert.length, "Schicht trägt", "Schichten tragen")
+      + " eine Änderung des Mitarbeiters");
+    return teile.join(", ") + ".";
+  }
+  if(!st.rows.length) return "An diesem Tag ist keine Schicht erfasst"
+    + (st.offen.length ? " — " + mz(st.offen.length, "Vorschlag aus dem Dienstplan ist",
+        "Vorschläge aus dem Dienstplan sind") + " nicht übernommen" : "") + ".";
+  return "Alle Schichten bestätigt.";
 }
 
 function zaTagHtml(d){
   const st = zaTagStand(d);
   const k = ui.monthKey;
   const neu = ui.zeOpen === "neu" && ui.zeForm && ui.zeForm.d === d;
+  const zu = zeZu();
 
   /* Vorschläge aus dem Plan: noch keine Schicht, nur ein Angebot.
      Tippen klappt den Editor auf, Bestätigen legt sie an. */
   const vor = st.offen.map(p => {
-    const auf = ui.zeOpen === "neu" && ui.zeForm && ui.zeForm.d === d && ui.zeForm.uid === p.emp;
+    const auf = neu && ui.zeForm.uid === p.emp;
     return `<div class="za-row is-miss ${auf ? "is-open" : ""}">
-      <button class="za-rb" data-act="zafromplan" data-d="${d}" data-emp="${p.emp}" ${zeZu() ? "disabled" : ""}>
+      <button class="za-rb" data-act="zafromplan" data-d="${d}" data-emp="${p.emp}" ${zu ? "disabled" : ""}>
         <span class="za-rt"><span class="za-rm">${esc(personName(p.emp))}</span>
-          <span class="za-rs">${esc(p.starts)}–${esc(p.ends)}${p.lead ? " · Schichtleitung" : ""}
-            · Vorschlag aus dem Dienstplan</span></span>
+          <span class="za-rs">Vorschlag aus dem Plan · ${esc(p.starts)}–${esc(p.ends)}${p.lead ? " · SL" : ""}</span></span>
         <span class="za-zu" aria-hidden="true">${auf ? "−" : "+"}</span>
       </button>
-      ${zeZu() ? "" : `<button class="za-weg" data-act="zaskip" data-d="${d}" data-emp="${p.emp}"
+      ${zu ? "" : `<button class="za-weg" data-act="zaskip" data-d="${d}" data-emp="${p.emp}"
         aria-label="Hat nicht stattgefunden" title="Hat nicht stattgefunden — Vorschlag verwerfen">✕</button>`}
     </div>${auf ? `<div class="ze-day is-open">${zeEditHtml()}</div>` : ""}`;
   }).join("");
@@ -2539,12 +2730,12 @@ function zaTagHtml(d){
   const neuLeer = neu && !st.offen.some(p => p.emp === ui.zeForm.uid);
   const liste = st.rows.map(zaRowHtml).join("") + vor;
 
-  return `<button class="btn za-zurueck" data-act="zaback">‹ Alle Tage</button>
-    <div class="za-phead">
+  return `<div class="za-phead">
+      <button class="btn za-zurueck" data-act="zaback">‹ Alle Tage</button>
       <div class="za-pnav">
         <button class="btn arrow" data-act="zadnav" data-d="${d - 1}" ${d <= 1 ? "disabled" : ""}
           aria-label="Vortag">‹</button>
-        <div class="za-pname">${WD_SHORT[st.wd]} ${d}. ${esc(monthLabel(k).split(" ")[0])}</div>
+        <div class="za-pname">${WD_SHORT[st.wd]} ${d}. ${esc(MONTHS[parseKey(k).m])}</div>
         <button class="btn arrow" data-act="zadnav" data-d="${d + 1}"
           ${d >= daysInMonth(k) || zeYmd(d + 1) > berHeute() ? "disabled" : ""} aria-label="Nächster Tag">›</button>
       </div>
@@ -2553,26 +2744,16 @@ function zaTagHtml(d){
       || `<p class="empty-note">An diesem Tag ist nichts eingetragen${
            weg.length ? " — die geplanten Schichten hast du verworfen" : " und nichts geplant"}.</p>`}</div>
     ${neuLeer ? `<div class="ze-day is-open">${zeEditHtml()}</div>`
-      : zeZu() ? "" : `<button class="btn ze-add" data-act="zanew" data-d="${d}">+ Schicht hinzufügen</button>`}
-    ${weg.length ? `<p class="hint" style="margin-top:12px">Verworfen (hat nicht stattgefunden):
+      : zu ? "" : `<button class="btn ze-add" data-act="zanew" data-d="${d}">+ Schicht hinzufügen</button>`}
+    ${weg.length ? `<p class="hint luft">Verworfen (hat nicht stattgefunden):
       <b>${esc(zeWenige(weg.map(p => personName(p.emp))))}</b>
-      ${zeZu() ? "" : `<button class="btn sm" data-act="zaskipback" data-d="${d}"
+      ${zu ? "" : `<button class="btn sm" data-act="zaskipback" data-d="${d}"
         style="margin-left:6px">Zurückholen</button>`}</p>` : ""}
-    ${zeZu() ? "" : `<div class="za-foot">
-      <div class="grow muted">${esc(
-        st.fertig ? "Dieser Tag ist abgeschlossen. Änderst du etwas an den Schichten, geht er wieder auf."
-        : !st.bereit ? st.ohneHaken.length + (st.ohneHaken.length === 1 ? " Schicht ist" : " Schichten sind")
-            + " noch nicht bestätigt" + (st.geaendert.length ? ", " + st.geaendert.length
-            + " mit einer Änderung des Mitarbeiters" : "") + "."
-        : !st.rows.length ? "An diesem Tag ist keine Schicht erfasst"
-            + (st.offen.length ? " — " + st.offen.length + (st.offen.length === 1
-                ? " Vorschlag aus dem Dienstplan ist" : " Vorschläge aus dem Dienstplan sind")
-                + " nicht übernommen" : "") + "."
-        : "Alle Schichten bestätigt.")}</div>
+    ${zu ? "" : `<div class="za-foot">
+      <div class="grow muted">${esc(zaTagFuss(st))}</div>
       ${st.fertig
         ? `<button class="btn ghost danger" data-act="zadayopen" data-d="${d}">Tag wieder öffnen</button>`
-        : `<button class="btn primary" data-act="zadayclose" data-d="${d}"
-             style="min-height:46px">✓ Tag abschließen</button>`}
+        : `<button class="btn primary" data-act="zadayclose" data-d="${d}">✓ Tag abschließen</button>`}
     </div>`}`;
 }
 
@@ -2580,42 +2761,44 @@ function zaTagHtml(d){
 /* ============================================================
    Büro: Abschluss, Stunden, CSV
    ============================================================ */
+/* Stunden je Mitarbeiter als Tabelle. Hier stehen Stunden, keine
+   Beträge: gerechnet wird der Lohn nur, um zu wissen, ob jemand über
+   die Minijob-Grenze läuft — die Zahl selbst verlässt diese Funktion
+   nicht. */
 function zaSumHtml(){
   const leute = zeScope();
-  const geschlossen = zeZu();
+  if(!leute.length) return `<p class="empty-note">Niemand in diesem Monat.</p>`;
   const r = zeiten().rates;
-  const satz = geschlossen && r ? r : {wage:config.wage, wage_lead:config.wageSL, limit_amount:config.limit};
+  const satz = zeZu() && r ? r : {wage:config.wage, wage_lead:config.wageSL, limit_amount:config.limit};
   let gN = 0, gS = 0;
 
   const zeilen = leute.map(p => {
     const s = zeSumme(p.id);
     gN += s.normal; gS += s.sl;
-    /* Hier stehen Stunden, keine Beträge. Gerechnet wird der Lohn nur,
-       um zu wissen, ob jemand über die Minijob-Grenze läuft — die Zahl
-       selbst verlässt diese Funktion nicht. */
     const ueber = config.limitOn && p.minijob && Number(satz.limit_amount) > 0
       && (zeCenti(s.normal) / 100) * Number(satz.wage)
        + (zeCenti(s.sl) / 100) * Number(satz.wage_lead) > Number(satz.limit_amount);
-    /* Wer nichts erfasst hat, bekommt eine kurze Zeile statt dreier Nullen. */
-    if(!s.netto) return `<div class="za-s">
-      <div class="za-sn"><b>${esc(p.name)}</b>
-        <span class="tiny muted">nichts erfasst</span></div>
-    </div>`;
-    return `<div class="za-s">
-      <div class="za-sn"><b>${esc(p.name)}</b>
-        <span class="tiny muted">${s.tage} ${s.tage === 1 ? "Schicht" : "Schichten"}</span>
-        ${ueber ? `<span class="pill warn">über der Minijob-Grenze</span>` : ""}</div>
-      <div class="za-sg">
-        <span><b>${zeDez(s.normal)}</b>Normal</span>
-        <span><b>${zeDez(s.sl)}</b>Schichtleitung</span>
-        <span><b>${zeDez(s.netto)}</b>Gesamt</span>
-      </div>
+    /* Wer nichts erfasst hat, bekommt Striche statt dreier Nullen. */
+    const z = m => s.netto ? zeDez(m) : "—";
+    return `<div class="za-tr ${s.netto ? "" : "is-leer"}" role="row">
+      <span class="za-tn"><b>${esc(p.name)}</b>
+        <small>${s.netto ? anzSchichten(s.tage) : "nichts erfasst"}</small>
+        ${ueber ? `<span class="pill warn">über der Minijob-Grenze</span>` : ""}</span>
+      <span>${z(s.normal)}</span><span>${z(s.sl)}</span><span class="za-tg">${z(s.netto)}</span>
     </div>`;
   }).join("");
 
-  return `<div class="za-sum">${zeilen || `<p class="empty-note">Niemand in diesem Monat.</p>`}
-    ${leute.length ? `<div class="za-total">Summe: ${zeDez(gN)} Normal · ${zeDez(gS)} Schichtleitung
-      · ${dec((zeCenti(gN) + zeCenti(gS)) / 100, 2)} Stunden gesamt</div>` : ""}</div>`;
+  return `<div class="za-tab" role="table" aria-label="Stunden je Mitarbeiter">
+    <div class="za-tr za-th" role="row">
+      <span class="za-tn">Name</span><span>Normal</span>
+      <span><span class="lang">Schichtleitung</span><span class="kurz">SL</span></span><span>Gesamt</span>
+    </div>
+    ${zeilen}
+    <div class="za-tr za-tsum" role="row">
+      <span class="za-tn">Summe</span><span>${zeDez(gN)}</span><span>${zeDez(gS)}</span>
+      <span>${dec((zeCenti(gN) + zeCenti(gS)) / 100, 2)}</span>
+    </div>
+  </div>`;
 }
 
 function zaCloseHtml(){
@@ -2627,76 +2810,65 @@ function zaCloseHtml(){
   const fehlen = [];
   offeneHaken.forEach(r => { const n = personName(r.user_id); if(fehlen.indexOf(n) < 0) fehlen.push(n); });
   const geschlossen = zeZu();
-  /* Dasselbe Tor wie guard_time_month: nur offene Schichten halten auf.
-     Nicht übernommene Vorschläge aus dem Plan nicht — die stehen als
-     Hinweis darunter. */
+  /* Dasselbe Tor wie guard_time_month: der Monat ist vorbei und jeder
+     Tag ist abgeschlossen. Die Haken der Mitarbeiter halten nicht auf. */
   const bereit = vorbei && !offeneT.length;
   const tageVon = liste => zeWenige(liste.map(x => (x.d || zeTagNr(x.work_date)) + "."));
 
   const haken = (ok, text, sub) => `<li class="${ok ? "is-done" : ""}"><i>${ok ? "✓" : "○"}</i>
-    <span style="color:inherit; font-size:14px">${esc(text)}${sub ? `<span>${esc(sub)}</span>` : ""}</span></li>`;
+    <span>${esc(text)}${sub ? `<small>${esc(sub)}</small>` : ""}</span></li>`;
 
   return `<div class="card panel">
       <h2>Abschluss ${esc(monthLabel(k))}</h2>
       <ul class="za-chk">
         ${haken(vorbei, "Der Monat ist vorbei", vorbei ? "" : "geht ab " + zeAbDatum(k))}
         ${haken(!offeneT.length, "Alle Tage vom Büro abgeschlossen",
-          offeneT.length ? offeneT.length + (offeneT.length === 1 ? " Tag" : " Tage")
-            + " offen: " + tageVon(offeneT) : "")}
+          offeneT.length ? anzTage(offeneT.length) + " offen: " + tageVon(offeneT) : "")}
         ${haken(!offeneHaken.length, "Alle Schichten von den Mitarbeitern bestätigt",
           offeneHaken.length ? "es fehlen " + offeneHaken.length + " von " + zaFreigegeben()
             + " — " + zeWenige(fehlen) + " (hält den Abschluss nicht auf)" : "")}
       </ul>
       ${liegen.length ? `<p class="tiny muted" style="margin:-6px 0 14px">Dazu stehen
         <b>${liegen.reduce((n, x) => n + x.offen.length, 0)}</b> Schichten im Dienstplan, zu denen nichts
-        erfasst ist (${esc(tageVon(liegen))}). Das hält den Abschluss nicht auf — sie zählen dann aber auch
-        nicht mit. Wer nicht gearbeitet hat, wird im Tag mit dem roten Kreuz verworfen; dann ist der Tag
-        erledigt.</p>` : ""}
+        erfasst ist (${esc(tageVon(liegen))}). Sie zählen nicht mit. Wer nicht gearbeitet hat, wird im Tag
+        mit dem roten Kreuz verworfen.</p>` : ""}
       ${geschlossen
         ? `<div class="banner ok">Abgeschlossen${zeiten().closed_at ? " am " + zeDatum(zeiten().closed_at) : ""}.
              Niemand kann die Zeiten mehr ändern.</div>
-           <div class="row" style="margin-top:12px">
-             <button class="btn ghost danger" data-act="zareopen">Monat wieder öffnen</button>
-           </div>`
+           <button class="btn ghost danger" data-act="zareopen">Monat wieder öffnen</button>`
         : `<button class="btn primary" data-act="zaclose" ${bereit ? "" : "disabled"}
              style="min-height:46px">Monat abschließen</button>
-           ${!bereit ? `<p class="tiny muted" style="margin:10px 0 0">${esc(
+           ${bereit ? "" : `<p class="nb">${esc(
                !vorbei ? "Abschließen geht ab " + zeAbDatum(k) + "."
-               : "Noch abzuschließen: " + offeneT.length
-                 + (offeneT.length === 1 ? " Tag, der " : " Tage, der ") + tageVon(offeneT))}</p>` : ""}`}
+               : "Abschließen geht, sobald jeder Tag abgeschlossen ist.")}</p>`}`}
     </div>
     <div class="card panel">
       <h2>Stunden je Mitarbeiter
-        ${geschlossen ? "" : `<span class="pill warn" style="margin-left:8px">vorläufig</span>`}</h2>
-      <p>Aus den <b>erfassten</b> Zeiten, nicht aus dem Plan. Eine Schicht zählt zu dem Tag, an dem sie beginnt.
-         ${geschlossen ? "" : "Solange der Monat offen ist, können sich die Stunden noch ändern."}</p>
+        ${geschlossen ? "" : `<span class="pill wait" style="margin-left:8px">vorläufig</span>`}</h2>
+      <p>Aus den <b>erfassten</b> Zeiten, nicht aus dem Plan, in Dezimalstunden. Eine Schicht zählt zu dem Tag,
+         an dem sie beginnt.${geschlossen ? "" : " Solange der Monat offen ist, können sich die Stunden noch ändern."}</p>
       ${zaSumHtml()}
       <div class="za-csv">
         <button class="btn primary" data-act="zacsv" data-wie="summen">Summen (CSV)</button>
         <button class="btn" data-act="zacsv" data-wie="tage">Einzelschichten (CSV)</button>
       </div>
-      <p class="tiny muted" style="margin:10px 0 0">Beide Dateien gehen jederzeit — auch wenn noch
-        Bestätigungen der Mitarbeiter fehlen. Zwei getrennte Knöpfe, weil Browser den zweiten Download
-        ohne eigenen Tipp blockieren. Am iPhone bietet Safari „In Dateien sichern“ an.</p>
+      <p class="nb">Beide Dateien gehen jederzeit — auch wenn noch
+        Bestätigungen der Mitarbeiter fehlen. Am iPhone bietet Safari „In Dateien sichern“ an.</p>
     </div>`;
 }
 
 function adminTime(){
   const k = ui.monthKey;
   const schritt = ui.zaStep === "close" ? "close" : "tage";
-  const offeneTage = zaOffeneTage();
+  const offen = zaOffeneTage().length;
 
   const stufe = (id, titel, zahl, erledigt) => `<button class="za-step ${erledigt ? "is-done" : ""}"
     role="tab" aria-selected="${schritt === id}" data-act="zastep" data-step="${id}">
     <b>${titel}</b>${esc(zahl)}</button>`;
 
   const kopf = `<div class="za-steps" role="tablist">
-    ${stufe("tage", "Tage", offeneTage.length
-      ? offeneTage.length + (offeneTage.length === 1 ? " Tag zu prüfen" : " Tage zu prüfen")
-      : "alle abgeschlossen", !offeneTage.length)}
-    ${stufe("close", "Abschluss", zeZu() ? "abgeschlossen"
-      : offeneTage.length ? offeneTage.length + (offeneTage.length === 1 ? " Tag offen" : " Tage offen")
-      : "bereit", zeZu())}
+    ${stufe("tage", "Tage", offen ? mz(offen, "Tag zu prüfen", "Tage zu prüfen") : "alle abgeschlossen", !offen)}
+    ${stufe("close", "Abschluss", zeZu() ? "abgeschlossen" : offen ? anzTage(offen) + " offen" : "bereit", zeZu())}
   </div>`;
 
   const body = schritt === "close" ? zaCloseHtml()
@@ -2706,8 +2878,8 @@ function adminTime(){
     + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
     + (zeZu() ? `<div class="banner ok">${esc(monthLabel(k))} ist abgeschlossen. Zum Ändern musst du den
         Monat wieder öffnen.</div>` : "")
-    + (!zeiten().on ? `<div class="banner info">Für ${esc(monthLabel(k))} ist keine Zeiterfassung nötig
-        (Einstellungen: „Zeiterfassung ab Monat“). Erfassen und Abschließen gehen trotzdem.</div>` : "")
+    + (!zeiten().on ? `<div class="banner info">Für ${esc(monthLabel(k))} ist die Zeiterfassung noch nicht
+        verbindlich (Einstellungen: „Verbindlich ab“). Erfassen und Abschließen gehen trotzdem.</div>` : "")
     + kopf + body;
 }
 
@@ -2803,7 +2975,7 @@ async function zeSpeichern(){
   if(res.data && res.data[0]) zeMerke(res.data[0]);
   const t = zeiten();
   if(t.skips[f.d]) delete t.skips[f.d][f.uid];
-  ui.zeOpen = null; ui.zeForm = null; ui.formError = "";
+  zeEditorZu(); ui.formError = "";
   render();
 }
 
@@ -2830,16 +3002,13 @@ async function zaHaken(id){
    Schicht tippen will niemand. */
 async function zaAlleSchichten(){
   if(zeBusy) return;
-  const k = ui.monthKey, n = daysInMonth(k), heute = berHeute();
+  const k = ui.monthKey, bisHeute = zeTageBisHeute();
   const neu = [], weg = [];
-  for(let d = 1; d <= n; d++){
-    if(zeYmd(d) > heute) break;
-    zaOffenePlan(d).forEach(p => {
-      const z = zeAusPlan(d, p);
-      if(z) neu.push(Object.assign(z, {adm_ok:true}));
-      else weg.push(d + ". " + personName(p.emp));
-    });
-  }
+  bisHeute.forEach(d => zaOffenePlan(d).forEach(p => {
+    const z = zeAusPlan(d, p);
+    if(z) neu.push(Object.assign(z, {adm_ok:true}));
+    else weg.push(d + ". " + personName(p.emp));
+  }));
   zeBusy = true;
   if(neu.length){
     const res = await zeRun(sb.from("time_entries").insert(neu).select(ZE_SPALTEN));
@@ -2854,11 +3023,7 @@ async function zaAlleSchichten(){
   }
   /* Erst wenn alle Haken sitzen, lassen sich die Tage abschließen —
      die Datenbank lehnt es sonst ab. */
-  const tage = [];
-  for(let d = 1; d <= n; d++){
-    if(zeYmd(d) > heute) break;
-    if(!zeTagZu(d)) tage.push({work_date:zeYmd(d), ym:k, closed:true});
-  }
+  const tage = bisHeute.filter(d => !zeTagZu(d)).map(d => ({work_date:zeYmd(d), ym:k, closed:true}));
   if(tage.length){
     const res = await zeRun(sb.from("time_days").upsert(tage, {onConflict:"work_date"})
       .select("work_date,closed"));
@@ -2881,18 +3046,18 @@ async function zaSchliesseTag(d){
   zeBusy = false;
   if(!res.ok){ ui.formError = "Tag nicht abgeschlossen: " + res.msg; render(); return; }
   zeiten().days[d] = (res.data && res.data[0] && res.data[0].closed_at) || true;
-  ui.zeOpen = null; ui.zeForm = null; ui.formError = "";
+  zeEditorZu(); ui.formError = "";
   render();
 }
 
 /* ============================================================
    Zeiterfassung — Klicks
 
-   Steht vor dem großen switch in handleClick(): alle Aktionen mit den
-   Präfixen ze… und za… werden hier behandelt. Was hier nichts findet,
-   läuft unverändert weiter.
+   Alle Aktionen mit den Präfixen ze… und za…. Einer der Bereiche,
+   auf die handleClick() verteilt.
    ============================================================ */
 async function zeClick(act, el){
+  if(act.slice(0, 2) !== "ze" && act.slice(0, 2) !== "za") return false;
   const k = ui.monthKey;
   const id = el.dataset.id;
   const tagN = Number(el.dataset.d);
@@ -2904,7 +3069,7 @@ async function zeClick(act, el){
     /* ---- gemeinsamer Editor ---- */
     case "zeday":
     case "zarow": {
-      if(ui.zeOpen === id){ ui.zeOpen = null; ui.zeForm = null; }
+      if(ui.zeOpen === id){ zeEditorZu(); }
       else zeFormAuf(id);
       render();
       if(ui.zeOpen){
@@ -2913,11 +3078,11 @@ async function zeClick(act, el){
       }
       return true;
     }
-    case "zezu": ui.zeOpen = null; ui.zeForm = null; render(); return true;
+    case "zezu": zeEditorZu(); render(); return true;
     case "zanew": zeFormAuf(null, tagN, null); render(); return true;
     /* Mitarbeiter: eine vergessene Schicht nachtragen */
     case "zeneu": {
-      if(ui.zeOpen === "neu"){ ui.zeOpen = null; ui.zeForm = null; render(); return true; }
+      if(ui.zeOpen === "neu"){ zeEditorZu(); render(); return true; }
       const frei = zeFreieTage();
       if(!frei.length){
         sag("Für jeden Tag dieses Monats steht schon eine Schicht von dir. Mehr als eine pro Tag "
@@ -2935,7 +3100,7 @@ async function zeClick(act, el){
          eines Vorschlags nur über einen Umweg heraus. */
       if(ui.zeOpen === "neu" && ui.zeForm && ui.zeForm.d === tagN
          && ui.zeForm.uid === el.dataset.emp && !ui.zeForm.id){
-        ui.zeOpen = null; ui.zeForm = null; render(); return true;
+        zeEditorZu(); render(); return true;
       }
       const p = zaPlan(tagN).find(x => x.emp === el.dataset.emp);
       if(p) zeFormAuf(null, tagN, p);
@@ -2976,7 +3141,7 @@ async function zeClick(act, el){
           const res = await zeRun(sb.from("time_entries").delete().eq("id", r.id).select("id"));
           if(!res.ok){ ui.formError = "Nicht gelöscht: " + res.msg; render(); return; }
           zeVergiss(r.id);
-          ui.zeOpen = null; ui.zeForm = null;
+          zeEditorZu();
           render();
         });
       return true;
@@ -3010,15 +3175,15 @@ async function zeClick(act, el){
     /* ---- Büro: Tage ---- */
     case "zastep":
       ui.zaStep = el.dataset.step; ui.zaDay = null;
-      ui.zeOpen = null; ui.zeForm = null; render(); return true;
+      zeEditorZu(); render(); return true;
     case "zaday":
       ui.zaDay = tagN; ui.zaStep = "tage";
-      ui.zeOpen = null; ui.zeForm = null; render(); window.scrollTo(0, 0); return true;
+      zeEditorZu(); render(); window.scrollTo(0, 0); return true;
     case "zaback":
-      ui.zaDay = null; ui.zeOpen = null; ui.zeForm = null; render(); return true;
+      ui.zaDay = null; zeEditorZu(); render(); return true;
     case "zadnav":
       ui.zaDay = Math.max(1, Math.min(daysInMonth(k), tagN));
-      ui.zeOpen = null; ui.zeForm = null; render(); window.scrollTo(0, 0); return true;
+      zeEditorZu(); render(); window.scrollTo(0, 0); return true;
     case "zaok": await zaHaken(id); return true;
 
     /* ---- Vorschlag verwerfen und zurückholen ---- */
@@ -3030,7 +3195,7 @@ async function zeClick(act, el){
       if(!res.ok){ ui.formError = "Nicht verworfen: " + res.msg; render(); return true; }
       const t = zeiten();
       (t.skips[tagN] = t.skips[tagN] || {})[wer] = true;
-      ui.zeOpen = null; ui.zeForm = null;
+      zeEditorZu();
       render();
       return true;
     }
@@ -3038,23 +3203,11 @@ async function zeClick(act, el){
     case "zadayclose": {
       const st = zaTagStand(tagN);
       if(!st.bereit){
-        sag("Dieser Tag lässt sich noch nicht abschließen: "
-          + (st.ohneHaken.length ? st.ohneHaken.length
-              + (st.ohneHaken.length === 1 ? " Schicht ist" : " Schichten sind") + " noch nicht bestätigt"
-            : "")
-          + (st.ohneHaken.length && st.geaendert.length ? ", und " : "")
-          + (st.geaendert.length ? st.geaendert.length
-              + (st.geaendert.length === 1 ? " Schicht trägt" : " Schichten tragen")
-              + " eine Änderung des Mitarbeiters, die du noch nicht angenommen hast" : "")
-          + ". Setz dort erst den Haken.");
+        sag("Dieser Tag lässt sich noch nicht abschließen: " + zaTagFuss(st) + " Setz dort erst den Haken.");
         return true;
       }
       if(!st.rows.length){
-        ask("An diesem Tag ist keine Schicht erfasst"
-          + (st.offen.length ? " — " + st.offen.length
-             + (st.offen.length === 1 ? " Vorschlag aus dem Dienstplan ist" : " Vorschläge aus dem Dienstplan sind")
-             + " nicht übernommen" : "")
-          + ". Tag ohne Schichten abschließen?", "Abschließen", () => zaSchliesseTag(tagN));
+        ask(zaTagFuss(st) + " Tag ohne Schichten abschließen?", "Abschließen", () => zaSchliesseTag(tagN));
         return true;
       }
       await zaSchliesseTag(tagN);
@@ -3079,12 +3232,9 @@ async function zeClick(act, el){
       return true;
     }
     case "zaalle": {
-      const tage = zaOffeneTage().length;
-      let vor = 0;
-      const n = daysInMonth(k), heute = berHeute();
-      for(let d = 1; d <= n && zeYmd(d) <= heute; d++) vor += zaOffenePlan(d).length;
-      ask("Das übernimmt " + vor + (vor === 1 ? " Schicht" : " Schichten") + " aus dem Dienstplan, bestätigt "
-        + "alle offenen Schichten und schließt " + tage + (tage === 1 ? " Tag" : " Tage")
+      const vor = zeTageBisHeute().reduce((n, d) => n + zaOffenePlan(d).length, 0);
+      ask("Das übernimmt " + anzSchichten(vor) + " aus dem Dienstplan, bestätigt "
+        + "alle offenen Schichten und schließt " + anzTage(zaOffeneTage().length)
         + " ab — auch die ohne Schichten. Danach sehen die Mitarbeiter ihre Schichten und können sie "
         + "abhaken. Einzelne Tage kannst du jederzeit wieder aufmachen.",
         "Alles abschließen", zaAlleSchichten);
@@ -3097,7 +3247,7 @@ async function zeClick(act, el){
       const mein = zeVon(me.id);
       const offen = mein.filter(r => r.adm_ok && !r.emp_ok);
       const wartet = mein.filter(zeNachtrag);
-      ask("Du bestätigst " + offen.length + (offen.length === 1 ? " Schicht" : " Schichten")
+      ask("Du bestätigst " + anzSchichten(offen.length)
         + " für " + monthLabel(k) + ": zusammen " + zeHM(s.netto) + " Std, davon " + zeHM(s.sl)
         + " Schichtleitung. Danach kannst du nichts mehr ändern — nur das Büro kann die Bestätigung "
         + "wieder aufheben."
@@ -3111,7 +3261,7 @@ async function zeClick(act, el){
             .eq("ym", k).eq("user_id", me.id).eq("adm_ok", true).eq("emp_ok", false).select(ZE_SPALTEN));
           if(!res.ok){ ui.formError = "Nicht bestätigt: " + res.msg; render(); return; }
           (res.data || []).forEach(zeMerke);
-          ui.zeOpen = null; ui.zeForm = null;
+          zeEditorZu();
           render();
         });
       return true;
@@ -3155,12 +3305,15 @@ async function zeClick(act, el){
 
     /* ---- Einstellung: ab welchem Monat die Zeiterfassung Pflicht ist ---- */
     case "zasavefirst": {
-      const v = String(config.timeFirstYm || "").trim();
+      /* Wurde nichts angefasst, gilt, was die beiden Auswahlfelder zeigen */
+      const m = document.getElementById("w-tfm"), j = document.getElementById("w-tfj");
+      const v = m && j ? j.value + "-" + m.value : String(config.timeFirstYm || "");
       ui.formInfo = "";
       if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(v)){
-        ui.zeFehler = "Bitte Jahr und Monat eintragen, zum Beispiel 2026-11.";
+        ui.zeFehler = "Bitte Monat und Jahr wählen.";
         render(); return true;
       }
+      config.timeFirstYm = v;
       const okay = await write(sb.from("settings").update({time_first_ym:v}).eq("id", 1));
       if(okay){ ui.formInfo = "Gespeichert."; await reload(); }
       else render();
@@ -3177,7 +3330,7 @@ function zeHinweisPlan(){
   const t = zeiten();
   const n = t.rows.length;
   if(!n) return "";
-  let s = " Für diesen Monat sind schon " + n + (n === 1 ? " Schicht" : " Schichten")
+  let s = " Für diesen Monat sind schon " + anzSchichten(n)
     + " in der Zeiterfassung erfasst. Die bleiben erhalten; die Vorschläge aus dem Plan sind danach aber weg.";
   if(t.closed) s += " Der Monat ist in der Zeiterfassung abgeschlossen — eine schon ausgelieferte CSV "
     + "passt danach nicht mehr zum Plan.";
@@ -3186,7 +3339,7 @@ function zeHinweisPlan(){
 
 /* Beim Wechsel von Reiter oder Monat alles Halboffene zumachen */
 function zeSchliessen(){
-  ui.zeOpen = null; ui.zeForm = null; ui.zaDay = null;
+  zeEditorZu(); ui.zaDay = null;
 }
 
 /* Eingaben im Editor: Zustand merken und nur den Rechenkasten nachführen */
@@ -3203,6 +3356,392 @@ function zeInput(t){
   zePatchEdit();
   return true;
 }
+/* ============================================================
+   Anleitung
+
+   Hinter dem Fragezeichen im Kopf. Zwei Fassungen: eine für
+   Mitarbeiter, eine für das Büro — das Büro kann beide lesen, damit
+   es weiß, was die Mitarbeiter sehen.
+
+   Die Abbildungen sind keine Fotos, sondern die echten Bausteine der
+   App mit Beispieldaten, stillgelegt (inert). So sehen sie in jedem
+   Erscheinungsbild und auf jedem Gerät genau so aus wie die App
+   selbst, und sie veralten nicht, wenn sich eine Farbe ändert.
+   ============================================================ */
+const hNr = n => `<span class="h-nr">${n}</span>`;
+/* Eine Abbildung mit Bildunterschrift */
+const hFig = (bild, text) => `<figure class="h-fig">
+  <div class="h-bild" inert aria-hidden="true">${bild}</div>
+  <figcaption>${text}</figcaption></figure>`;
+const hTipp = text => `<p class="h-tipp">${text}</p>`;
+/* Ein Abschnitt mit Sprungziel */
+const hTeil = (id, titel, inhalt) => `<section id="${id}"><h2>${titel}</h2>${inhalt}</section>`;
+/* Inhaltsverzeichnis als Reihe von Sprungmarken */
+const hInhalt = punkte => `<nav class="h-inhalt" aria-label="Inhalt">${punkte.map(p =>
+  `<button class="chip" data-act="helpgo" data-ziel="${p[0]}">${p[1]}</button>`).join("")}</nav>`;
+
+/* ---- Bausteine für die Abbildungen ---- */
+const hHaken = (buero, ich, nr) => `<span class="ze-ok2">
+  <span class="ze-h ${buero ? "is-on" : ""}">✓</span><span class="ze-h ${ich ? "is-on" : ""}">✓</span></span>${nr || ""}`;
+const hSchicht = (tag, zeit, unten, buero, ich, cls, nr) => `<div class="ze-day ${cls || ""}">
+  <div class="ze-row"><div class="ze-head">
+    <span class="ze-dt">${tag}</span>
+    <span class="ze-tx"><span class="ze-times">${zeit}</span><span class="ze-sub">${unten}</span></span>
+  </div>${hHaken(buero, ich, nr)}</div></div>`;
+const hKopf = (reiter, aktiv) => `<div class="h-kopf">
+  <div class="top-in">
+    <div class="who grow">Dienstplan</div>
+    <div class="top-ic">
+      <span class="btn ghost ic-btn">${IC_HILFE}</span>${hNr(2)}
+      <span class="btn ghost ic-btn">${IC_NEU}</span>${hNr(3)}
+      <span class="btn ghost ic-btn">${IC_FARBE}</span>${hNr(4)}
+    </div>
+  </div>
+  <div class="tabs passt">${hNr(1)}${reiter.map(t =>
+    `<span class="tab" aria-selected="${t === aktiv}">${t}</span>`).join("")}</div>
+</div>`;
+const hLeiste = (text, knopf) => `<div class="h-leiste">
+  <div class="grow small muted">${text}</div><span class="btn primary">${knopf}</span></div>`;
+
+/* ============================================================
+   Anleitung für Mitarbeiter
+   ============================================================ */
+function hilfeMitarbeiter(){
+  return `
+  <p class="h-vor">Mit dieser App sagst du dem Büro, an welchen Tagen du <b>nicht</b> arbeiten kannst, siehst deinen
+    Dienstplan und bestätigst am Monatsende deine Arbeitszeiten. Mehr musst du nicht tun.</p>
+  ${hInhalt([["hm-ueber", "Überblick"], ["hm-verf", "Verfügbarkeit"], ["hm-plan", "Dienstplan"],
+    ["hm-zeit", "Zeiten bestätigen"], ["hm-konto", "Konto und Handy"], ["hm-fragen", "Häufige Fragen"]])}
+
+  ${hTeil("hm-ueber", "Überblick", `
+    ${hFig(hKopf(["Verfügbarkeit", "Dienstplan", "Zeiterfassung", "Konto"], "Verfügbarkeit"),
+      `${hNr(1)} Die vier Bereiche der App. ${hNr(2)} Diese Anleitung. ${hNr(3)} Neu laden — holt den
+       aktuellen Stand, wenn das Büro gerade etwas geändert hat. ${hNr(4)} Helles oder dunkles Erscheinungsbild.`)}
+    <ol>
+      <li><b>Verfügbarkeit:</b> Vor jedem Monat trägst du ein, wann du nicht kannst.</li>
+      <li><b>Dienstplan:</b> Sobald das Büro den Plan freigibt, siehst du deine Schichten.</li>
+      <li><b>Zeiterfassung:</b> Nach deinen Schichten trägt das Büro die Zeiten ein — du prüfst und bestätigst sie.</li>
+    </ol>`)}
+
+  ${hTeil("hm-verf", "1 · Verfügbarkeit eintragen", `
+    <ol>
+      <li>Wähle oben mit den Pfeilen den Monat.</li>
+      <li>Tippe jeden Tag an, an dem du <b>nicht</b> arbeiten kannst. Er wird rot. Noch einmal tippen nimmt es zurück.</li>
+      <li>Tippe unten auf <b>Bestätigen</b> — auch dann, wenn du an allen Tagen kannst. Erst damit weiß das Büro,
+        dass du fertig bist.</li>
+    </ol>
+    ${hFig(`<div class="days">
+        <div class="drow"><span class="dt">Mo <em>2.</em></span><span class="wer frei">alle können</span><span class="kreuz">×</span></div>
+        <div class="drow off"><span class="dt">Di <em>3.</em></span><span class="wer">Matilda M.</span><span class="kreuz">×</span>${hNr(1)}</div>
+        <div class="drow"><span class="dt">Mi <em>4.</em></span><span class="wer">Fritz L., Simon S.</span><span class="kreuz">×</span>${hNr(2)}</div>
+        <div class="drow zu"><span class="dt">So <em>8.</em></span><span class="wer">Ruhetag</span>${hNr(3)}</div>
+      </div>
+      ${hLeiste("1 Tag markiert", "Bestätigen")}`,
+      `${hNr(1)} Rot: an diesem Tag kannst du nicht. ${hNr(2)} In der Mitte steht, wer schon abgesagt hat — so
+       siehst du, wo es eng wird. ${hNr(3)} Ruhetage sind grau, da gibt es nichts einzutragen.`)}
+    <p>Solange der Dienstplan nicht freigegeben ist, kannst du deine Angaben jederzeit ändern — danach noch einmal
+      auf <b>Änderung bestätigen</b> tippen. Ist der Plan freigegeben, läuft jede Änderung über das Büro.</p>`)}
+
+  ${hTeil("hm-plan", "2 · Dienstplan ansehen", `
+    <p>Der Bereich <b>Dienstplan</b> erscheint, sobald das Büro den Monat freigegeben hat. Tage, an denen du
+      eingeteilt bist, sind farbig hinterlegt.</p>
+    ${hFig(`<div class="banner ok">Deine Schichten: <b>7</b> · rund <b>54,5</b> Stunden</div>
+      <div class="plan-filter"><span class="chip sel">Alle Schichten</span><span class="chip">Nur meine</span>${hNr(1)}</div>
+      <div class="plan-day mine"><div class="hd">Freitag, 6. November</div>
+        <div class="sh me"><span class="zt">16:30–01:00</span><span class="lb">Frühschicht</span><span class="wn">Nils K. (SL)</span></div>
+        <div class="sh"><span class="zt">19:00–04:00</span><span class="lb">Spätschicht 1</span><span class="wn">Michael G.</span></div>
+      </div>
+      <div class="plan-day"><div class="hd">Samstag, 7. November</div>
+        <div class="sh"><span class="zt">16:30–01:00</span><span class="lb">Frühschicht</span><span class="wn">Louis K.</span></div>
+        <div class="sh"><span class="zt">19:00–04:00</span><span class="lb">Spätschicht 1</span><span class="wn offen">offen</span></div>
+      </div>`,
+      `${hNr(1)} Mit <b>Nur meine</b> blendest du alles aus, was dich nicht betrifft. <b>(SL)</b> hinter einem
+       Namen heißt Schichtleitung.`)}`)}
+
+  ${hTeil("hm-zeit", "3 · Zeiten prüfen und bestätigen", `
+    <p>Nach deiner Schicht trägt das Büro ein, wann du gearbeitet hast. Im Bereich <b>Zeiterfassung</b> siehst du
+      jede Schicht mit zwei Haken:</p>
+    ${hFig(`<div class="ze-days">
+        ${hSchicht("Fr <em>6.</em>", "16:30–01:00 <small>+1</small>", "8:00 Std · Pause 0:30 · SL 8:00", true, true, "is-adm", hNr(1))}
+        ${hSchicht("Mo <em>9.</em>", "18:00–22:00", "4:00 Std", true, false, "", hNr(2))}
+        ${hSchicht("Sa <em>14.</em>", "19:00–04:30 <small>+1</small>", "8:45 Std · Pause 0:45", false, false, "is-chg", hNr(3))}
+      </div>`,
+      `Der <b>linke</b> Haken ist der des Büros, der <b>rechte</b> deiner. ${hNr(1)} Beide gesetzt: erledigt.
+       ${hNr(2)} Das Büro hat bestätigt, dein Haken fehlt noch. ${hNr(3)} Gelb: du hast etwas geändert oder
+       nachgetragen, das Büro schaut es sich noch an. <b>+1</b> heißt, die Schicht endet am Folgetag.`)}
+
+    <h3>Eine Zeit stimmt nicht</h3>
+    <ol>
+      <li>Tippe die Schicht an. Sie klappt auf.</li>
+      <li>Stell Beginn, Ende oder Pause richtig und tippe auf <b>✓ Änderung speichern</b>.</li>
+      <li>Die Schicht ist jetzt gelb. Das Büro sieht deine Änderung und bestätigt sie.</li>
+    </ol>
+    ${hFig(`<div class="ze-day is-open"><div class="ze-edit">
+        <div class="ze-two">
+          <div><span class="lbl">Beginn</span><span class="field ze-t h-feld">19:00</span></div>
+          <div><span class="lbl">Ende</span><span class="field ze-t h-feld">04:30</span></div>
+        </div>
+        <div class="ze-line"><span class="ze-lt"><span class="lbl">Pause</span>
+          <span class="ze-mini">Mindestens 0:45 (Schicht über 9 Std.).</span></span>
+          <div class="ze-spin"><span class="ze-spinb h-feld">–</span><span class="ze-spinv h-feld">0:45</span><span class="ze-spinb h-feld">+</span></div></div>
+        <div class="ze-calc"><b>8:45 Std</b> netto<i>brutto 9:30 · Pause 0:45 · Ende am Folgetag</i></div>
+        <div class="ze-btns"><span class="btn primary">✓ Änderung speichern</span><span class="btn ze-x">✕</span></div>
+      </div></div>`,
+      `Die Pause rechnet die App nach dem Arbeitszeitgesetz mit: über 6 Stunden mindestens 30 Minuten, über
+       9 Stunden mindestens 45. Länger eintragen geht, kürzer nicht. Unten steht sofort, was dabei herauskommt.`)}
+
+    <h3>Eine Schicht fehlt</h3>
+    <p>Hast du gearbeitet und die Schicht steht nicht in der Liste? Tippe unter der Liste auf
+      <b>+ Fehlende Schicht nachtragen</b>, wähle den Tag, trag Beginn und Ende ein und tippe auf
+      <b>✓ Nachtragen</b>. Das Büro bekommt sie als offenen Punkt und bestätigt sie. Bis dahin kannst du sie noch
+      ändern oder mit dem roten ✕ wieder wegnehmen.</p>
+
+    <h3>Den Monat bestätigen</h3>
+    <p>Ist der Monat vorbei, erscheint unten der Knopf <b>✓ Monat bestätigen</b>. Damit setzt du deinen Haken an
+      alle Schichten auf einmal.</p>
+    ${hFig(hLeiste("34:30 Std · davon SL 16:00", "✓ Monat bestätigen"),
+      `Der Knopf erscheint ab dem 1. des Folgemonats. Die App zeigt dir vorher noch einmal die Summe.`)}
+    ${hTipp(`<b>Schau vorher genau hin.</b> Nach dem Bestätigen kannst du nichts mehr ändern. Ist doch etwas falsch,
+      sag dem Büro Bescheid — es kann deine Bestätigung wieder aufheben.`)}`)}
+
+  ${hTeil("hm-konto", "Konto und Handy", `
+    <p>Unter <b>Konto</b> änderst du deinen Namen und dein Passwort. Hast du das Passwort vergessen, tippe auf der
+      Anmeldeseite auf <b>Passwort vergessen</b> — du bekommst einen Link per E-Mail.</p>
+    <h3>Die App auf den Startbildschirm legen</h3>
+    <ul>
+      <li><b>iPhone (Safari):</b> unten auf das Teilen-Symbol, dann <b>Zum Home-Bildschirm</b>.</li>
+      <li><b>Android (Chrome):</b> oben rechts auf die drei Punkte, dann <b>Zum Startbildschirm hinzufügen</b>.</li>
+    </ul>
+    <p>Danach öffnest du den Dienstplan wie jede andere App.</p>`)}
+
+  ${hTeil("hm-fragen", "Häufige Fragen", `
+    <h3>Ich sehe keinen Dienstplan.</h3>
+    <p>Das Büro hat den Monat noch nicht freigegeben. Der Bereich erscheint von selbst, sobald es so weit ist.</p>
+    <h3>Ich kann meine Verfügbarkeit nicht mehr ändern.</h3>
+    <p>Der Plan für diesen Monat ist freigegeben. Sag dem Büro Bescheid, wenn sich bei dir etwas geändert hat.</p>
+    <h3>In der Zeiterfassung steht nichts, obwohl ich gearbeitet habe.</h3>
+    <p>Das Büro hat deine Schichten noch nicht eingetragen oder noch nicht bestätigt. Fehlt eine Schicht auch
+      später noch, trag sie selbst nach.</p>
+    <h3>Ich habe den Monat bestätigt, aber eine Zeit war falsch.</h3>
+    <p>Melde dich beim Büro. Es nimmt deine Bestätigung für diese Schicht zurück, dann kannst du sie korrigieren
+      und neu bestätigen.</p>
+    <h3>Die App zeigt etwas Altes an.</h3>
+    <p>Tippe oben auf das Neu-laden-Symbol. Die App holt dann den aktuellen Stand und, falls es eine neue Fassung
+      gibt, auch die.</p>`)}`;
+}
+
+/* ============================================================
+   Anleitung für das Büro
+   ============================================================ */
+function hilfeBuero(){
+  const zeileTag = (tag, plan, ist, cls, zeichen, nr) => `<div class="za-row ${cls}">
+    <div class="za-rb za-tag"><span class="za-rd">${tag}</span><span class="za-rp">Plan: ${plan}</span>
+      <span class="za-ri">Ist: ${ist}</span></div>${nr || ""}
+    <span class="za-mark ${zeichen === "✓" ? "is-ok" : ""}">${zeichen}</span></div>`;
+
+  return `
+  <p class="h-vor">Als Büro planst du den Monat, gibst ihn frei, hältst danach die tatsächlichen Arbeitszeiten fest
+    und schließt den Monat für die Lohnabrechnung ab. Der Ablauf ist jeden Monat derselbe:</p>
+  <ol class="h-kette">
+    <li><b>Verfügbarkeit</b>Die Mitarbeiter tragen ein, wann sie nicht können.</li>
+    <li><b>Planen</b>Du verteilst die Schichten — von Hand oder per Vorschlag.</li>
+    <li><b>Freigeben</b>Alle sehen den Plan in der App.</li>
+    <li><b>Zeiten erfassen</b>Du bestätigst Tag für Tag, was wirklich gearbeitet wurde.</li>
+    <li><b>Abschließen</b>Der Monat wird festgeschrieben, die CSV geht an die Lohnabrechnung.</li>
+  </ol>
+  ${hInhalt([["hb-plan", "Planung"], ["hb-zeit", "Zeiterfassung"], ["hb-ab", "Abschluss und CSV"],
+    ["hb-team", "Team"], ["hb-einst", "Einstellungen"], ["hb-fragen", "Häufige Fragen"]])}
+
+  ${hTeil("hb-plan", "1 · Planung", `
+    <p>Beim ersten Öffnen eines Monats legt die App ihn aus den <b>Standardschichten</b> an. Oben siehst du, wer
+      seine Verfügbarkeit schon bestätigt hat.</p>
+    ${hFig(`<div class="monthbar"><div class="mnav"><span class="btn arrow">‹</span><div class="m">Dezember 2026</div><span class="btn arrow">›</span></div>
+        <div class="macts"><span class="btn">Vorschlag</span>${hNr(1)}<span class="btn">Drucken</span><span class="btn primary">Freigeben</span>${hNr(2)}</div></div>
+      <div class="daystrip"><span class="ds full">1</span><span class="ds part">2</span><span class="ds">3</span><span class="ds">4</span><span class="ds">5</span><span class="ds rest">6</span>${hNr(3)}</div>
+      <div class="h-spalten">
+        <div class="col"><div class="colhead"><div class="d">Di <span>1.</span></div></div>
+          <div class="colbody">
+            <div class="slot filled"><div class="slot-top"><span class="t">Frühschicht</span><span class="n">17:30–02:00</span></div>
+              <div class="slot-bot"><span class="who-chip is-sl">Florian S.</span><span class="slbtn on">SL</span>${hNr(5)}<span class="iconbtn x">×</span></div></div>
+            <div class="slot armed"><div class="slot-top"><span class="t">Spätschicht</span><span class="n">20:00–02:00</span></div>
+              <div class="slot-bot"><span class="free">antippen zum Einsetzen</span><span class="iconbtn">✎</span>${hNr(6)}</div></div>
+            <div class="grouplbl">Kann an diesem Tag</div>
+            <div class="chips"><span class="chip used">Florian S.</span><span class="chip sel">Alicia R.</span>${hNr(4)}<span class="chip pending">Benni M.</span><span class="chip">Nils K.</span></div>
+            <div class="tiny muted" style="margin-top:7px">Kann nicht: Matilda M.</div>
+          </div></div>
+      </div>`,
+      `${hNr(1)} <b>Vorschlag</b> besetzt alle noch offenen Schichten automatisch. ${hNr(2)} <b>Freigeben</b> macht
+       den Plan für alle sichtbar. ${hNr(3)} Die Tagesleiste: grün = Tag fertig besetzt, gelb umrandet =
+       teilweise, gestrichelt = Ruhetag. Ein Tipp springt zum Tag. ${hNr(4)} Person antippen, dann die Schicht —
+       oder am Rechner hinüberziehen. ${hNr(5)} <b>SL</b> kennzeichnet die Schichtleitung. ${hNr(6)} Der Stift
+       ändert Bezeichnung und Zeiten einer freien Schicht.`)}
+    <h3>So liest du die Namen</h3>
+    <ul>
+      <li><b>Durchgestrichen:</b> an diesem Tag schon eingeteilt.</li>
+      <li><b>Fragezeichen:</b> hat die Verfügbarkeit noch nicht bestätigt — die Angabe kann sich noch ändern.</li>
+      <li><b>Rot im Plan:</b> eingeteilt, obwohl die Person für den Tag abgesagt hat.</li>
+      <li><b>„Kann nicht“:</b> wer für den Tag abgesagt hat, steht unter der Auswahl.</li>
+    </ul>
+    <p>Ein Tag gilt als fertig, wenn jede Schicht besetzt ist und eine Schichtleitung feststeht. Mit
+      <b>+ Schicht</b> kommt eine Zusatzschicht dazu, <b>Tag öffnen</b> macht aus einem Ruhetag einen Arbeitstag.</p>
+    <h3>Der Vorschlag</h3>
+    <p>Er rührt nichts an, was schon verteilt ist, und schiebt niemanden über seine Grenze: Minijobber bleiben
+      unter der Verdienstgrenze, Festangestellte unter ihren Vertragsstunden. Festangestellte werden zuerst
+      eingeteilt, bis ihr Soll steht; der Rest wird gleichmäßig verteilt. Was sich nicht besetzen lässt, bleibt offen.</p>
+    <h3>Stunden- und Schichtverteilung</h3>
+    <p>Unter der Tafel steht, wie viele Stunden und welcher Lohn sich <b>aus dem Plan</b> ergeben — mit Warnung,
+      wenn jemand über die Minijob-Grenze oder über die Vertragsstunden kommt. Das ist eine Planungshilfe; für
+      die Abrechnung zählen die erfassten Zeiten.</p>
+    ${hTipp(`<b>Freigabe zurücknehmen</b> geht jederzeit über denselben Knopf. Die Mitarbeiter sehen den Plan dann
+      nicht mehr und können ihre Verfügbarkeit wieder ändern.`)}`)}
+
+  ${hTeil("hb-zeit", "2 · Zeiterfassung", `
+    <p>Hier hältst du fest, was tatsächlich gearbeitet wurde. Die Schichten aus dem freigegebenen Plan stehen als
+      Vorschlag bereit — du musst nur bestätigen, was stimmt, und ändern, was abweicht.</p>
+    <h3>Die Übersicht der Tage</h3>
+    ${hFig(`<div class="za-rows">
+        ${zeileTag("Di 1.", "2 Schichten", "2 Schichten", "is-adm", "✓", hNr(1))}
+        ${zeileTag("Mi 2.", "2 Schichten", "2 Schichten", "is-chg", "○", hNr(2))}
+        ${zeileTag("Do 3.", "2 Schichten", "—", "is-miss", "○", hNr(3))}
+        ${zeileTag("So 6.", "—", "—", "is-leer", "○", hNr(4))}
+      </div>`,
+      `Jede Zeile zeigt, was geplant war und was erfasst ist. ${hNr(1)} Grün mit Haken: abgeschlossen.
+       ${hNr(2)} Gelb: ein Mitarbeiter hat eine Zeit geändert oder eine Schicht nachgetragen. ${hNr(3)} Plan und
+       Ist gehen auseinander — hier ist noch nichts erfasst. ${hNr(4)} Auch ein Ruhetag wird abgeschlossen.`)}
+    <h3>Einen Tag bearbeiten</h3>
+    <ol>
+      <li>Tippe den Tag an.</li>
+      <li><b>Vorschlag stimmt:</b> mit <b>+</b> aufklappen, kurz prüfen, <b>✓ Bestätigen</b>.</li>
+      <li><b>Zeiten weichen ab:</b> aufklappen, Beginn, Ende, Pause oder Schichtleitung anpassen, dann bestätigen.
+        Über „Wer“ tauschst du die Person — das ändert nur die Zeiterfassung, nicht den Dienstplan.</li>
+      <li><b>Hat nicht stattgefunden:</b> das rote <b>✕</b> am Vorschlag verwirft ihn.</li>
+      <li><b>Schicht ohne Plan:</b> <b>+ Schicht hinzufügen</b>.</li>
+      <li>Zum Schluss <b>✓ Tag abschließen</b>.</li>
+    </ol>
+    ${hFig(`<div class="za-rows">
+        <div class="za-row is-schicht is-adm"><div class="za-rb"><span class="za-rm">Florian S.</span><span class="za-zu">+</span></div>${hHaken(true, false, hNr(1))}</div>
+        <div class="za-row is-miss"><div class="za-rb"><span class="za-rt"><span class="za-rm">Alicia R.</span>
+          <span class="za-rs">Vorschlag aus dem Plan · 20:00–02:00</span></span><span class="za-zu">+</span></div>${hNr(2)}
+          <span class="za-weg">✕</span>${hNr(3)}</div>
+      </div>
+      <div class="za-foot"><div class="grow muted">Alle Schichten bestätigt.</div><span class="btn primary">✓ Tag abschließen</span>${hNr(4)}</div>`,
+      `${hNr(1)} Der <b>linke</b> Haken ist deiner: antippen bestätigt die Schicht, noch einmal nimmt es zurück. Der
+       <b>rechte</b> gehört dem Mitarbeiter. ${hNr(2)} Ein Vorschlag aus dem Plan — noch keine erfasste Schicht.
+       ${hNr(3)} Verwerfen: hat nicht stattgefunden. ${hNr(4)} Erst der Abschluss macht den Tag grün.`)}
+    <p><b>Ein Tag wird nie von selbst grün.</b> Sind noch Schichten offen, lehnt die App den Abschluss ab. Ist gar
+      keine Schicht erfasst, fragt sie nach — so fällt ein versehentlich leerer Tag auf. Änderst du später etwas
+      an den Schichten, geht der Tag wieder auf.</p>
+    ${hTipp(`<b>Wenn der Plan gestimmt hat:</b> Der Knopf <b>✓ Alle offenen Tage übernehmen, bestätigen und
+      abschließen</b> über der Liste erledigt den ganzen Monat in einem Schritt.`)}
+    <h3>Was der Mitarbeiter sieht und tun kann</h3>
+    <ul>
+      <li>Er sieht eine Schicht erst, wenn du sie bestätigt hast.</li>
+      <li>Ändert er eine Zeit, wird die Schicht <b>gelb</b> und der Tag geht wieder auf. Du siehst vorher und
+        nachher; mit <b>Übernehmen</b> oder deinem Haken nimmst du die Änderung an.</li>
+      <li>Trägt er eine fehlende Schicht nach, kommt sie genauso gelb bei dir an.</li>
+      <li>Nach Monatsende bestätigt er alle Schichten auf einmal. Danach kannst auch du die Zeit nicht mehr
+        ändern — erst über <b>Bestätigung zurücknehmen</b> im Editor der Schicht.</li>
+    </ul>
+    <h3>Pause, Schichtleitung, Zeitumstellung</h3>
+    <p>Die Pflichtpause setzt die App von selbst: über 6 Stunden 30 Minuten, über 9 Stunden 45. Bei Leuten, die
+      Schichtleitung machen dürfen, trägst du ein, wie viel der Arbeitszeit Schichtleitung war — mit
+      <b>ganze Schicht</b> in einem Tipp. Die Nacht der Zeitumstellung rechnet die App richtig.</p>`)}
+
+  ${hTeil("hb-ab", "3 · Abschluss und CSV", `
+    ${hFig(`<ul class="za-chk">
+        <li class="is-done"><i>✓</i><span>Der Monat ist vorbei</span></li>
+        <li class="is-done"><i>✓</i><span>Alle Tage vom Büro abgeschlossen</span></li>
+        <li><i>○</i><span>Alle Schichten von den Mitarbeitern bestätigt<small>es fehlen 3 von 41 — hält den Abschluss nicht auf</small></span></li>
+      </ul>
+      <div class="za-tab">
+        <div class="za-tr za-th"><span class="za-tn">Name</span><span>Normal</span><span>SL</span><span>Gesamt</span></div>
+        <div class="za-tr"><span class="za-tn"><b>Florian S.</b><small>14 Schichten</small></span><span>62,50</span><span>48,00</span><span class="za-tg">110,50</span></div>
+        <div class="za-tr"><span class="za-tn"><b>Alicia R.</b><small>6 Schichten</small></span><span>41,25</span><span>0,00</span><span class="za-tg">41,25</span></div>
+      </div>
+      <div class="za-csv"><span class="btn primary">Summen (CSV)</span><span class="btn">Einzelschichten (CSV)</span></div>`,
+      `Abschließen verlangt die ersten beiden Punkte. Der dritte bleibt sichtbar offen, hält aber nichts auf.`)}
+    <ul>
+      <li><b>Monat abschließen</b> schreibt die Zeiten fest: danach kann niemand mehr etwas ändern, bis du den
+        Monat wieder öffnest.</li>
+      <li><b>Summen (CSV)</b> enthält je Person die Stunden normal und die Stunden Schichtleitung — das, was die
+        Lohnabrechnung braucht. <b>Einzelschichten (CSV)</b> listet jede Schicht mit allen Einzelheiten.</li>
+      <li>Beide Dateien gehen jederzeit, auch vor dem Abschluss. Sie öffnen sich in Excel ohne Nachfrage.</li>
+      <li>Die Stunden stehen als Dezimalzahlen da: 7:30 Stunden sind 7,50.</li>
+    </ul>`)}
+
+  ${hTeil("hb-team", "4 · Team", `
+    <p>Neue Leute legst du im Supabase-Dashboard an (Authentication → Users → „Invite user“). Sie bekommen eine
+      E-Mail, vergeben Name und Passwort und erscheinen danach hier.</p>
+    ${hFig(`<div class="pcard"><div class="ph"><span class="n">Florian S.</span><span class="iconbtn">✎</span>
+          <span class="status">SL</span><span class="grow"></span><span class="status stat yes">bestätigt</span></div>
+        <div class="pswitches">
+          <span class="sw"><span class="sw-t">Aktiv</span><span class="sw-b h-an"></span></span>
+          <span class="sw"><span class="sw-t">Wird eingeplant</span><span class="sw-b h-an"></span></span>
+          <span class="sw"><span class="sw-t">Schichtleiter</span><span class="sw-b h-an"></span></span>
+          <span class="sw"><span class="sw-t">Minijob</span><span class="sw-b"></span></span>
+        </div></div>`,
+      `Eine Karte je Person. Rechts oben steht, ob die Verfügbarkeit für den gezeigten Monat bestätigt ist.`)}
+    <ul>
+      <li><b>Aktiv:</b> aus nimmt jemanden ganz heraus; das Konto bleibt bestehen.</li>
+      <li><b>Admin:</b> gibt Zugriff auf alles, was das Büro sieht, und nimmt die Person aus dem Dienstplan.</li>
+      <li><b>Wird eingeplant:</b> entscheidet, ob jemand in der Planung auftaucht.</li>
+      <li><b>Schichtleiter:</b> nur diese Leute lassen sich mit SL kennzeichnen.</li>
+      <li><b>Minijob:</b> an = die Verdienstgrenze wird überwacht. Aus = du trägst die <b>Vertragsstunden</b> ein;
+        die Planung achtet dann auf dieses Soll.</li>
+    </ul>
+    <p>Mit dem Stift änderst du einen Namen, mit <b>Wieder öffnen</b> gibst du jemandem die schon bestätigte
+      Verfügbarkeit zum Ändern zurück. Am Rechner ziehst du die Karten am Griff in die gewünschte Reihenfolge.</p>`)}
+
+  ${hTeil("hb-einst", "5 · Einstellungen", `
+    <ul>
+      <li><b>Löhne und Grenze:</b> Stundenlohn, Lohn für Schichtleitung und die Minijob-Grenze. Sie sind die
+        Grundlage der Lohnvorschau in der Planung und der Warnung in der Zeiterfassung.</li>
+      <li><b>Zeiterfassung, verbindlich ab:</b> der erste Monat, in dem die Zeiterfassung gilt. Davor kannst du
+        zur Probe erfassen, ohne dass etwas fehlt.</li>
+      <li><b>Standardschichten:</b> welche Schichten ein neuer Monat je Wochentag bekommt. Ein Wochentag ohne
+        Schicht ist Ruhetag. Änderungen gelten für Monate, die noch nicht angelegt sind.</li>
+      <li><b>Zuteilungen leeren</b> nimmt alle Personen aus dem Plan des gezeigten Monats,
+        <b>Monat zurücksetzen</b> baut ihn neu aus den Standardschichten auf. Erfasste Zeiten bleiben in beiden
+        Fällen erhalten.</li>
+    </ul>`)}
+
+  ${hTeil("hb-fragen", "Häufige Fragen", `
+    <h3>Ich habe eine Schicht versehentlich gelöscht.</h3>
+    <p>Stand sie im Dienstplan, schlägt die App sie im Tag sofort wieder vor. Der Tag ist durch das Löschen wieder
+      offen — du siehst also, dass dort etwas zu tun ist.</p>
+    <h3>Ein Mitarbeiter hat bestätigt, die Zeit ist aber falsch.</h3>
+    <p>Öffne die Schicht im Tag und tippe auf <b>Bestätigung zurücknehmen</b>. Danach lässt sich die Zeit ändern,
+      und der Mitarbeiter bestätigt erneut.</p>
+    <h3>Der Monat lässt sich nicht abschließen.</h3>
+    <p>Im Schritt <b>Abschluss</b> steht, was fehlt: Entweder läuft der Monat noch, oder es sind nicht alle Tage
+      abgeschlossen. Die offenen Tage sind dort aufgezählt.</p>
+    <h3>Nach dem Abschluss ist noch ein Fehler aufgefallen.</h3>
+    <p><b>Monat wieder öffnen</b>, korrigieren, erneut abschließen. Eine schon verschickte CSV passt danach nicht
+      mehr — schick sie neu.</p>
+    <h3>Zwei von uns arbeiten gleichzeitig in der App.</h3>
+    <p>Das geht. Tippe ab und zu auf das Neu-laden-Symbol; nach einer längeren Pause lädt die App von selbst neu.</p>`)}`;
+}
+
+function viewHelp(){
+  const buero = ui.help === "admin";
+  return `
+  <header class="top"><div class="wrap">
+    <div class="top-in">
+      <div class="who grow">Anleitung<span>${buero ? "Für das Büro" : "Für Mitarbeiter"}</span></div>
+      <div class="top-ic">${kopfKnopf("theme", "Hell oder dunkel", IC_FARBE)}</div>
+      <button class="btn sm" data-act="helpclose">Schließen</button>
+    </div>
+    ${isAdmin() ? `<div class="tabs passt" role="tablist">
+      <button class="tab" role="tab" aria-selected="${buero}" data-act="helprole" data-rolle="admin">Für das Büro</button>
+      <button class="tab" role="tab" aria-selected="${!buero}" data-act="helprole" data-rolle="staff">Für Mitarbeiter</button>
+    </div>` : ""}
+  </div></header>
+  <main><div class="wrap"><article class="hilfe">
+    ${buero ? hilfeBuero() : hilfeMitarbeiter()}
+    <p class="luft"><button class="btn primary" data-act="helpclose">Zurück zur App</button></p>
+  </article>${fussnote()}</div></main>`;
+}
+
 /* ============================================================
    Dialog und Druckvorschau
    ============================================================ */
@@ -3435,39 +3974,60 @@ async function suggestFill(){
 /* ============================================================
    Klicks
    ============================================================ */
+/* Jeder Tipp auf etwas mit data-act landet hier. Die Aktionen sind nach
+   Bereich auf fünf Funktionen verteilt; jede gibt true zurück, wenn sie
+   zuständig war. So bleibt jede Liste überschaubar, und ein neuer
+   Bereich ist eine neue Funktion statt hundert Zeilen mehr im selben
+   switch. */
+const KLICK_BEREICHE = [zeClick, rahmenClick, mitarbeiterClick, planClick, teamClick, einstellClick];
+
 async function handleClick(e){
   const el = e.target.closest("[data-act]");
   if(!el) return;
-  const act = el.dataset.act;
-  const day = Number(el.dataset.day);
+  for(const bereich of KLICK_BEREICHE) if(await bereich(el.dataset.act, el)) return;
+}
+
+/* Dialoge, Kopfzeile, Anleitung, Reiter und Monatswechsel */
+async function rahmenClick(act, el){
   const k = ui.monthKey;
-
-  /* Zeiterfassung zuerst: alles mit ze… und za… wird dort behandelt */
-  if((act.slice(0, 2) === "ze" || act.slice(0, 2) === "za") && await zeClick(act, el)) return;
-
   switch(act){
-    case "dlg-no": pending = null; render(); return;
+    case "dlg-no": pending = null; render(); return true;
     /* Reine Meldungen (sag) haben nichts zu tun — nur zumachen. */
-    case "dlg-yes": { const p = pending; pending = null; render(); if(p && p.cb) await p.cb(); return; }
-    case "sheet-close": ui.sheetOpen = false; render(); return;
-    case "sheet-print": buildPrint(); try{ window.print(); }catch(err){} return;
+    case "dlg-yes": { const p = pending; pending = null; render(); if(p && p.cb) await p.cb(); return true; }
+    case "sheet-close": ui.sheetOpen = false; render(); return true;
+    case "sheet-print": buildPrint(); try{ window.print(); }catch(err){} return true;
 
     case "authmode":
       ui.authMode = ui.authMode === "reset" ? "login" : "reset";
-      ui.authError = ""; ui.authInfo = ""; ui.authDetail = ""; render(); return;
-    case "logout": await sb.auth.signOut(); return;
-    case "theme": toggleTheme(); return;
+      ui.authError = ""; ui.authInfo = ""; ui.authDetail = ""; render(); return true;
+    case "logout": await sb.auth.signOut(); return true;
+    case "theme": toggleTheme(); return true;
+
+    /* Anleitung: auf, zu, zwischen den beiden Fassungen wechseln, springen */
+    case "help":
+      ui.help = isAdmin() ? "admin" : "staff";
+      ui.helpZurueck = window.scrollY;
+      zeEditorZu();
+      render(); window.scrollTo(0, 0); return true;
+    case "helpclose": hilfeZu(); return true;
+    case "helprole": ui.help = el.dataset.rolle === "admin" && isAdmin() ? "admin" : "staff";
+      render(); window.scrollTo(0, 0); return true;
+    case "helpgo": {
+      const ziel = document.getElementById(el.dataset.ziel);
+      if(ziel) ziel.scrollIntoView({block:"start"});
+      return true;
+    }
     /* Neu laden, ohne die Seite neu aufzubauen: die Ansicht bleibt, wo
        sie ist, nur die Daten kommen frisch aus der Datenbank. */
     case "refresh": {
-      if(ui.sync === "load") return;
+      if(ui.sync === "load") return true;
       el.classList.add("is-busy");
       zeSchliessen();
       /* Erst die App, dann die Daten: eine neue Fassung macht das
          Nachladen der Daten ohnehin überflüssig. */
-      if(await neueFassungDa()){ neuLaden(); return; }
+      if(await neueFassungDa()){ neuLaden(); return true; }
       await reload();
-      return;
+      return true;
     }
     case "tab":
       if(isAdmin()) ui.adminTab = el.dataset.tab; else ui.empTab = el.dataset.tab;
@@ -3476,15 +4036,22 @@ async function handleClick(e){
       /* Die Zeiterfassung ist der einzige Reiter, in dem zwei Leute gleichzeitig
          schreiben. Beim Betreten deshalb frisch laden, sonst prüft das Büro
          veraltete Stände. */
-      if(el.dataset.tab === "time"){ await reload(); return; }
-      render(); return;
+      if(el.dataset.tab === "time"){ await reload(); return true; }
+      render(); return true;
     case "month":
       ui.monthKey = shiftMonth(k, Number(el.dataset.dir));
       ui.selection = null; ui.formError = "";
       zeSchliessen();
-      await reload(); return;
+      await reload(); return true;
+  }
+  return false;
+}
 
-    /* Mitarbeiter */
+/* Mitarbeiter: Verfügbarkeit und Dienstplan */
+async function mitarbeiterClick(act, el){
+  const day = Number(el.dataset.day), k = ui.monthKey;
+  switch(act){
+    case "planfilter": ui.planNurMeine = el.dataset.nur === "1"; render(); return true;
     case "toggleoff": {
       const a = availOf(me.id);
       const i = a.off.indexOf(day);
@@ -3494,7 +4061,7 @@ async function handleClick(e){
       render();
       await write(sb.from("availability").upsert(
         {ym:k, user_id:me.id, off_days:a.off, confirmed:false}, {onConflict:"ym,user_id"}));
-      return;
+      return true;
     }
     case "confirm": {
       const a = availOf(me.id);
@@ -3503,33 +4070,39 @@ async function handleClick(e){
       await write(sb.from("availability").upsert(
         {ym:k, user_id:me.id, off_days:a.off, confirmed:true, confirmed_at:new Date().toISOString()},
         {onConflict:"ym,user_id"}));
-      return;
+      return true;
     }
+  }
+  return false;
+}
 
-    /* Planung */
+/* Büro: Planung */
+async function planClick(act, el){
+  const day = Number(el.dataset.day), k = ui.monthKey;
+  switch(act){
     case "pick": {
-      if(el.classList.contains("used")) return;
+      if(el.classList.contains("used")) return true;
       const empId = el.dataset.emp;
       ui.selection = (ui.selection && ui.selection.day === day && ui.selection.empId === empId)
         ? null : {day, empId};
-      render(); return;
+      render(); return true;
     }
     case "clear": {
       const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
       if(sh){ sh.emp = null; sh.sl = false; }
       render();
       await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("id", el.dataset.shift));
-      return;
+      return true;
     }
     case "togglesl": {
       const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
-      if(!sh || !sh.emp || !canLead(sh.emp)) return;
+      if(!sh || !sh.emp || !canLead(sh.emp)) return true;
       sh.sl = !sh.sl;
       render();
       await write(sb.from("shifts").update({is_lead:sh.sl}).eq("id", sh.id));
-      return;
+      return true;
     }
-    case "editshift": ui.editingShift = el.dataset.shift; render(); return;
+    case "editshift": ui.editingShift = el.dataset.shift; render(); return true;
     case "saveshift": {
       const box = el.closest(".slot-edit");
       const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
@@ -3541,12 +4114,12 @@ async function handleClick(e){
         render();
         await write(sb.from("shifts").update({label:sh.label, starts:sh.start, ends:sh.end}).eq("id", sh.id));
       } else { ui.editingShift = null; render(); }
-      return;
+      return true;
     }
     case "delshift": {
       const d = month.days[day];
       const sh = d.shifts.find(s => s.id === el.dataset.shift);
-      if(!sh) return;
+      if(!sh) return true;
       const id = sh.id;
       let txt = "Die Schicht " + sh.label + " am " + day + ". wirklich löschen?";
       if(sh.emp) txt += " " + personName(sh.emp) + " ist dafür eingeteilt.";
@@ -3560,7 +4133,7 @@ async function handleClick(e){
         await write(sb.from("shifts").delete().eq("id", id));
         if(nowClosed) await write(sb.from("days").update({closed:true}).eq("ym", k).eq("day", day));
       });
-      return;
+      return true;
     }
     case "addshift": {
       const d = month.days[day];
@@ -3570,11 +4143,11 @@ async function handleClick(e){
         ym:k, day, pos:d.shifts.length, label:"Zusatzschicht",
         starts:last ? last.start : "18:00", ends:last ? last.end : "02:00"
       }).select().single();
-      if(error){ setSync("bad"); ui.formError = "Nicht gespeichert: " + error.message; render(); return; }
+      if(error){ setSync("bad"); ui.formError = "Nicht gespeichert: " + error.message; render(); return true; }
       setSync("ok");
       d.shifts.push({id:data.id, label:data.label, start:data.starts, end:data.ends, emp:null, sl:false, pos:data.pos});
       ui.editingShift = data.id;
-      render(); return;
+      render(); return true;
     }
     case "openday": {
       const d = month.days[day];
@@ -3586,20 +4159,27 @@ async function handleClick(e){
           .insert({ym:k, day, pos:0, label:"Schicht", starts:"18:00", ends:"02:00"}).select().single();
         if(!error) d.shifts.push({id:data.id, label:data.label, start:data.starts, end:data.ends, emp:null, sl:false, pos:0});
       }
-      render(); return;
+      render(); return true;
     }
-    case "goday": ui.jumpTo = day; render(); return;
+    case "goday": ui.jumpTo = day; render(); return true;
 
     case "suggest":
       ask("Offene Schichten automatisch besetzen? Bereits verteilte Schichten bleiben unverändert.",
         "Vorschlag erstellen", suggestFill);
-      return;
-    case "print": ui.sheetOpen = true; render(); return;
+      return true;
+    case "print": ui.sheetOpen = true; render(); return true;
     case "publish": {
       if(month.published){
-        month.published = false; render();
-        await write(sb.from("months").update({published:false}).eq("ym", k));
-        return;
+        /* Zurücknehmen ist kein Versehen wert: die Mitarbeiter verlieren
+           den Plan, und die Zeiterfassung ihre Vorschläge. */
+        ask("Die Freigabe für " + monthLabel(k) + " zurücknehmen? Die Mitarbeiter sehen den Dienstplan "
+          + "dann nicht mehr und können ihre Verfügbarkeit wieder ändern. In der Zeiterfassung fallen die "
+          + "Vorschläge aus dem Plan weg, bis du wieder freigibst — schon erfasste Zeiten bleiben.",
+          "Zurücknehmen", async () => {
+            month.published = false; render();
+            await write(sb.from("months").update({published:false}).eq("ym", k));
+          });
+        return true;
       }
       const st = monthStats();
       const go = async () => {
@@ -3608,15 +4188,21 @@ async function handleClick(e){
       };
       if(st.filled < st.slots){
         ask("Es sind noch " + (st.slots - st.filled) + " Schichten offen. Trotzdem freigeben?", "Freigeben", go);
-        return;
+        return true;
       }
-      await go(); return;
+      await go(); return true;
     }
+  }
+  return false;
+}
 
-    /* Team */
+/* Büro: Team */
+async function teamClick(act, el){
+  const k = ui.monthKey;
+  switch(act){
     case "askrole": {
       const p = people.find(x => x.id === el.dataset.emp);
-      if(!p || p.id === me.id) return;
+      if(!p || p.id === me.id) return true;
       const zu = p.role === "admin" ? "staff" : "admin";
       /* ask() maskiert selbst — der Name geht hier unverändert hinein */
       ask(zu === "admin"
@@ -3632,39 +4218,39 @@ async function handleClick(e){
           render();
           await write(sb.from("profiles").update({role:zu, schedulable:p.schedulable}).eq("id", p.id));
         });
-      return;
+      return true;
     }
     case "toggleactive": {
       const p = people.find(x => x.id === el.dataset.emp);
-      if(!p) return;
+      if(!p) return true;
       p.active = !p.active;
       sortPeople();
       render();
       await write(sb.from("profiles").update({active:p.active}).eq("id", p.id));
-      return;
+      return true;
     }
     case "toggleplan": {
       const p = people.find(x => x.id === el.dataset.emp);
-      if(!p) return;
+      if(!p) return true;
       p.schedulable = !p.schedulable;
       sortPeople();
       render();
       await write(sb.from("profiles").update({schedulable:p.schedulable}).eq("id", p.id));
-      return;
+      return true;
     }
     case "toggleminijob": {
       const p = people.find(x => x.id === el.dataset.emp);
-      if(!p) return;
+      if(!p) return true;
       p.minijob = !p.minijob;
       sortPeople();
       render();
       await write(sb.from("payroll_flags").upsert(
         {user_id:p.id, minijob:p.minijob, target_hours:p.soll || 0}, {onConflict:"user_id"}));
-      return;
+      return true;
     }
     case "togglelead": {
       const p = people.find(x => x.id === el.dataset.emp);
-      if(!p) return;
+      if(!p) return true;
       p.can_lead = !p.can_lead;
       const weg = [];
       if(!p.can_lead){                       // Eignung weg, also auch bestehende Kennzeichnungen weg
@@ -3675,43 +4261,49 @@ async function handleClick(e){
       render();
       await write(sb.from("profiles").update({can_lead:p.can_lead}).eq("id", p.id));
       for(const id of weg) await write(sb.from("shifts").update({is_lead:false}).eq("id", id));
-      return;
+      return true;
     }
-    case "rename": ui.renaming = el.dataset.emp; ui.formError = ""; render(); return;
-    case "cancelrename": ui.renaming = null; render(); return;
+    case "rename": ui.renaming = el.dataset.emp; ui.formError = ""; render(); return true;
+    case "cancelrename": ui.renaming = null; render(); return true;
     case "reopen": {
       const id = el.dataset.emp;
       availOf(id).confirmed = false;
       render();
       await write(sb.from("availability").update({confirmed:false}).eq("ym", k).eq("user_id", id));
-      return;
+      return true;
     }
+  }
+  return false;
+}
 
-    /* Einstellungen */
+/* Büro: Einstellungen */
+async function einstellClick(act, el){
+  const k = ui.monthKey;
+  switch(act){
     case "togglelimiton":
       config.limitOn = !config.limitOn; render();
       await write(sb.from("settings").update({limit_on:config.limitOn}).eq("id", 1));
-      return;
+      return true;
     case "savesettings": {
       ui.formInfo = "";
       const ok = await write(sb.from("settings").update({
         wage:config.wage, wage_lead:config.wageSL, limit_amount:config.limit, limit_on:config.limitOn
       }).eq("id", 1));
       if(ok) ui.formInfo = "Gespeichert.";
-      render(); return;
+      render(); return true;
     }
     case "tpladd":
       (templates[Number(el.dataset.wd)] = templates[Number(el.dataset.wd)] || [])
         .push({label:"Schicht", start:"18:00", end:"02:00"});
-      render(); return;
+      render(); return true;
     case "tpldel": {
       const wd = Number(el.dataset.wd), i = Number(el.dataset.i);
       const row = (templates[wd] || [])[i];
-      if(!row) return;
+      if(!row) return true;
       ask("Die Schicht " + row.label + " am " + WD_LONG[wd] + " aus der Vorlage entfernen? "
         + "Wirksam wird das erst mit \u201eVorlagen speichern\u201c, bereits angelegte Monate bleiben unberührt.",
         "Entfernen", () => { templates[wd].splice(i, 1); render(); });
-      return;
+      return true;
     }
     case "savetpl": {
       const rows = [];
@@ -3721,14 +4313,14 @@ async function handleClick(e){
       }
       setSync("saving");
       const del = await sb.from("shift_templates").delete().gte("weekday", 0);
-      if(del.error){ setSync("bad"); ui.formError = del.error.message; render(); return; }
+      if(del.error){ setSync("bad"); ui.formError = del.error.message; render(); return true; }
       if(rows.length){
         const ins = await sb.from("shift_templates").insert(rows);
-        if(ins.error){ setSync("bad"); ui.formError = ins.error.message; render(); return; }
+        if(ins.error){ setSync("bad"); ui.formError = ins.error.message; render(); return true; }
       }
       setSync("ok");
       ui.formInfo = "Vorlagen gespeichert.";
-      render(); return;
+      render(); return true;
     }
     case "clearmonth":
       ask("Alle Zuteilungen in " + monthLabel(k) + " leeren? Schichten und Eintragungen bleiben."
@@ -3736,15 +4328,16 @@ async function handleClick(e){
         await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("ym", k));
         await reload();
       });
-      return;
+      return true;
     case "resetmonth":
       ask(monthLabel(k) + " zurücksetzen? Schichten und Zuteilungen werden neu aus den Vorlagen aufgebaut."
         + zeHinweisPlan(), "Zurücksetzen", async () => {
         await write(sb.from("months").delete().eq("ym", k));
         await reload();
       });
-      return;
+      return true;
   }
+  return false;
 }
 
 /* Antippen statt ziehen */
@@ -3965,7 +4558,11 @@ function onInput(e){
     return;
   }
   if(t.dataset.cfg){ config[t.dataset.cfg] = toNum(t.value); return; }
-  if(t.dataset.cfgtext){ config[t.dataset.cfgtext] = t.value.trim(); return; }
+  if(t.dataset.cfgym){
+    const m = document.getElementById("w-tfm"), j = document.getElementById("w-tfj");
+    if(m && j) config.timeFirstYm = j.value + "-" + m.value;
+    return;
+  }
   if(t.dataset.tpl !== undefined && t.dataset.f){
     const arr = templates[Number(t.dataset.tpl)];
     const row = arr && arr[Number(t.dataset.i)];
@@ -3977,11 +4574,17 @@ function onInput(e){
    Zeichnen
    ============================================================ */
 function toggleTheme(){
-  const cur = document.documentElement.getAttribute("data-theme");
-  const darkPreferred = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const next = cur === "dark" ? "light" : cur === "light" ? "dark" : (darkPreferred ? "light" : "dark");
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", next);
   try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
+}
+
+/* Die Anleitung schließen und dorthin zurück, wo man vorher stand */
+function hilfeZu(){
+  const y = ui.helpZurueck || 0;
+  ui.help = null;
+  render();
+  window.scrollTo(0, y);
 }
 
 function render(){
@@ -3994,6 +4597,7 @@ function render(){
   if(ui.screen === "auth"){ app.innerHTML = viewAuth(); return; }
   if(ui.screen === "onboard"){ app.innerHTML = viewOnboard(); return; }
   if(!month){ app.innerHTML = `<div class="boot">Wird geladen…</div>`; return; }
+  if(ui.help){ app.innerHTML = viewHelp(); return; }
 
   app.innerHTML = isAdmin()
     ? viewAdmin() + viewSheet() + viewDialog()
@@ -4042,6 +4646,11 @@ function render(){
 
   const namensfeld = app.querySelector(".renameform input");
   if(namensfeld){ namensfeld.focus(); namensfeld.select(); }
+
+  /* Ein Dialog bekommt den Fokus auf seinen Hauptknopf: am Rechner
+     bestätigt dann die Eingabetaste, und Escape bricht ab. */
+  const dialogKnopf = app.querySelector(".dialog .btn.primary");
+  if(dialogKnopf) dialogKnopf.focus({preventScroll:true});
 }
 
 /* ============================================================
@@ -4153,9 +4762,15 @@ async function boot(){
   fassungPruefen();                     // im Hintergrund, hält nichts auf
 }
 
+/* Solange niemand selbst gewählt hat, folgt die App dem Gerät — auch
+   wenn es abends von hell auf dunkel umschaltet. */
 try{
-  const th = localStorage.getItem(THEME_KEY);
-  if(th) document.documentElement.setAttribute("data-theme", th);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+    let eigene = null;
+    try{ eigene = localStorage.getItem(THEME_KEY); }catch(err){}
+    if(eigene !== "dark" && eigene !== "light")
+      document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+  });
 }catch(e){}
 
 ui.monthKey = monthKey(new Date());
@@ -4169,10 +4784,20 @@ document.addEventListener("dragend", onDragEnd);
 document.addEventListener("dragover", onDragOver);
 document.addEventListener("dragleave", onDragLeave);
 document.addEventListener("drop", onDrop);
+document.addEventListener("visibilitychange", nachPause);
+/* Escape schließt, was gerade über der Seite liegt — von oben nach unten */
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  if(pending){ pending = null; render(); }
+  else if(ui.sheetOpen){ ui.sheetOpen = false; render(); }
+  else if(ui.help) hilfeZu();
+  else if(ui.zeForm){ zeEditorZu(); render(); }
+});
 
 sb.auth.onAuthStateChange(event => {
   if(event === "SIGNED_OUT"){
     me = null; month = null; people = [];
+    ui.help = null;
     setupDone();
     ui.screen = "auth"; ui.authError = ""; ui.authInfo = ""; ui.authDetail = "";
     render();
