@@ -689,7 +689,7 @@ const WD_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "23.11.2026 um 16:25 Uhr";
+const PATCH_AM  = "23.11.2026 um 16:35 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* Anmeldelink auswerten, bevor irgendetwas die Adresse aufräumt.
@@ -2546,7 +2546,6 @@ function adminTime(){
   const k = ui.monthKey;
   const schritt = ui.zaStep === "close" ? "close" : "tage";
   const offeneTage = zaOffeneTage();
-  const offeneHaken = zaOffeneHaken();
 
   const stufe = (id, titel, zahl, erledigt) => `<button class="za-step ${erledigt ? "is-done" : ""}"
     role="tab" aria-selected="${schritt === id}" data-act="zastep" data-step="${id}">
@@ -2555,9 +2554,10 @@ function adminTime(){
   const kopf = `<div class="za-steps" role="tablist">
     ${stufe("tage", "Tage", offeneTage.length
       ? offeneTage.length + (offeneTage.length === 1 ? " Tag zu prüfen" : " Tage zu prüfen")
-      : "alle bestätigt", !offeneTage.length)}
+      : "alle abgeschlossen", !offeneTage.length)}
     ${stufe("close", "Abschluss", zeZu() ? "abgeschlossen"
-      : offeneHaken.length ? offeneHaken.length + " ohne Haken" : "bereit", zeZu())}
+      : offeneTage.length ? offeneTage.length + (offeneTage.length === 1 ? " Tag offen" : " Tage offen")
+      : "bereit", zeZu())}
   </div>`;
 
   const body = schritt === "close" ? zaCloseHtml()
