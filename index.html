@@ -30,6 +30,7 @@
   --accent:#A96A12; --accent-ink:#FFFFFF; --accent-soft:#F6E9D5;
   --ok:#27714F; --ok-soft:#DEF0E6; --ok-line:#9DCDB4;
   --no:#A8332B; --no-soft:#F8E3E1; --no-line:#E0A9A4;
+  --ok-ink:#FFFFFF; --no-ink:#FFFFFF;      /* Schrift auf vollem Grün und Rot */
   --shadow:0 1px 2px rgba(20,26,36,.07), 0 10px 28px rgba(20,26,36,.06);
   --r:10px; --pad:14px;
 }
@@ -39,6 +40,7 @@
   --accent:#E0A33C; --accent-ink:#1C1403; --accent-soft:#33291A;
   --ok:#63C695; --ok-soft:#173627; --ok-line:#2C5C45;
   --no:#EC8479; --no-soft:#3A1E1C; --no-line:#663631;
+  --ok-ink:#0B2417; --no-ink:#2B0E0B;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.35);
 }
 
@@ -232,65 +234,93 @@ main{padding:16px 0 110px}
 .checklist li.yes{background:var(--ok-soft); color:var(--ok)}
 
 .planhead{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px}
-/* Tagesleiste: immer 31 Felder, gleich breit, zusammen so breit wie die
-   Seite. Hat der Monat weniger Tage, bleiben die übrigen Felder grau. */
-.daystrip{display:grid; grid-template-columns:repeat(31, minmax(0, 1fr)); gap:5px; padding:2px 0 10px}
-.ds{min-width:0; height:32px; border-radius:8px; border:1px solid var(--line);
-  background:var(--surface); color:var(--ink-2); font-size:13px; font-weight:600; padding:0}
-.ds.fehlt{background:var(--surface-2); border-color:transparent; color:var(--ink-3); opacity:.45; cursor:default}
-.ds.part{border-color:var(--accent); color:var(--ink)}
-.ds.full{background:var(--ok-soft); border-color:var(--ok-line); color:var(--ok)}
-.ds.rest{background:transparent; border-style:dashed; color:var(--ink-3)}
+/* Umschalter „Tage / Monat“ und der Filter daneben */
+.pl-bar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px}
+.seg{display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden; background:var(--surface)}
+.seg > *{height:32px; padding:0 13px; border:0; background:transparent; display:inline-flex; align-items:center;
+  font-size:13px; font-weight:600; color:var(--ink-2)}
+.seg > * + *{border-left:1px solid var(--line)}
+.seg > [aria-pressed="true"], .seg > .an{background:var(--surface-2); color:var(--ink); font-weight:700}
+.pl-filter{height:32px; padding:0 11px; border:1px solid var(--line); border-radius:9px;
+  background:var(--surface); font-size:13px; font-weight:600}
+.pl-filter[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft)}
 
-.board{display:flex; gap:12px; align-items:stretch; overflow-x:auto;
-  padding:2px 2px 16px; margin:0;
-  scroll-snap-type:x proximity; scroll-padding-left:2px;
-  -webkit-overflow-scrolling:touch}
-.col{flex:0 0 248px; max-width:86vw; scroll-snap-align:start; display:flex; flex-direction:column;
-  background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden}
-.col.full{border-color:var(--ok-line)}
-.col.rest{opacity:.62}
-.colhead{padding:10px 12px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px}
-.col.full .colhead{background:var(--ok-soft); border-bottom-color:var(--ok-line)}
-.colhead .d{font-weight:700; font-size:15px}
-.colhead .d span{color:var(--ink-2); font-weight:600}
-.check{margin-left:auto; width:22px; height:22px; border-radius:50%; background:var(--ok); color:#fff;
-  display:grid; place-items:center; font-size:13px; flex:none}
-.colbody{padding:10px 12px 12px; flex:1; display:flex; flex-direction:column}
-.colbody > .btn{align-self:flex-start}
-.notewrap{margin-top:auto; padding-top:4px}
+/* Links die Tage oder der Monat, rechts die Stunden. Unter 960 Pixel
+   Breite steht die Stundenübersicht darunter. */
+.pl-wrap{display:grid; gap:14px; align-items:start}
+.pl-main{min-width:0}
 
-.slot{border:1px dashed var(--line); border-radius:var(--r); padding:8px 10px; margin-bottom:7px;
-  background:var(--bg); display:flex; flex-direction:column; gap:6px}
-.slot.filled{border-style:solid; background:var(--surface)}
-.slot.over{border-color:var(--accent); background:var(--accent-soft)}
-.slot.armed{border-color:var(--accent)}
-.slot.conflict{border-color:var(--no); background:var(--no-soft)}
-.slot-top{display:flex; align-items:baseline; gap:8px}
-.slot-top .t{font-weight:700; font-size:14px; letter-spacing:-.01em; flex:1; min-width:0;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.slot-top .n{font-size:12px; color:var(--ink-2); font-weight:600; white-space:nowrap; flex:none}
-.slot-bot{display:flex; align-items:center; gap:6px; min-height:30px}
-.slot-bot .free{flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--ink-3)}
-.slot.armed .slot-bot .free{color:var(--accent)}
-.who-chip{background:var(--accent); color:var(--accent-ink); font-weight:700; font-size:13px;
-  padding:6px 9px; border-radius:8px; flex:0 1 auto; min-width:0; max-width:100%; margin-right:auto;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left}
-.who-chip.is-sl{box-shadow:inset 0 0 0 2px var(--ok)}
-.who-chip.clash{background:var(--no); color:#fff}
-.slbtn{border:1px solid var(--line); background:var(--surface-2); color:var(--ink-3);
-  font-size:11px; font-weight:700; padding:5px 6px; border-radius:7px; line-height:1; flex:none}
-.slbtn.on{background:var(--ok); border-color:var(--ok); color:#fff}
-.iconbtn{border:none; background:transparent; color:var(--ink-3); font-size:16px; padding:2px 4px; line-height:1; flex:none}
-.iconbtn:hover{color:var(--ink)}
-.iconbtn.x:hover{color:var(--no)}
+/* Tagesansicht: eine Karte je Tag, darin eine Zeile je Schicht */
+.pl-days{display:flex; flex-direction:column; gap:6px}
+.pl-kw{font-size:11px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-2); padding:6px 2px 0}
+.pl-kw:first-child{padding-top:0}
+.pl-day{display:flex; background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  scroll-margin-top:calc(var(--kopf, 100px) + 10px)}
+.pl-day.full{background:var(--ok-soft); border-color:var(--ok-line)}
+.pl-day.clash{border-color:var(--no-line)}
+.pl-day.rest{align-items:center; gap:10px; padding:3px 6px 3px 12px;
+  background:var(--surface-2); border-style:dashed; color:var(--ink-2)}
+.pl-ruhe{flex:1; min-width:0; font-size:12.5px; font-style:italic}
+.pl-dh{flex:0 0 82px; padding:10px 0 8px 12px; display:flex; flex-direction:column; align-items:flex-start; gap:4px}
+.pl-d{font-size:14px; white-space:nowrap}
+.pl-day.rest .pl-d{flex:0 0 70px}
+.pl-st{font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; white-space:nowrap;
+  background:var(--accent-soft); color:var(--ink)}
+.pl-st.ok{background:var(--surface); color:var(--ok)}
+.pl-st.bad{background:var(--no-soft); color:var(--no)}
+.pl-db{flex:1; min-width:0; padding:3px 10px 7px 4px}
 
-.slot-edit{display:grid; gap:7px; padding:9px 10px; border:1px solid var(--accent);
-  border-radius:var(--r); margin-bottom:7px; background:var(--surface); overflow:hidden}
-.slot-edit .two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:7px}
-.slot-edit input{padding:7px 8px; font-size:13px; border:1px solid var(--line); border-radius:8px;
-  background:var(--bg); width:100%; min-width:0; max-width:100%; text-align:center}
-.slot-edit input[data-edit="label"]{text-align:left}
+.pl-sh{display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid var(--surface-2)}
+.pl-day.full .pl-sh{border-bottom-color:var(--ok-line)}
+.pl-lbl{flex:1 1 104px; min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:0 8px;
+  text-align:left; background:none; border:0; padding:2px 0; color:inherit}
+.pl-lbl .t{font-weight:700; font-size:13px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pl-lbl .n{font-size:12px; font-weight:600; color:var(--ink-2); white-space:nowrap}
+.pl-wer{flex:2 1 150px; min-width:0; height:32px; display:flex; align-items:center; gap:6px;
+  padding:0 9px 0 10px; border-radius:8px; border:1px dashed var(--line); background:var(--surface);
+  color:var(--ink-2); font-size:13px; font-weight:600; text-align:left}
+.pl-wer span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pl-wer .ic{flex:none; width:13px; height:13px}
+.pl-wer.filled{border:1px solid var(--accent); background:var(--accent-soft); color:var(--ink); font-weight:700}
+.pl-wer.clash{border-color:var(--no); background:var(--no-soft)}
+.pl-wer[aria-expanded="true"]{border-color:var(--accent)}
+.slbtn{flex:0 0 32px; height:32px; padding:0; border-radius:8px; border:1px solid var(--line);
+  background:var(--surface-2); color:var(--ink-2); font-size:11px; font-weight:800; line-height:1}
+.slbtn.on{background:var(--ok); border-color:var(--ok); color:var(--ok-ink)}
+.slbtn:disabled{opacity:.45}
+
+/* Auswahlliste und Schichteditor klappen unter ihrer Zeile auf */
+.pl-pick, .pl-edit{margin:5px 0 8px; padding:10px; border:1px solid var(--accent); border-radius:var(--r);
+  background:var(--surface); box-shadow:var(--shadow)}
+.pl-pk{display:flex; align-items:center; gap:6px; margin-bottom:5px}
+.pl-gt{flex:1; min-width:0; font-size:10.5px; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-2)}
+.pl-pick > .pl-gt{margin:9px 0 5px}
+.pl-leer{flex:none; height:28px; padding:0 10px; border:1px solid var(--no-line); border-radius:7px;
+  background:var(--surface); color:var(--no); font-size:12px; font-weight:600}
+.pl-x{flex:none; width:28px; height:28px; padding:0; display:grid; place-items:center;
+  border:1px solid var(--line); border-radius:7px; background:var(--surface); color:var(--ink-2)}
+.pl-x .ic{width:13px; height:13px}
+.pl-leute{display:grid; grid-template-columns:repeat(auto-fill, minmax(165px, 1fr)); gap:5px}
+.pl-p{min-width:0; text-align:left; padding:5px 9px; border-radius:8px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink)}
+.pl-p:hover:not(:disabled){border-color:var(--ink-3)}
+.pl-p b{font-size:13px}
+.pl-p small{display:block; font-size:11.5px; color:var(--ink-2)}
+.pl-p.sel{border-color:var(--accent); background:var(--accent-soft)}
+.pl-p.warn{border-color:var(--no-line)}
+.pl-p.warn small{color:var(--no)}
+.pl-p:disabled{opacity:.5}
+.pl-slz{margin-left:5px; padding:0 3px; border:1px solid var(--ok-line); border-radius:4px;
+  background:var(--ok-soft); color:var(--ok); font-size:9.5px; font-weight:800; vertical-align:1px}
+.pl-edit{display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end}
+.pl-edit label{flex:1 1 100px; min-width:0; display:flex; flex-direction:column; gap:3px;
+  font-size:12px; font-weight:600; color:var(--ink-2)}
+.pl-edit label:first-child{flex:2 1 160px}
+.pl-edit input{width:100%; min-width:0; height:34px; padding:0 9px; border:1px solid var(--line);
+  border-radius:8px; background:var(--bg); font-size:14px}
+.pl-edit .row{flex:1 1 100%; gap:6px}
 input[type="time"]{
   -webkit-appearance:none; appearance:none;
   min-width:0; width:100%; max-width:100%; text-align:center;
@@ -298,18 +328,69 @@ input[type="time"]{
 input[type="time"]::-webkit-date-and-time-value{text-align:center; margin:0}
 input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 
-.grouplbl{font-size:12px; font-weight:700; color:var(--ink-3); margin:12px 0 7px}
-.chips{display:flex; flex-wrap:wrap; gap:6px}
+.pl-fuss{display:flex; align-items:center; gap:8px; padding-top:6px}
+.pl-add{flex:none; height:28px; padding:0 9px; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); font-size:12px; font-weight:600}
+.pl-note{flex:1; min-width:0; height:28px; padding:0 9px; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); font-size:12.5px}
+.pl-alle{padding:18px; text-align:center; border:1px solid var(--ok-line); border-radius:var(--r);
+  background:var(--ok-soft); color:var(--ok); font-weight:600}
+
+/* Monatsansicht: Personen untereinander, Tage nebeneinander */
+.pl-mx{padding:10px 0 10px 10px}
+.pl-mxs{overflow-x:auto; -webkit-overflow-scrolling:touch; padding-right:10px}
+.pl-mx table{width:100%; border-collapse:separate; border-spacing:2px; font-size:11.5px}
+.pl-mx th{font-weight:700; padding:0}
+.pl-mx .nm{position:sticky; left:0; z-index:1; background:var(--surface); text-align:left; white-space:nowrap;
+  font-size:12.5px; padding:0 8px 0 2px}
+.pl-mx thead .nm, .pl-mx thead .std{font-size:11px; color:var(--ink-2); vertical-align:bottom; padding-bottom:3px}
+.pl-mx .tg{width:100%; min-width:20px; border:0; background:none; padding:0 0 3px; color:var(--ink);
+  font-size:11.5px; font-weight:700; line-height:1.15; text-align:center}
+.pl-mx .tg small{display:block; font-size:9.5px; font-weight:600}
+.pl-mx .tg.zu{color:var(--ink-3)}
+.pl-mx td{height:24px; min-width:20px; text-align:center; border-radius:5px; background:var(--bg);
+  color:var(--ink-2); font-size:10.5px; font-weight:800}
+.pl-mx td.zu{background:var(--surface-2)}
+.pl-mx td.ab{background:var(--no-soft); color:var(--no)}
+.pl-mx td.da{background:var(--accent-soft); color:var(--ink)}
+.pl-mx td.sl{background:var(--ok); color:var(--ok-ink)}
+.pl-mx td.clash{background:var(--no); color:var(--no-ink)}
+.pl-mx .std{background:none; text-align:right; white-space:nowrap; padding:0 2px 0 6px;
+  font-size:11.5px; font-weight:700; color:var(--ink)}
+.pl-mx .std.over{color:var(--no)}
+/* Die Ergebniszeile steht abgesetzt unter einem durchgehenden Strich */
+.pl-mx .strich td{height:auto; padding:6px 0 4px; background:none}
+.pl-mx .strich div{height:2px; border-radius:1px; background:var(--line)}
+.pl-mx .sum td.s{border:1px solid var(--accent); background:var(--accent-soft); color:var(--ink); font-size:11.5px}
+.pl-mx .sum td.s.voll{border-color:var(--ok-line); background:var(--ok-soft); color:var(--ok)}
+.pl-mx .sum td.s.zu{border-color:transparent; background:var(--surface-2)}
+.pl-leg{margin:8px 10px 0 2px; font-size:12px; color:var(--ink-2)}
+
+/* Stunden je Person: die Leiste wächst mit jeder Schicht */
+.pl-std{padding:12px 12px 4px}
+.pl-std h2{font-size:15px}
+.pl-std > p{margin:2px 0 6px; font-size:12px; color:var(--ink-2)}
+.pl-pr{padding:6px 0; border-top:1px solid var(--surface-2)}
+.pl-pr .o{display:flex; align-items:baseline; gap:8px}
+.pl-pr .nm{flex:1; min-width:0; font-size:13px; font-weight:700}
+.pl-pr .w{flex:none; font-size:12.5px; font-weight:700; white-space:nowrap}
+.pl-bal{height:5px; margin:4px 0 2px; border-radius:999px; background:var(--surface-2); overflow:hidden}
+.pl-bal i{display:block; height:100%; border-radius:999px; background:var(--accent)}
+.pl-pr.voll .pl-bal i{background:var(--ok)}
+.pl-pr.over .pl-bal i{background:var(--no)}
+.pl-pr.over .w{color:var(--no)}
+.pl-pr small{display:block; font-size:11.5px; color:var(--ink-2)}
+.pl-pr .slh{color:var(--ok); font-weight:700}
+.pl-flag{display:inline-block; margin-left:6px; padding:1px 6px; border-radius:999px; white-space:nowrap;
+  background:var(--no); color:var(--no-ink); font-size:10.5px; font-weight:700; vertical-align:1px}
+.pl-flag.lo{background:var(--accent-soft); color:var(--ink)}
+
+.iconbtn{border:none; background:transparent; color:var(--ink-3); font-size:16px; padding:2px 4px; line-height:1; flex:none}
+.iconbtn:hover{color:var(--ink)}
 .chip{border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
   padding:6px 10px; border-radius:999px; font-size:13px; font-weight:600}
 .chip:hover{border-color:var(--ink-3)}
 .chip.sel{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
-.chip.pending::after{content:"?"; margin-left:5px; color:var(--ink-3); font-weight:700}
-.chip.sel.pending::after{color:var(--accent-ink); opacity:.7}
-.chip.used{opacity:.38; text-decoration:line-through}
-.chip.drag{opacity:.5}
-.noteinput{width:100%; border:1px solid var(--line); border-radius:var(--r); padding:8px 10px;
-  font-size:13px; background:var(--bg); resize:vertical; min-height:38px}
 .empty-note{font-size:13px; color:var(--ink-3); padding:6px 0}
 
 /* ============================================================
@@ -318,10 +399,6 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 .panel{padding:16px; margin-bottom:14px}
 .panel h2{font-size:17px; margin-bottom:4px}
 .panel > p{margin:0 0 14px; color:var(--ink-2); font-size:14px}
-.list{list-style:none; margin:0; padding:0}
-.list li{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line)}
-.list li:last-child{border-bottom:none}
-.list .nm{font-weight:600}
 .status{font-size:12px; font-weight:700; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-2)}
 .status.yes{background:var(--ok-soft); color:var(--ok)}
 
@@ -389,20 +466,6 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none}
 
 /* Immer zwei Zeilen je Person: oben der Name, unten links die Schichten
    und rechts der Betrag. So rutscht nie etwas unter den Namen. */
-.paylist li{display:block; padding:9px 0}
-.paylist .nm{display:block; font-weight:700; font-size:15px}
-.paylist .det{display:flex; align-items:baseline; gap:12px; margin-top:1px}
-.paylist .num{flex:1; min-width:0; font-size:13px; color:var(--ink-2)}
-.paylist .pay{flex:none; margin-left:auto; font-weight:700; text-align:right; white-space:nowrap}
-.paylist .slh{color:var(--ok); font-weight:700}
-.paylist .fest{font-weight:600; font-size:12px; color:var(--ink-3)}
-.paylist .pay.lo{color:var(--accent)}
-.paylist li.over{background:var(--no-soft); border-radius:8px; padding:9px 10px;
-  border-bottom-color:transparent}
-.paylist li.over .pay{color:var(--no)}
-.paylist .flag{display:inline-block; margin-left:8px; font-size:11px; font-weight:700;
-  color:#fff; background:var(--no); padding:2px 6px; border-radius:999px; vertical-align:1px}
-.paylist .flag.lo{background:var(--accent); color:var(--accent-ink)}
 
 .tpl{border:1px solid var(--line); border-radius:var(--r); padding:10px 12px; margin-bottom:8px}
 .tpl .hd{font-weight:700; margin-bottom:6px; font-size:14px}
@@ -678,11 +741,15 @@ button.ze-h:disabled{cursor:not-allowed}
   .mnav{flex:1}
   .mnav .m{font-size:19px; flex:1; text-align:center}
   .panel{padding:14px}
-  .board{padding:2px var(--pad) 16px; margin:0 calc(-1 * var(--pad)); scroll-padding-left:var(--pad)}
-  /* Am Handy passen keine 31 Felder nebeneinander: die Leiste rollt */
-  .daystrip{display:flex; overflow-x:auto; scrollbar-width:thin;
-    margin:0 calc(-1 * var(--pad)); padding:2px var(--pad) 10px}
-  .ds{flex:none; width:32px}
+  /* Planung: das Datum steht über den Schichten statt links daneben */
+  .pl-day:not(.rest){flex-direction:column}
+  .pl-dh{flex:none; flex-direction:row; align-items:center; gap:8px; padding:8px 12px 0}
+  .pl-db{padding:2px 10px 7px 12px}
+  /* Unter 16 Pixel Schrift zoomt das iPhone beim Antippen in ein Feld */
+  .pl-note, .pl-edit input{font-size:16px}
+  .pl-note::placeholder{font-size:13px}
+  /* In der Monatsübersicht bleiben die Felder groß genug zum Tippen */
+  .pl-mx td, .pl-mx .tg{min-width:24px}
   /* Kopf am Handy in zwei Zeilen: oben der Titel über die ganze Breite,
      darunter links Name und Rolle, rechts die Knöpfe */
   .top-in{flex-wrap:wrap; row-gap:4px}
@@ -729,7 +796,19 @@ button.ze-h:disabled{cursor:not-allowed}
   .einl-felder{grid-template-columns:1fr}
 }
 
+@media (min-width:960px){
+  /* Die Stundenübersicht steht rechts und bleibt beim Rollen im Bild */
+  .pl-wrap{grid-template-columns:minmax(0, 1fr) 290px}
+  .pl-std{position:sticky; top:calc(var(--kopf, 100px) + 12px);
+    max-height:calc(100vh - var(--kopf, 100px) - 24px); overflow-y:auto}
+}
 @media (min-width:761px){
+  /* Am Rechner feste Spalten, damit Bezeichnung, Person und SL von Tag
+     zu Tag untereinander stehen */
+  .pl-lbl{flex:0 0 250px}
+  .pl-wer{flex:0 1 300px}
+  .pl-leute{grid-template-columns:repeat(auto-fill, minmax(215px, 1fr))}
+
   .pswitches{grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); column-gap:30px}
   /* Zeiterfassung: dichtere Zeilen, und Platz für Trennstriche zwischen
      den drei Feldern der Tageszeile. */
@@ -783,23 +862,21 @@ button.ze-h:disabled{cursor:not-allowed}
   border-radius:50%; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:700;
   display:grid; place-items:center}
 .h-kette li b{display:block; color:var(--ink); font-size:14px}
-/* Kopfzeile, Fußleiste und Tafelspalte als Ausschnitt */
+/* Kopfzeile und Fußleiste als Ausschnitt */
 .h-kopf{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:0 12px}
 .h-kopf .tabs{align-items:center; flex-wrap:wrap; overflow:visible}
 .h-kopf .tab{padding:7px 9px}
-.h-bild .ds{display:grid; place-items:center}
 .h-leiste{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line);
   border-radius:var(--r); padding:10px 12px; margin-top:8px}
-.h-spalten{display:flex; gap:12px}
-.h-spalten .col{flex:0 1 270px; max-width:100%}
 .h-feld{display:grid; place-items:center; text-align:center}
 .ze-spinv.h-feld{height:44px; padding:0}
 .sw-b.h-an{background:var(--accent); border-color:var(--accent)}
 .sw-b.h-an::after{transform:translateX(16px)}
-.h-bild .slot-bot, .h-bild .macts, .h-bild .daystrip, .h-bild .chips, .h-bild .plan-filter,
+.h-bild .slbtn{display:grid; place-items:center}
+.h-bild .pl-filter{display:inline-flex; align-items:center}
+.h-bild .pl-p{display:block}
+.h-bild .macts, .h-bild .pl-sh, .h-bild .pl-pk, .h-bild .plan-filter,
 .h-bild .za-foot, .h-bild .za-row, .h-bild .drow, .h-bild .ze-row{align-items:center}
-.h-bild .daystrip{display:flex; overflow:visible; flex-wrap:wrap; padding-bottom:10px; margin:0}
-.h-bild .ds{flex:none; width:32px}
 
 /* ============================================================
    14 — Nutzungsvereinbarung und Zugang anlegen
@@ -943,6 +1020,8 @@ const IC_HILFE = `<svg ${IC_STRICH}><circle cx="12" cy="12" r="8.8"/>
   <path d="M9.5 9.6a2.6 2.6 0 1 1 3.9 2.2c-.9.5-1.4 1-1.4 2"/><path d="M12 17v.01"/></svg>`;
 const IC_NEU = `<svg ${IC_STRICH}>
   <path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5v5h-5"/></svg>`;
+const IC_PFEIL = `<svg ${IC_STRICH}><path d="M6 9.5l6 6 6-6"/></svg>`;
+const IC_ZU = `<svg ${IC_STRICH}><path d="M6 6l12 12M18 6L6 18"/></svg>`;
 const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
   <circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="2.2"/>
   <path d="M12 3.2a8.8 8.8 0 0 0 0 17.6z" fill="currentColor"/></svg>`;
@@ -950,7 +1029,7 @@ const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "24.11.2026 um 10:15 Uhr";
+const PATCH_AM  = "24.11.2026 um 22:43 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* VB-ANFANG — Nutzungsvereinbarung. Der Text steht genau einmal hier:
@@ -1121,8 +1200,11 @@ const ui = {
   authMode: "login",       // login | reset
   authError: "", authInfo: "", authDetail: "",
   formError: "", formInfo: "",
-  selection: null,
-  editingShift: null,
+  /* Planung */
+  planView: "tage",          // tage | monat
+  planNurOffen: false,       // Tagesansicht: fertige Tage und Ruhetage ausblenden
+  picker: null,              // id der Schicht, deren Auswahlliste offen ist
+  editingShift: null,        // id der Schicht, deren Bezeichnung und Zeiten offen sind
   renaming: null,            // Person, deren Name gerade geändert wird
   sheetOpen: false,
   help: null,                // null | "staff" | "admin" — die Anleitung liegt über der App
@@ -1272,6 +1354,36 @@ function payroll(userId){
     ueberSoll: soll > 0 && hours > soll + 0.001,
     unterSoll: soll > 0 && hours < soll - 0.001
   };
+}
+
+/* Auslastung im Verhältnis zur eigenen Grenze — Minijob am Betrag,
+   Festanstellung an den Vertragsstunden. So sind beide Gruppen
+   vergleichbar; ohne Grenze zählt ein voller Monat mit 160 Stunden. */
+function auslastung(p, pay, hours){
+  if(p.minijob) return config.limitOn && config.limit > 0 ? pay / config.limit : hours / 160;
+  const soll = Number(p.soll) || 0;
+  return soll > 0 ? hours / soll : hours / 160;
+}
+
+/* Kalenderwoche nach ISO 8601: die Woche gehört zu dem Jahr, in dem ihr
+   Donnerstag liegt. */
+function isoWoche(k, day){
+  const p = parseKey(k);
+  const t = new Date(Date.UTC(p.y, p.m, day));
+  t.setUTCDate(t.getUTCDate() + 3 - (t.getUTCDay() + 6) % 7);          // Donnerstag derselben Woche
+  const ersterDo = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+  ersterDo.setUTCDate(ersterDo.getUTCDate() + 3 - (ersterDo.getUTCDay() + 6) % 7);
+  return 1 + Math.round((t - ersterDo) / 604800000);
+}
+
+/* Kurzzeichen einer Schicht für die Monatsübersicht:
+   Frühschicht F, Spätschicht 2 S2, sonst der Anfangsbuchstabe. */
+function schichtKurz(label){
+  const l = String(label || "").trim();
+  const nr = (l.match(/\d+/) || [""])[0];
+  if(/früh/i.test(l)) return "F" + nr;
+  if(/spät/i.test(l)) return "S" + nr;
+  return (l.charAt(0).toUpperCase() || "●") + nr;
 }
 
 /* Zahlen für den Kopf der Planung */
@@ -1568,7 +1680,7 @@ function nichtsOffen(){
   if(ui.einl.laeuft || ui.einl.ergebnis) return false;
   const neu = document.querySelector('[data-form="invite"]');
   if(neu && (feldWert(neu, "name") || feldWert(neu, "email"))) return false;
-  if(ui.zeForm || ui.editingShift || ui.renaming || ui.sync === "saving" || ui.sync === "load") return false;
+  if(ui.zeForm || ui.editingShift || ui.picker || ui.renaming || ui.sync === "saving" || ui.sync === "load") return false;
   const reiter = isAdmin() ? ui.adminTab : ui.empTab;
   if(reiter === "settings" || reiter === "account") return false;   // dort stehen ungespeicherte Eingaben
   const feld = document.activeElement;
@@ -1903,7 +2015,6 @@ function viewAdmin(){
 function adminPlan(){
   const k = ui.monthKey;
   const st = monthStats();
-  const n = daysInMonth(k);
 
   const actions = `
     <button class="btn" data-act="suggest">Vorschlag</button>
@@ -1926,21 +2037,6 @@ function adminPlan(){
     }).join("") || `<li>Noch niemand im Team</li>`}</ul>
   </details>`;
 
-  /* Die Leiste zeigt immer 1 bis 31; Tage, die der Monat nicht hat, sind
-     ausgegraut und nicht anklickbar. */
-  let strip = "", cols = "";
-  for(let d = 1; d <= 31; d++){
-    const day = d <= n ? month.days[d] : null;
-    if(!day){
-      strip += `<button class="ds fehlt" disabled aria-hidden="true" tabindex="-1">${d}</button>`;
-      continue;
-    }
-    const filled = day.shifts.filter(s => s.emp).length;
-    const cls = day.closed ? "rest" : dayComplete(day) ? "full" : filled ? "part" : "";
-    strip += `<button class="ds ${cls}" data-act="goday" data-day="${d}" title="${WD_SHORT[weekdayOf(k, d)]} ${d}.">${d}</button>`;
-    cols += dayColumn(d);
-  }
-
   return monthBar(actions)
     + (ui.formError ? `<div class="banner bad">${esc(ui.formError)}</div>` : "")
     + (month.published ? `<div class="banner ok">Freigegeben — alle Mitarbeiter sehen den Plan in der App.</div>` : "")
@@ -1953,139 +2049,251 @@ function adminPlan(){
         <span class="pill ${st.done === st.open && st.open > 0 ? "done" : ""}"><b>${st.done}</b> von ${st.open} Tagen fertig</span>
         ${st.conflicts ? `<span class="pill warn"><b>${st.conflicts}</b> trotz Absage eingeteilt</span>` : ""}
        </div>`
-    + `<div class="daystrip">${strip}</div>`
-    + `<div class="board" id="board">${cols}</div>`
-    + payPanel();
+    + planSchalter()
+    + `<div class="pl-wrap">
+        <div class="pl-main">${ui.planView === "monat" ? planMonat() : planTage()}</div>
+        ${payPanel()}
+       </div>`;
 }
 
-function dayColumn(d){
-  const k = ui.monthKey;
+/* Umschalter zwischen den beiden Ansichten der Planung */
+function planSchalter(){
+  const tage = ui.planView !== "monat";
+  const knopf = (wert, text, an) =>
+    `<button data-act="planview" data-view="${wert}" aria-pressed="${an}">${text}</button>`;
+  return `<div class="pl-bar">
+    <div class="seg" role="group" aria-label="Ansicht">${knopf("tage", "Tage", tage)}${knopf("monat", "Monat", !tage)}</div>
+    ${tage ? `<button class="pl-filter" data-act="planoffen" aria-pressed="${ui.planNurOffen}">${
+      ui.planNurOffen ? "✓ " : ""}Nur offene Tage</button>` : ""}
+  </div>`;
+}
+
+const tagMitAbsage = (day, d) => day.shifts.some(s => s.emp && isOff(s.emp, d));
+
+/* Tagesansicht: alle Tage untereinander, nach Kalenderwochen gegliedert */
+function planTage(){
+  const k = ui.monthKey, n = daysInMonth(k);
+  let out = "", kwZuletzt = null;
+  for(let d = 1; d <= n; d++){
+    const day = month.days[d];
+    if(!day) continue;
+    if(ui.planNurOffen && (day.closed || (dayComplete(day) && !tagMitAbsage(day, d)))) continue;
+    const kw = isoWoche(k, d);
+    if(kw !== kwZuletzt){ out += `<div class="pl-kw">KW ${kw}</div>`; kwZuletzt = kw; }
+    out += planTag(d);
+  }
+  return `<div class="pl-days">${out || `<div class="pl-alle">Alle Tage sind fertig geplant.</div>`}</div>`;
+}
+
+/* Ein Tag: links das Datum mit dem Stand, rechts eine Zeile je Schicht */
+function planTag(d){
   const day = month.days[d];
-  const wd = weekdayOf(k, d);
+  const datum = `<span class="pl-d"><b>${WD_SHORT[weekdayOf(ui.monthKey, d)]}</b> ${d}.</span>`;
 
   if(day.closed){
-    return `<div class="col rest" data-col="${d}">
-      <div class="colhead"><div class="d">${WD_SHORT[wd]} <span>${d}.</span></div></div>
-      <div class="colbody">
-        <div class="empty-note">Ruhetag</div>
-        <button class="btn sm" data-act="openday" data-day="${d}">Tag öffnen</button>
-      </div>
+    return `<div class="pl-day rest" id="pl-tag-${d}">
+      ${datum}<span class="pl-ruhe">Ruhetag</span>
+      <button class="pl-add" data-act="openday" data-day="${d}">Tag öffnen</button>
     </div>`;
   }
 
-  const armed = !!ui.selection && ui.selection.day === d;
+  const offen = day.shifts.filter(s => !s.emp).length;
+  const absage = tagMitAbsage(day, d);
+  const fertig = dayComplete(day);
+  const stand = absage ? `<span class="pl-st bad">Absage</span>`
+    : fertig ? `<span class="pl-st ok">fertig ✓</span>`
+    : `<span class="pl-st">${!day.shifts.length ? "keine Schicht" : offen ? offen + " offen" : "SL fehlt"}</span>`;
 
-  const shifts = day.shifts.map(s => {
-    if(ui.editingShift === s.id){
-      return `<div class="slot-edit">
-        <input data-edit="label" value="${esc(s.label)}" placeholder="Bezeichnung">
-        <div class="two">
-          <input data-edit="start" type="time" value="${s.start}">
-          <input data-edit="end" type="time" value="${s.end}">
-        </div>
-        <div class="row">
-          <button class="btn sm primary" data-act="saveshift" data-day="${d}" data-shift="${s.id}">Übernehmen</button>
-          <div class="grow"></div>
-          <button class="btn sm danger" data-act="delshift" data-day="${d}" data-shift="${s.id}">Löschen</button>
-        </div>
-      </div>`;
-    }
-    const conflict = s.emp && isOff(s.emp, d);
-    return `<div class="slot ${s.emp ? "filled" : ""} ${armed && !s.emp ? "armed" : ""} ${conflict ? "conflict" : ""}"
-        data-day="${d}" data-shift="${s.id}">
-      <div class="slot-top">
-        <span class="t">${esc(s.label)}</span>
-        <span class="n">${s.start}–${s.end}</span>
-      </div>
-      <div class="slot-bot">
-        ${s.emp ? `
-          <span class="who-chip ${s.sl ? "is-sl" : ""} ${conflict ? "clash" : ""}" draggable="true"
-            data-from="${d}:${s.id}" data-emp="${s.emp}"
-            title="${conflict ? "Hat für diesen Tag abgesagt" : ""}">${esc(personName(s.emp))}</span>
-          <button class="slbtn ${s.sl ? "on" : ""}" data-act="togglesl" data-day="${d}" data-shift="${s.id}"
-            ${canLead(s.emp) ? "" : "disabled"} aria-pressed="${!!s.sl}"
-            title="${canLead(s.emp) ? "Schichtleitung" : "Im Team nicht als Schichtleiter vorgesehen"}">SL</button>
-          <button class="iconbtn x" data-act="clear" data-day="${d}" data-shift="${s.id}" aria-label="Freimachen">×</button>`
-        : `
-          <span class="free">${armed ? "antippen zum Einsetzen" : "frei"}</span>
-          <button class="iconbtn" data-act="editshift" data-day="${d}" data-shift="${s.id}" aria-label="Schicht bearbeiten">✎</button>`}
-      </div>
-    </div>`;
-  }).join("");
-
-  const busy = day.shifts.filter(s => s.emp).map(s => s.emp);
-  const team = teamList();
-  const free = team.filter(p => !isOff(p.id, d));
-  const away = team.filter(p => isOff(p.id, d));
-
-  const chips = free.map(p => {
-    const used = busy.indexOf(p.id) >= 0;
-    const sel = armed && ui.selection.empId === p.id;
-    const open = !availOf(p.id).confirmed;
-    return `<button class="chip ${used ? "used" : ""} ${sel ? "sel" : ""} ${open ? "pending" : ""}"
-      draggable="${!used}" data-emp="${p.id}" data-day="${d}" data-act="pick">${esc(p.name)}</button>`;
-  }).join("");
-
-  return `<div class="col ${dayComplete(day) ? "full" : ""}" data-col="${d}">
-    <div class="colhead">
-      <div class="d">${WD_SHORT[wd]} <span>${d}.</span></div>
-      ${dayComplete(day) ? `<span class="check">✓</span>` : ""}
-    </div>
-    <div class="colbody">
-      ${shifts || `<div class="empty-note">Keine Schichten</div>`}
-      <button class="btn sm" data-act="addshift" data-day="${d}">+ Schicht</button>
-      <div class="grouplbl">Kann an diesem Tag</div>
-      <div class="chips">${chips || `<span class="empty-note">Niemand verfügbar</span>`}</div>
-      ${away.length ? `<div class="tiny muted" style="margin-top:7px">Kann nicht: ${away.map(p => esc(p.name)).join(", ")}</div>` : ""}
-      <div class="notewrap">
-        <div class="grouplbl">Notiz</div>
-        <textarea class="noteinput" data-note="${d}" rows="1" placeholder="Besonderheiten...">${esc(day.comment)}</textarea>
+  return `<div class="pl-day ${absage ? "clash" : fertig ? "full" : ""}" id="pl-tag-${d}">
+    <div class="pl-dh">${datum}${stand}</div>
+    <div class="pl-db">
+      ${day.shifts.map(s => planSchicht(d, day, s)).join("")}
+      <div class="pl-fuss">
+        <button class="pl-add" data-act="addshift" data-day="${d}">+ Schicht</button>
+        <input class="pl-note" data-note="${d}" value="${esc(day.comment)}" placeholder="Notiz" aria-label="Notiz zum ${d}.">
       </div>
     </div>
   </div>`;
 }
 
-function payPanel(){
-  const zeilen = teamList().map(p => Object.assign({minijob:p.minijob, name:p.name}, payroll(p.id)));
-  /* Minijob-Kräfte zuerst, denn nur bei ihnen ist die Geldgrenze zu beachten */
-  const rows = zeilen.filter(r => r.minijob).sort((a, b) => b.pay - a.pay)
-    .concat(zeilen.filter(r => !r.minijob).sort((a, b) => b.hours - a.hours));
-
-  /* Zeile 1: Name und gegebenenfalls ein Hinweis.
-     Zeile 2: links Schichten und Stunden, rechts Betrag oder Soll. */
-  const hinweis = r =>
-      r.over      ? `<span class="flag">über Grenze</span>`
-    : r.ueberSoll ? `<span class="flag">über Soll</span>`
-    : r.unterSoll ? `<span class="flag lo">fehlen ${dec(r.soll - r.hours)} Std.</span>`
-    : "";
-  /* Bei Festanstellung mit Soll stehen die Stunden schon rechts —
-     dann bleiben sie links weg, sonst wird die Zeile unnötig lang. */
-  const stundenRechts = r => !r.minijob && r.soll > 0;
-  const rechts = r =>
-      r.minijob        ? `<span class="pay">${eur(r.pay)}</span>`
-    : !stundenRechts(r) ? `<span class="pay fest">Festanstellung</span>`
-    : `<span class="pay ${r.unterSoll ? "lo" : ""}">${dec(r.hours)} / ${dec(r.soll)} Std.</span>`;
-
-  const links = r => {
-    const teile = [r.shifts + (r.shifts === 1 ? " Schicht" : " Schichten")];
-    if(!stundenRechts(r)) teile.push(dec(r.hours) + " Std.");
-    if(r.hSL) teile.push(`<span class="slh" title="davon als Schichtleitung">${dec(r.hSL)} Std. SL</span>`);
-    return teile.join(" · ");
-  };
-
-  const zeile = r => `<li class="${r.over || r.ueberSoll ? "over" : ""}">
-      <span class="nm">${esc(r.name)}${hinweis(r)}</span>
-      <span class="det">
-        <span class="num">${links(r)}</span>
-        ${rechts(r)}
-      </span>
-    </li>`;
-
-  return `<div class="card panel" style="margin-top:16px">
-    <h2>Stunden- und Schichtverteilung (aus dem Plan)</h2>
-    <ul class="list paylist">${
-      rows.map(zeile).join("") || `<li class="muted">Noch niemand im Team.</li>`}</ul>
+/* Eine Schicht: Bezeichnung und Zeit, wer sie übernimmt, Schichtleitung.
+   Darunter klappt entweder die Auswahlliste oder der Editor auf. */
+function planSchicht(d, day, s){
+  const ziel = `data-day="${d}" data-shift="${s.id}"`;
+  const absage = !!s.emp && isOff(s.emp, d);
+  const kannSL = !!s.emp && canLead(s.emp);
+  const zeile = `<div class="pl-sh">
+    <button class="pl-lbl" data-act="editshift" ${ziel} title="Bezeichnung und Zeiten ändern">
+      <span class="t">${esc(s.label)}</span><span class="n">${s.start}–${s.end}</span></button>
+    <button class="pl-wer ${s.emp ? "filled" : ""} ${absage ? "clash" : ""}" data-act="plpick" ${ziel}
+      aria-expanded="${ui.picker === s.id}" title="${absage ? "Hat für diesen Tag abgesagt" : ""}">
+      <span>${s.emp ? esc(personName(s.emp)) : "Person wählen"}</span>${IC_PFEIL}</button>
+    <button class="slbtn ${s.sl ? "on" : ""}" data-act="togglesl" ${ziel} ${kannSL ? "" : "disabled"}
+      aria-pressed="${!!s.sl}" title="${kannSL || !s.emp ? "Schichtleitung" : "Im Team nicht als Schichtleiter vorgesehen"}">SL</button>
   </div>`;
+
+  if(ui.editingShift === s.id){
+    return zeile + `<div class="pl-edit">
+      <label>Bezeichnung<input data-edit="label" value="${esc(s.label)}" placeholder="Bezeichnung"></label>
+      <label>Beginn<input data-edit="start" type="time" value="${s.start}"></label>
+      <label>Ende<input data-edit="end" type="time" value="${s.end}"></label>
+      <div class="row">
+        <button class="btn sm primary" data-act="saveshift" ${ziel}>Übernehmen</button>
+        <button class="btn sm" data-act="planzu">Abbrechen</button>
+        <div class="grow"></div>
+        <button class="btn sm danger" data-act="delshift" ${ziel}>Löschen</button>
+      </div>
+    </div>`;
+  }
+  return zeile + (ui.picker === s.id ? planWahl(d, day, s) : "");
+}
+
+/* Die Auswahlliste einer Schicht. Vier Gruppen: wer kann (wer anteilig
+   am wenigsten hat, zuerst), wer seine Verfügbarkeit noch nicht bestätigt
+   hat, wer abgesagt hat, und wer an dem Tag schon eine Schicht hat. Bei
+   jedem Namen steht, wie weit die Person von ihrer Grenze entfernt ist. */
+function planWahl(d, day, s){
+  const ziel = `data-day="${d}" data-shift="${s.id}"`;
+  const dauer = hoursOf(s);
+  const woanders = {};
+  day.shifts.forEach(x => { if(x.emp && x.id !== s.id) woanders[x.emp] = x.label; });
+  const ohneSL = !day.shifts.some(x => x.emp && x.sl && x.id !== s.id);
+
+  const gruppen = {frei:[], offen:[], absage:[], heute:[]};
+  teamList().map(p => ({p, r:payroll(p.id)}))
+    .sort((a, b) => auslastung(a.p, a.r.pay, a.r.hours) - auslastung(b.p, b.r.pay, b.r.hours))
+    .forEach(({p, r}) => {
+      const gewaehlt = s.emp === p.id;
+      const dazu = gewaehlt ? 0 : dauer;
+      /* Wer leiten kann, übernimmt die Leitung, solange der Tag keine hat */
+      const lohn = ohneSL && p.can_lead ? config.wageSL : config.wage;
+      const ueberGrenze = p.minijob && config.limitOn && r.pay + dazu * lohn > config.limit + 0.001;
+      const ueberSoll = r.soll > 0 && r.hours + dazu > r.soll + 0.001;
+      const abgesagt = isOff(p.id, d);
+      const besetzt = woanders[p.id];
+
+      let info = p.minijob
+        ? dec(r.hours) + " Std." + (config.limitOn ? " · noch " + eur(Math.max(0, config.limit - r.pay)) + " bis zur Grenze" : "")
+        : r.soll > 0 ? dec(r.hours) + " von " + dec(r.soll) + " Std." : dec(r.hours) + " Std.";
+      if(ueberGrenze) info = dec(r.hours) + " Std. · " + (gewaehlt ? "" : "damit ") + "über der Minijob-Grenze";
+      if(ueberSoll) info = dec(r.hours) + " von " + dec(r.soll) + " Std. · " + (gewaehlt ? "" : "damit ") + "über Soll";
+      if(abgesagt) info = "hat abgesagt · " + info;
+      if(gewaehlt) info = "eingeteilt · " + info;
+      if(besetzt) info = "schon in: " + besetzt;
+
+      const warn = !besetzt && (ueberGrenze || ueberSoll || abgesagt);
+      const knopf = `<button class="pl-p ${gewaehlt ? "sel" : ""} ${warn ? "warn" : ""}" data-act="plnimm" ${ziel}
+          data-emp="${p.id}" ${besetzt ? "disabled" : ""}>
+        <b>${esc(p.name)}</b>${p.can_lead ? `<span class="pl-slz" title="Kann Schichtleitung">SL</span>` : ""}
+        <small>${esc(info)}</small></button>`;
+      gruppen[besetzt ? "heute" : abgesagt ? "absage" : availOf(p.id).confirmed ? "frei" : "offen"].push(knopf);
+    });
+
+  const teile = [
+    ["Verfügbar · wenigste Stunden zuerst", gruppen.frei],
+    ["Verfügbarkeit noch nicht bestätigt", gruppen.offen],
+    ["Hat für diesen Tag abgesagt", gruppen.absage],
+    ["An diesem Tag schon eingeteilt", gruppen.heute]
+  ].filter(g => g[1].length);
+  if(!teile.length) teile.push(["Noch niemand im Team", []]);
+
+  /* Der Titel der ersten Gruppe teilt sich die Zeile mit „Leeren“ und dem × */
+  const kopf = titel => `<div class="pl-pk"><span class="pl-gt">${titel}</span>
+      ${s.emp ? `<button class="pl-leer" data-act="clear" ${ziel}>Leeren</button>` : ""}
+      <button class="pl-x" data-act="planzu" aria-label="Schließen" title="Schließen">${IC_ZU}</button></div>`;
+  return `<div class="pl-pick">${teile.map((g, i) =>
+    (i ? `<div class="pl-gt">${g[0]}</div>` : kopf(g[0]))
+    + (g[1].length ? `<div class="pl-leute">${g[1].join("")}</div>` : "")).join("")}</div>`;
+}
+
+/* Monatsansicht: Personen untereinander, Tage nebeneinander — wer wann
+   arbeitet, wer abgesagt hat, und unten, wie viele je Tag eingeteilt sind.
+   Ein Tipp auf die Tageszahl springt in der Tagesansicht zu diesem Tag. */
+function planMonat(){
+  const k = ui.monthKey, n = daysInMonth(k);
+  const tage = [];
+  for(let d = 1; d <= n; d++) if(month.days[d]) tage.push(d);
+  const wt = d => WD_SHORT[weekdayOf(k, d)];
+
+  const kopf = tage.map(d => `<th><button class="tg ${month.days[d].closed ? "zu" : ""}" data-act="goday"
+      data-day="${d}" title="${wt(d)} ${d}. bearbeiten"><small>${wt(d).charAt(0)}</small>${d}</button></th>`).join("");
+
+  const zeilen = teamList().map(p => {
+    const r = payroll(p.id);
+    const zellen = tage.map(d => {
+      const day = month.days[d];
+      const s = day.shifts.find(x => x.emp === p.id);
+      const ab = isOff(p.id, d);
+      let cls = day.closed ? "zu" : "", text = "", titel = wt(d) + " " + d + ".";
+      if(ab){ cls = "ab"; text = "×"; titel += " · abgesagt"; }
+      if(s){
+        cls = ab ? "clash" : s.sl ? "sl" : "da";
+        text = schichtKurz(s.label);
+        titel = wt(d) + " " + d + ". · " + s.label + " " + s.start + "–" + s.end
+          + (s.sl ? " · Schichtleitung" : "") + (ab ? " · trotz Absage" : "");
+      }
+      return `<td class="${cls}" title="${esc(titel)}">${esc(text)}</td>`;
+    }).join("");
+    return `<tr><th class="nm" scope="row">${esc(p.name)}</th>${zellen}
+      <td class="std ${r.over || r.ueberSoll ? "over" : ""}">${dec(r.hours)}</td></tr>`;
+  }).join("");
+
+  let besetztSumme = 0, schichtenSumme = 0;
+  const summen = tage.map(d => {
+    const day = month.days[d];
+    if(day.closed) return `<td class="s zu" title="${wt(d)} ${d}. · Ruhetag"></td>`;
+    const alle = day.shifts.length, besetzt = day.shifts.filter(s => s.emp).length;
+    besetztSumme += besetzt; schichtenSumme += alle;
+    return `<td class="s ${alle > 0 && besetzt === alle ? "voll" : ""}"
+      title="${wt(d)} ${d}. · ${besetzt} von ${anzSchichten(alle)} besetzt">${besetzt}</td>`;
+  }).join("");
+
+  return `<div class="card pl-mx">
+    <div class="pl-mxs"><table>
+      <thead><tr><th class="nm">Person</th>${kopf}<th class="std">Std.</th></tr></thead>
+      <tbody>
+        ${zeilen || `<tr><th class="nm" scope="row">Noch niemand im Team</th><td colspan="${tage.length + 1}" class="zu"></td></tr>`}
+        <tr class="strich" aria-hidden="true"><td colspan="${tage.length + 2}"><div></div></td></tr>
+        <tr class="sum"><th class="nm" scope="row">Eingeteilt</th>${summen}
+          <td class="std">${besetztSumme} / ${schichtenSumme}</td></tr>
+      </tbody>
+    </table></div>
+    <p class="pl-leg">F Früh · S Spät · grün = Schichtleitung · × abgesagt · rot = trotz Absage eingeteilt.
+      Zeile „Eingeteilt“: grün = alle Schichten des Tages besetzt, sonst fehlt noch jemand.
+      Tageszahl antippen, um den Tag zu bearbeiten.</p>
+  </div>`;
+}
+
+/* Stunden je Person aus dem Plan. Die Leiste zeigt, wie weit jemand von
+   der eigenen Grenze entfernt ist: Minijob am Betrag, Festanstellung an
+   den Vertragsstunden. */
+function payPanel(){
+  const zeile = p => {
+    const r = payroll(p.id);
+    const ueber = r.over || r.ueberSoll;
+    const voll = !ueber && r.soll > 0 && !r.unterSoll;
+    const hinweis =
+        r.over      ? `<span class="pl-flag">über Grenze</span>`
+      : r.ueberSoll ? `<span class="pl-flag">über Soll</span>`
+      : r.unterSoll ? `<span class="pl-flag lo">fehlen ${dec(r.soll - r.hours)} Std.</span>`
+      : "";
+    const wert = p.minijob ? eur(r.pay)
+      : r.soll > 0 ? dec(r.hours) + " / " + dec(r.soll) + " Std." : dec(r.hours) + " Std.";
+    const teile = [p.minijob ? "Minijob" : "Festanstellung", anzSchichten(r.shifts)];
+    if(p.minijob) teile.push(dec(r.hours) + " Std.");
+    if(r.hSL) teile.push(`<span class="slh" title="davon als Schichtleitung">${dec(r.hSL)} Std. SL</span>`);
+    const breite = Math.round(Math.min(1, auslastung(p, r.pay, r.hours)) * 100);
+    return `<div class="pl-pr ${ueber ? "over" : voll ? "voll" : ""}">
+      <div class="o"><span class="nm">${esc(p.name)}${hinweis}</span><span class="w">${wert}</span></div>
+      <div class="pl-bal"><i style="width:${breite}%"></i></div>
+      <small>${teile.join(" · ")}</small>
+    </div>`;
+  };
+  return `<aside class="card pl-std">
+    <h2>Stunden- und Schichtverteilung</h2>
+    <p>Aus dem Plan. Rechnet beim Einteilen mit.</p>
+    ${teamList().map(zeile).join("") || `<p class="empty-note">Noch niemand im Team.</p>`}
+  </aside>`;
 }
 
 /* Ein Schalter in der Personenkarte */
@@ -2280,8 +2488,8 @@ function adminTeam(){
         Monat erreicht, und warnt, wenn sie darüber hinausgeht. 0 heißt: kein Soll hinterlegt.</p>
       <p>Die Liste ist in vier Blöcke geteilt: Admin, Festangestellte, Minijob und alles, was nicht eingeplant
         wird. Innerhalb eines Blocks bestimmst du am Rechner die Reihenfolge selbst — die Karte am Griff
-        <b>⠿</b> links neben dem Namen an ihren Platz ziehen. So stehen die Leute dann auch in der Auswahl beim
-        Planen. Über das Stiftsymbol änderst du einen Namen; so steht er später im ausgedruckten Dienstplan.</p>
+        <b>⠿</b> links neben dem Namen an ihren Platz ziehen. So stehen die Leute dann auch in der Planung: in
+        der Monatsansicht und in der Stundenverteilung. Über das Stiftsymbol änderst du einen Namen; so steht er später im ausgedruckten Dienstplan.</p>
     </details>
   </div>`;
 }
@@ -3957,41 +4165,60 @@ function hilfeBuero(){
       seine Verfügbarkeit schon bestätigt hat.</p>
     ${hFig(`<div class="monthbar"><div class="mnav"><span class="btn arrow">‹</span><div class="m">Dezember 2026</div><span class="btn arrow">›</span></div>
         <div class="macts"><span class="btn">Vorschlag</span>${hNr(1)}<span class="btn">Drucken</span><span class="btn primary">Freigeben</span>${hNr(2)}</div></div>
-      <div class="daystrip"><span class="ds full">1</span><span class="ds part">2</span><span class="ds">3</span><span class="ds">4</span><span class="ds">5</span><span class="ds rest">6</span>${hNr(3)}</div>
-      <div class="h-spalten">
-        <div class="col"><div class="colhead"><div class="d">Di <span>1.</span></div></div>
-          <div class="colbody">
-            <div class="slot filled"><div class="slot-top"><span class="t">Frühschicht</span><span class="n">17:30–02:00</span></div>
-              <div class="slot-bot"><span class="who-chip is-sl">Florian S.</span><span class="slbtn on">SL</span>${hNr(5)}<span class="iconbtn x">×</span></div></div>
-            <div class="slot armed"><div class="slot-top"><span class="t">Spätschicht</span><span class="n">20:00–02:00</span></div>
-              <div class="slot-bot"><span class="free">antippen zum Einsetzen</span><span class="iconbtn">✎</span>${hNr(6)}</div></div>
-            <div class="grouplbl">Kann an diesem Tag</div>
-            <div class="chips"><span class="chip used">Florian S.</span><span class="chip sel">Alicia R.</span>${hNr(4)}<span class="chip pending">Benni M.</span><span class="chip">Nils K.</span></div>
-            <div class="tiny muted" style="margin-top:7px">Kann nicht: Matilda M.</div>
-          </div></div>
-      </div>`,
+      <div class="pl-bar"><div class="seg"><span class="an">Tage</span><span>Monat</span></div>${hNr(3)}
+        <span class="pl-filter">Nur offene Tage</span></div>
+      <div class="pl-day"><div class="pl-dh"><span class="pl-d"><b>Di</b> 1.</span><span class="pl-st">1 offen</span></div>
+        <div class="pl-db">
+          <div class="pl-sh"><span class="pl-lbl"><span class="t">Frühschicht</span><span class="n">17:30–02:00</span></span>${hNr(6)}
+            <span class="pl-wer filled"><span>Florian S.</span>${IC_PFEIL}</span><span class="slbtn on">SL</span>${hNr(5)}</div>
+          <div class="pl-sh"><span class="pl-lbl"><span class="t">Spätschicht</span><span class="n">20:00–02:00</span></span>
+            <span class="pl-wer"><span>Person wählen</span>${IC_PFEIL}</span>${hNr(4)}<span class="slbtn">SL</span></div>
+          <div class="pl-pick">
+            <div class="pl-pk"><span class="pl-gt">Verfügbar · wenigste Stunden zuerst</span><span class="pl-x">${IC_ZU}</span></div>
+            <div class="pl-leute">
+              <span class="pl-p"><b>Nils K.</b><small>0,0 Std. · noch 603,00 € bis zur Grenze</small></span>
+              <span class="pl-p"><b>Matilda M.</b><span class="pl-slz">SL</span><small>38,5 von 120,0 Std.</small></span>
+            </div>
+            <div class="pl-gt">Hat für diesen Tag abgesagt</div>
+            <div class="pl-leute"><span class="pl-p warn"><b>Alicia R.</b><small>hat abgesagt · 6,0 Std.</small></span></div>
+          </div>
+        </div></div>`,
       `${hNr(1)} <b>Vorschlag</b> besetzt alle noch offenen Schichten automatisch. ${hNr(2)} <b>Freigeben</b> macht
-       den Plan für alle sichtbar. ${hNr(3)} Die Tagesleiste: grün = Tag fertig besetzt, gelb umrandet =
-       teilweise, gestrichelt = Ruhetag. Ein Tipp springt zum Tag. ${hNr(4)} Person antippen, dann die Schicht —
-       oder am Rechner hinüberziehen. ${hNr(5)} <b>SL</b> kennzeichnet die Schichtleitung. ${hNr(6)} Der Stift
-       ändert Bezeichnung und Zeiten einer freien Schicht.`)}
-    <h3>So liest du die Namen</h3>
+       den Plan für alle sichtbar. ${hNr(3)} <b>Tage</b> ist die Ansicht zum Einteilen, <b>Monat</b> die Übersicht
+       über alle Personen und Tage. ${hNr(4)} Das Feld antippen und in der Liste die Person wählen.
+       ${hNr(5)} <b>SL</b> kennzeichnet die Schichtleitung. ${hNr(6)} Ein Tipp auf die Bezeichnung ändert Name
+       und Zeiten der Schicht oder löscht sie.`)}
+    <h3>Die Auswahlliste</h3>
+    <p>Sie zeigt alle, die eingeplant werden, in vier Gruppen — und bei jedem Namen, wie viele Stunden die Person
+      im Monat schon hat und wie weit sie von ihrer Grenze entfernt ist:</p>
     <ul>
-      <li><b>Durchgestrichen:</b> an diesem Tag schon eingeteilt.</li>
-      <li><b>Fragezeichen:</b> hat die Verfügbarkeit noch nicht bestätigt — die Angabe kann sich noch ändern.</li>
-      <li><b>Rot im Plan:</b> eingeteilt, obwohl die Person für den Tag abgesagt hat.</li>
-      <li><b>„Kann nicht“:</b> wer für den Tag abgesagt hat, steht unter der Auswahl.</li>
+      <li><b>Verfügbar:</b> wer kann. Oben steht, wer bisher anteilig am wenigsten hat.</li>
+      <li><b>Verfügbarkeit noch nicht bestätigt:</b> die Angabe kann sich noch ändern.</li>
+      <li><b>Hat für diesen Tag abgesagt:</b> rot, aber trotzdem wählbar. Im Plan bleibt die Schicht dann rot,
+        der Tag trägt den Hinweis „Absage“.</li>
+      <li><b>An diesem Tag schon eingeteilt:</b> gesperrt — je Tag eine Schicht pro Person.</li>
     </ul>
-    <p>Ein Tag gilt als fertig, wenn jede Schicht besetzt ist und eine Schichtleitung feststeht. Mit
-      <b>+ Schicht</b> kommt eine Zusatzschicht dazu, <b>Tag öffnen</b> macht aus einem Ruhetag einen Arbeitstag.</p>
+    <p>Rot ist auch, wen die Schicht über die Minijob-Grenze oder über die Vertragsstunden brächte. <b>Leeren</b>
+      macht eine besetzte Schicht wieder frei, das <b>×</b> schließt die Liste. Wer leiten kann, wird automatisch
+      Schichtleitung, solange der Tag noch keine hat — mit <b>SL</b> änderst du das.</p>
+    <p>Ein Tag gilt als fertig, wenn jede Schicht besetzt ist und eine Schichtleitung feststeht; er wird dann
+      grün. <b>Nur offene Tage</b> blendet fertige Tage und Ruhetage aus. Mit <b>+ Schicht</b> kommt eine
+      Zusatzschicht dazu, <b>Tag öffnen</b> macht aus einem Ruhetag einen Arbeitstag. In das Feld <b>Notiz</b>
+      schreibst du Besonderheiten des Tages; sie stehen später im Dienstplan der Mitarbeiter.</p>
+    <h3>Die Monatsansicht</h3>
+    <p>Alle Personen untereinander, alle Tage nebeneinander: <b>F</b> und <b>S</b> stehen für Früh- und
+      Spätschicht, grün ist die Schichtleitung, <b>×</b> heißt abgesagt, rot heißt trotz Absage eingeteilt. Die
+      Zeile <b>Eingeteilt</b> zählt je Tag die besetzten Schichten — grün, wenn alle besetzt sind. Ein Tipp auf
+      eine Tageszahl springt in der Tagesansicht zu diesem Tag.</p>
     <h3>Der Vorschlag</h3>
     <p>Er rührt nichts an, was schon verteilt ist, und schiebt niemanden über seine Grenze: Minijobber bleiben
       unter der Verdienstgrenze, Festangestellte unter ihren Vertragsstunden. Festangestellte werden zuerst
       eingeteilt, bis ihr Soll steht; der Rest wird gleichmäßig verteilt. Was sich nicht besetzen lässt, bleibt offen.</p>
     <h3>Stunden- und Schichtverteilung</h3>
-    <p>Unter der Tafel steht, wie viele Stunden und welcher Lohn sich <b>aus dem Plan</b> ergeben — mit Warnung,
-      wenn jemand über die Minijob-Grenze oder über die Vertragsstunden kommt. Das ist eine Planungshilfe; für
-      die Abrechnung zählen die erfassten Zeiten.</p>
+    <p>Neben den Tagen (am Handy darunter) steht für jede Person, wie viele Stunden und welcher Lohn sich
+      <b>aus dem Plan</b> ergeben. Die Leiste füllt sich mit jeder Schicht: bei Minijob bis zur Verdienstgrenze,
+      bei Festanstellung bis zu den Vertragsstunden. Rot heißt darüber. Das ist eine Planungshilfe; für die
+      Abrechnung zählen die erfassten Zeiten.</p>
     ${hTipp(`<b>Freigabe zurücknehmen</b> geht jederzeit über denselben Knopf. Die Mitarbeiter sehen den Plan dann
       nicht mehr und können ihre Verfügbarkeit wieder ändern.`)}`)}
 
@@ -4248,9 +4475,7 @@ async function assign(day, shiftId, userId){
   const p = people.find(x => x.id === userId);
   const pr = payroll(userId);
   if(p && !p.minijob && pr.soll > 0){
-    const frei = d.shifts.filter(s => s.emp === userId && s.id !== shiftId)
-      .reduce((sum, s) => sum + hoursOf(s), 0);
-    const neuStd = pr.hours - frei + hoursOf(sh);
+    const neuStd = pr.hours + (sh.emp === userId ? 0 : hoursOf(sh));
     if(neuStd > pr.soll + 0.001 && pr.hours <= pr.soll + 0.001){
       ask(p.name + " kommt damit auf " + dec(neuStd) + " von " + dec(pr.soll)
         + " Vertragsstunden. Trotzdem einteilen?", "Einteilen",
@@ -4264,23 +4489,22 @@ async function assign(day, shiftId, userId){
 async function setzeEin(day, shiftId, userId){
   const d = month.days[day];
   if(!d) return;
-  const freed = d.shifts.filter(s => s.emp === userId && s.id !== shiftId);
-  freed.forEach(s => { s.emp = null; s.sl = false; });
   const sh = d.shifts.find(s => s.id === shiftId);
   if(!sh) return;
-  sh.emp = userId;
+  /* Je Tag höchstens eine Schicht pro Person. Die Auswahlliste sperrt
+     das schon; hier noch einmal, falls der Stand inzwischen ein anderer ist. */
+  if(d.shifts.some(s => s.emp === userId && s.id !== shiftId)){ ui.picker = null; render(); return; }
 
-  /* Die erste Schicht des Tages ist im Normalfall die Schichtleitung.
-     Nur wenn die Person dafür vorgesehen ist und noch niemand sonst leitet. */
-  const erste = d.shifts.indexOf(sh) === 0;
+  /* Wechselt die Person, geht die Leitung nicht stillschweigend mit.
+     Wer leiten kann, übernimmt sie, solange der Tag noch keine hat. */
+  if(sh.emp !== userId) sh.sl = false;
+  sh.emp = userId;
   const schonGeleitet = d.shifts.some(s => s.sl && s.emp && s.id !== sh.id);
-  if(erste && canLead(userId) && !schonGeleitet) sh.sl = true;
+  if(canLead(userId) && !schonGeleitet) sh.sl = true;
   if(!canLead(userId)) sh.sl = false;
 
-  ui.selection = null;
+  ui.picker = null;
   render();
-
-  for(const s of freed) await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("id", s.id));
   await write(sb.from("shifts").update({assignee:userId, is_lead:sh.sl}).eq("id", shiftId));
 }
 
@@ -4307,10 +4531,7 @@ async function suggestFill(){
     if(p.minijob) return !(config.limitOn && stand[p.id].pay + kosten(sh, sl) > config.limit);
     return soll(p) === 0 || stand[p.id].hours + hoursOf(sh) <= soll(p) + 0.001;
   };
-  /* Auslastung im Verhältnis zur eigenen Grenze, damit beide Gruppen vergleichbar sind */
-  const last = p => p.minijob
-    ? (config.limitOn && config.limit > 0 ? stand[p.id].pay / config.limit : stand[p.id].hours / 160)
-    : (soll(p) > 0 ? stand[p.id].hours / soll(p) : stand[p.id].hours / 160);
+  const last = p => auslastung(p, stand[p.id].pay, stand[p.id].hours);
 
   const setzen = (sh, p, sl) => {
     sh.emp = p.id;
@@ -4448,7 +4669,7 @@ async function rahmenClick(act, el){
     }
     case "tab":
       if(isAdmin()) ui.adminTab = el.dataset.tab; else ui.empTab = el.dataset.tab;
-      ui.selection = null; ui.formError = ""; ui.formInfo = "";
+      ui.picker = null; ui.editingShift = null; ui.formError = ""; ui.formInfo = "";
       zeSchliessen();
       /* Die Zeiterfassung ist der einzige Reiter, in dem zwei Leute gleichzeitig
          schreiben. Beim Betreten deshalb frisch laden, sonst prüft das Büro
@@ -4457,7 +4678,7 @@ async function rahmenClick(act, el){
       render(); return true;
     case "month":
       ui.monthKey = shiftMonth(k, Number(el.dataset.dir));
-      ui.selection = null; ui.formError = "";
+      ui.picker = null; ui.editingShift = null; ui.formError = "";
       zeSchliessen();
       await reload(); return true;
   }
@@ -4497,16 +4718,30 @@ async function mitarbeiterClick(act, el){
 async function planClick(act, el){
   const day = Number(el.dataset.day), k = ui.monthKey;
   switch(act){
-    case "pick": {
-      if(el.classList.contains("used")) return true;
-      const empId = el.dataset.emp;
-      ui.selection = (ui.selection && ui.selection.day === day && ui.selection.empId === empId)
-        ? null : {day, empId};
+    case "planview":
+      ui.planView = el.dataset.view === "monat" ? "monat" : "tage";
+      ui.picker = null; ui.editingShift = null;
       render(); return true;
+    case "planoffen":
+      ui.planNurOffen = !ui.planNurOffen;
+      ui.picker = null; ui.editingShift = null;
+      render(); return true;
+    case "plpick":
+      ui.picker = ui.picker === el.dataset.shift ? null : el.dataset.shift;
+      ui.editingShift = null;
+      render(); return true;
+    case "planzu": ui.picker = null; ui.editingShift = null; render(); return true;
+    case "plnimm": {
+      const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
+      /* Die schon eingeteilte Person noch einmal: nur schließen */
+      if(sh && sh.emp === el.dataset.emp){ ui.picker = null; render(); return true; }
+      await assign(day, el.dataset.shift, el.dataset.emp);
+      return true;
     }
     case "clear": {
       const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
       if(sh){ sh.emp = null; sh.sl = false; }
+      ui.picker = null;
       render();
       await write(sb.from("shifts").update({assignee:null, is_lead:false}).eq("id", el.dataset.shift));
       return true;
@@ -4519,9 +4754,12 @@ async function planClick(act, el){
       await write(sb.from("shifts").update({is_lead:sh.sl}).eq("id", sh.id));
       return true;
     }
-    case "editshift": ui.editingShift = el.dataset.shift; render(); return true;
+    case "editshift":
+      ui.editingShift = ui.editingShift === el.dataset.shift ? null : el.dataset.shift;
+      ui.picker = null;
+      render(); return true;
     case "saveshift": {
-      const box = el.closest(".slot-edit");
+      const box = el.closest(".pl-edit");
       const sh = month.days[day].shifts.find(s => s.id === el.dataset.shift);
       if(sh && box){
         sh.label = box.querySelector('[data-edit="label"]').value.trim() || "Schicht";
@@ -4578,7 +4816,12 @@ async function planClick(act, el){
       }
       render(); return true;
     }
-    case "goday": ui.jumpTo = day; render(); return true;
+    /* Aus der Monatsansicht zu einem Tag in der Tagesansicht */
+    case "goday":
+      ui.planView = "tage"; ui.planNurOffen = false;
+      ui.picker = null; ui.editingShift = null;
+      ui.jumpTo = day;
+      render(); return true;
 
     case "suggest":
       ask("Offene Schichten automatisch besetzen? Bereits verteilte Schichten bleiben unverändert.",
@@ -4772,37 +5015,21 @@ async function einstellClick(act, el){
   return false;
 }
 
-/* Antippen statt ziehen */
-function handleSlotTap(e){
-  if(!ui.selection) return;
-  if(e.target.closest("[data-act]")) return;
-  const slot = e.target.closest(".slot");
-  if(!slot) return;
-  const day = Number(slot.dataset.day);
-  if(day !== ui.selection.day) return;
-  assign(day, slot.dataset.shift, ui.selection.empId);
-}
-
 /* ============================================================
-   Ziehen und Ablegen
+   Ziehen und Ablegen — die Reihenfolge der Personen im Team
    ============================================================ */
 function onDragStart(e){
-  const chip = e.target.closest("[draggable='true']");
-  if(!chip) return;
-  const art = chip.dataset.drag === "person" ? "person" : "schicht";
-  dragData = {art, empId: chip.dataset.emp, from: chip.dataset.from || null};
-  if(art === "person"){
-    const karte = chip.closest(".pcard");
-    if(karte){
-      /* Die ganze Karte als Schattenbild, nicht nur der kleine Griff */
-      try{ e.dataTransfer.setDragImage(karte, 24, 18); }catch(err){}
-      karte.classList.add("dragging");
-    }
-  } else {
-    chip.classList.add("drag");
+  const griff = e.target.closest("[draggable='true'][data-drag='person']");
+  if(!griff) return;
+  dragData = {empId: griff.dataset.emp};
+  const karte = griff.closest(".pcard");
+  if(karte){
+    /* Die ganze Karte als Schattenbild, nicht nur der kleine Griff */
+    try{ e.dataTransfer.setDragImage(karte, 24, 18); }catch(err){}
+    karte.classList.add("dragging");
   }
   try{
-    e.dataTransfer.setData("text/plain", chip.dataset.emp);
+    e.dataTransfer.setData("text/plain", griff.dataset.emp);
     e.dataTransfer.effectAllowed = "move";
   }catch(err){}
 }
@@ -4819,8 +5046,7 @@ function markenWeg(){
 /* Alles, was ein Zug am Bildschirm hinterlässt */
 function spurenWeg(){
   markenWeg();
-  document.querySelectorAll(".drag, .slot.over, .pcard.dragging")
-    .forEach(el => el.classList.remove("drag", "over", "dragging"));
+  document.querySelectorAll(".pcard.dragging").forEach(el => el.classList.remove("dragging"));
 }
 const untereHaelfte = (el, y) => {
   const r = el.getBoundingClientRect();
@@ -4828,7 +5054,7 @@ const untereHaelfte = (el, y) => {
 };
 /* Nur innerhalb derselben Gruppe darf abgelegt werden */
 function zielKarte(e){
-  if(!dragData || dragData.art !== "person") return null;
+  if(!dragData) return null;
   const karte = e.target.closest(".pcard[data-drop='person']");
   if(!karte || karte.dataset.emp === dragData.empId) return null;
   const p = people.find(x => x.id === dragData.empId);
@@ -4838,47 +5064,20 @@ function zielKarte(e){
 }
 
 function onDragOver(e){
-  if(!dragData) return;
-  if(dragData.art === "person"){
-    const karte = zielKarte(e);
-    if(!karte) return;
-    e.preventDefault();
-    markenWeg();
-    karte.classList.add(untereHaelfte(karte, e.clientY) ? "dropafter" : "dropbefore");
-    return;
-  }
-  if(!e.target.closest(".slot")) return;
+  const karte = zielKarte(e);
+  if(!karte) return;
   e.preventDefault();
-  e.target.closest(".slot").classList.add("over");
-}
-function onDragLeave(e){
-  const slot = e.target.closest(".slot");
-  if(slot) slot.classList.remove("over");
+  markenWeg();
+  karte.classList.add(untereHaelfte(karte, e.clientY) ? "dropafter" : "dropbefore");
 }
 async function onDrop(e){
-  if(!dragData) return;
-
-  if(dragData.art === "person"){
-    const karte = zielKarte(e);
-    spurenWeg();
-    if(!karte) return;
-    e.preventDefault();
-    const von = dragData.empId;
-    dragData = null;
-    await dropPerson(von, karte.dataset.emp, untereHaelfte(karte, e.clientY));
-    return;
-  }
-
-  const slot = e.target.closest(".slot");
-  if(!slot) return;
+  const karte = zielKarte(e);
+  spurenWeg();
+  if(!karte) return;
   e.preventDefault();
-  const day = Number(slot.dataset.day);
-  const empId = dragData.empId;
-  const from = dragData.from;
+  const von = dragData.empId;
   dragData = null;
-  if(from && Number(from.split(":")[0]) !== day) return;   // nur innerhalb eines Tages
-  if(isOff(empId, day)) return;
-  await assign(day, slot.dataset.shift, empId);
+  await dropPerson(von, karte.dataset.emp, untereHaelfte(karte, e.clientY));
 }
 
 /* ============================================================
@@ -5083,8 +5282,8 @@ function hilfeZu(){
 
 function render(){
   const app = document.getElementById("app");
-  const board = document.getElementById("board");
-  const keepScroll = board ? board.scrollLeft : 0;
+  const monatAlt = app.querySelector(".pl-mxs");
+  const monatRoll = monatAlt ? monatAlt.scrollLeft : 0;
 
   if(ui.screen === "error"){ app.innerHTML = `<div class="boot">${esc(ui.bootMsg)}</div>`; return; }
   if(ui.screen === "boot"){ app.innerHTML = `<div class="boot">Wird geladen…</div>`; return; }
@@ -5121,19 +5320,20 @@ function render(){
     }
   }
 
-  const fresh = document.getElementById("board");
-  if(fresh){
-    if(ui.jumpTo){
-      const col = fresh.querySelector('.col[data-col="' + ui.jumpTo + '"]');
-      ui.jumpTo = null;
-      if(col){
-        const left = col.offsetLeft - fresh.offsetLeft;
-        try{ fresh.scrollTo({left, behavior:"smooth"}); }
-        catch(e){ fresh.scrollLeft = left; }
-      }
-    } else if(keepScroll){
-      fresh.scrollLeft = keepScroll;          // hart, sonst wandert die Ansicht sichtbar
-    }
+  /* Die Höhe des Kopfs als Maß: daran richten sich die mitlaufende
+     Stundenübersicht und der Sprung zu einem Tag aus. */
+  const kopf = app.querySelector("header.top");
+  if(kopf) document.documentElement.style.setProperty("--kopf", kopf.offsetHeight + "px");
+
+  /* Planung: die Monatsübersicht behält ihren Rollstand; nach einem
+     Tipp auf eine Tageszahl steht dieser Tag oben. Hart gesetzt, nicht
+     weich gescrollt, sonst wandert die Ansicht sichtbar. */
+  const monatNeu = app.querySelector(".pl-mxs");
+  if(monatNeu && monatRoll) monatNeu.scrollLeft = monatRoll;
+  if(ui.jumpTo){
+    const tag = document.getElementById("pl-tag-" + ui.jumpTo);
+    ui.jumpTo = null;
+    if(tag && tag.scrollIntoView) tag.scrollIntoView({block:"start"});
   }
   const leiste = app.querySelector(".sticky-bar");
   const inhalt = app.querySelector("main");
@@ -5287,13 +5487,12 @@ try{
 ui.monthKey = monthKey(new Date());
 ui.checkOpen = window.innerWidth > 760;
 
-document.addEventListener("click", e => { handleClick(e); handleSlotTap(e); });
+document.addEventListener("click", handleClick);
 document.addEventListener("submit", onSubmit);
 document.addEventListener("input", onInput);
 document.addEventListener("dragstart", onDragStart);
 document.addEventListener("dragend", onDragEnd);
 document.addEventListener("dragover", onDragOver);
-document.addEventListener("dragleave", onDragLeave);
 document.addEventListener("drop", onDrop);
 document.addEventListener("visibilitychange", nachPause);
 /* Escape schließt, was gerade über der Seite liegt — von oben nach unten */
@@ -5304,6 +5503,7 @@ document.addEventListener("keydown", e => {
   else if(ui.help) hilfeZu();
   else if(ui.vbLesen) vbZu();
   else if(ui.zeForm){ zeEditorZu(); render(); }
+  else if(ui.picker || ui.editingShift){ ui.picker = null; ui.editingShift = null; render(); }
 });
 
 sb.auth.onAuthStateChange(event => {
