@@ -52,6 +52,7 @@ body{
   font-size:15px; line-height:1.45; font-variant-numeric:tabular-nums; overflow-x:hidden;
 }
 h1,h2,h3{margin:0; font-weight:700; letter-spacing:-.02em; line-height:1.15}
+.seite-t{font-size:21px; margin:2px 0 14px}
 button,input,textarea{font:inherit; color:inherit; font-variant-numeric:tabular-nums}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
@@ -130,18 +131,20 @@ button{cursor:pointer}
    4 — Kopfzeile
    ============================================================ */
 header.top{position:sticky; top:0; z-index:30; background:var(--surface); border-bottom:1px solid var(--line)}
-.top-in{display:flex; align-items:center; gap:10px; padding:9px 0; min-height:52px}
+.top-in{display:flex; align-items:center; gap:10px; padding:12px 0 14px; min-height:52px}
 .who{font-weight:700; font-size:18px; letter-spacing:-.015em; line-height:1.2; min-width:0}
 .who-t{font-weight:inherit}
-.who span{display:block; font-size:12px; font-weight:500; color:var(--ink-2); letter-spacing:0;
+.who span{display:block; margin-top:3px; font-size:12px; font-weight:500; color:var(--ink-2); letter-spacing:0;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 /* Die Zeichenknöpfe im Kopf (Anleitung, neu laden, hell/dunkel):
    quadratisch und so hoch wie der Knopf „Abmelden“ daneben. Die Zeichen
    sind gezeichnet, keine Schriftzeichen — so sind sie auf jedem Gerät
    gleich groß, egal welche Schrift einspringt. */
-.top-ic{display:flex; align-items:center; gap:2px; flex:none}
+.top-ic{display:flex; align-items:center; gap:6px; flex:none}
 .btn.ic-btn{width:31px; min-width:31px; height:31px; padding:0}
 .btn.ic-btn .ic{width:18px; height:18px; display:block}
+/* Das Zahnrad ist hervorgehoben, solange die Einstellungen offen sind */
+.btn.ic-btn[aria-pressed="true"]{background:var(--surface-2); border-color:var(--line); color:var(--ink)}
 /* „Neu laden“ dreht sich, solange geladen wird */
 @keyframes dreht{to{transform:rotate(360deg)}}
 .btn.is-busy{pointer-events:none; opacity:.7}
@@ -752,11 +755,11 @@ button.ze-h:disabled{cursor:not-allowed}
   .pl-mx td, .pl-mx .tg{min-width:24px}
   /* Kopf am Handy in zwei Zeilen: oben der Titel über die ganze Breite,
      darunter links Name und Rolle, rechts die Knöpfe */
-  .top-in{flex-wrap:wrap; row-gap:4px}
+  .top-in{flex-wrap:wrap; row-gap:9px; padding:12px 0 13px}
   .who{font-size:16px}
   .who.marke{display:contents}
   .who.marke .who-t{flex:1 1 100%; font-size:16px; letter-spacing:-.015em; line-height:1.2}
-  .who.marke span{flex:1 1 0; min-width:0; font-size:12.5px}
+  .who.marke span{flex:1 1 0; min-width:0; margin-top:0; font-size:12.5px}
   .lohn-felder{grid-template-columns:1fr 1fr}
   .lohn-felder > :nth-child(3){grid-column:1 / -1}
   .two-col{grid-template-columns:1fr}
@@ -865,6 +868,10 @@ button.ze-h:disabled{cursor:not-allowed}
 /* Kopfzeile und Fußleiste als Ausschnitt */
 .h-kopf{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:0 12px}
 .h-kopf .tabs{align-items:center; flex-wrap:wrap; overflow:visible}
+/* Fünf Zeichen mit ihren Nummern: im Bild dürfen sie umbrechen */
+.h-kopf .top-in{flex-wrap:wrap; row-gap:8px}
+.h-kopf .top-ic{flex-wrap:wrap; flex:0 1 auto; gap:6px 0}
+.h-kopf .who{flex:1 1 100%}
 .h-kopf .tab{padding:7px 9px}
 .h-leiste{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line);
   border-radius:var(--r); padding:10px 12px; margin-top:8px}
@@ -1022,6 +1029,9 @@ const IC_NEU = `<svg ${IC_STRICH}>
   <path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5v5h-5"/></svg>`;
 const IC_PFEIL = `<svg ${IC_STRICH}><path d="M6 9.5l6 6 6-6"/></svg>`;
 const IC_ZU = `<svg ${IC_STRICH}><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+const IC_ZAHNRAD = `<svg ${IC_STRICH} stroke-width="1.9"><path d="M19.11 10.87 L21.56 11.10 L21.56 12.90 L19.11 13.13 L17.82 16.23 L19.40 18.12 L18.12 19.40 L16.23 17.82 L13.13 19.11 L12.90 21.56 L11.10 21.56 L10.87 19.11 L7.77 17.82 L5.88 19.40 L4.60 18.12 L6.18 16.23 L4.89 13.13 L2.44 12.90 L2.44 11.10 L4.89 10.87 L6.18 7.77 L4.60 5.88 L5.88 4.60 L7.77 6.18 L10.87 4.89 L11.10 2.44 L12.90 2.44 L13.13 4.89 L16.23 6.18 L18.12 4.60 L19.40 5.88 L17.82 7.77Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const IC_RAUS = `<svg ${IC_STRICH}><path d="M10 4H6.5A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20H10"/>
+  <path d="M14.5 16.5 19 12l-4.5-4.5"/><path d="M19 12H9.5"/></svg>`;
 const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
   <circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="2.2"/>
   <path d="M12 3.2a8.8 8.8 0 0 0 0 17.6z" fill="currentColor"/></svg>`;
@@ -1029,7 +1039,7 @@ const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "24.11.2026 um 22:43 Uhr";
+const PATCH_AM  = "26.11.2026 um 20:48 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* VB-ANFANG — Nutzungsvereinbarung. Der Text steht genau einmal hier:
@@ -1682,7 +1692,7 @@ function nichtsOffen(){
   if(neu && (feldWert(neu, "name") || feldWert(neu, "email"))) return false;
   if(ui.zeForm || ui.editingShift || ui.picker || ui.renaming || ui.sync === "saving" || ui.sync === "load") return false;
   const reiter = isAdmin() ? ui.adminTab : ui.empTab;
-  if(reiter === "settings" || reiter === "account") return false;   // dort stehen ungespeicherte Eingaben
+  if(reiter === "einst") return false;   // dort stehen ungespeicherte Eingaben
   const feld = document.activeElement;
   return !(feld && /^(INPUT|TEXTAREA|SELECT)$/.test(feld.tagName));
 }
@@ -1841,21 +1851,22 @@ function vbKarte(){
 const fussnote = () => `<p class="patch">Letzter Patch am ${esc(PATCH_AM)} (durch ${esc(PATCH_VON)})</p>`;
 
 /* Ein Zeichenknopf im Kopf */
-const kopfKnopf = (act, titel, zeichen) => `<button class="btn ghost ic-btn" data-act="${act}"
-  title="${titel}" aria-label="${titel}">${zeichen}</button>`;
+const kopfKnopf = (act, titel, zeichen, an) => `<button class="btn ghost ic-btn" data-act="${act}"
+  title="${titel}" aria-label="${titel}"${an === undefined ? "" : ` aria-pressed="${!!an}"`}>${zeichen}</button>`;
 
 function headerBar(tabs, activeTab){
   return `
   <header class="top"><div class="wrap">
     <div class="top-in">
-      <div class="who marke grow"><b class="who-t">Portal – Bar Rennbahn Schwabing</b><span>${esc(me.name)} · ${isAdmin() ? "Büro" : "Team"}</span></div>
+      <div class="who marke grow"><b class="who-t">Portal – Bar Rennbahn</b><span>${esc(me.name)} · ${isAdmin() ? "Büro" : "Team"}</span></div>
       <span class="sync"></span>
       <div class="top-ic">
         ${kopfKnopf("help", "Anleitung", IC_HILFE)}
         ${kopfKnopf("refresh", "Neu laden", IC_NEU)}
         ${kopfKnopf("theme", "Hell oder dunkel", IC_FARBE)}
+        ${kopfKnopf("einst", "Einstellungen und Konto", IC_ZAHNRAD, activeTab === "einst")}
+        ${kopfKnopf("logout", "Abmelden", IC_RAUS)}
       </div>
-      <button class="btn sm" data-act="logout">Abmelden</button>
     </div>
     ${tabs ? `<div class="tabs" role="tablist">${tabs.map(t =>
       `<button class="tab" role="tab" aria-selected="${t.id === activeTab}" data-act="tab" data-tab="${t.id}">${esc(t.label)}</button>`
@@ -1882,11 +1893,10 @@ function viewStaff(){
   const tabs = [{id:"avail", label:"Verfügbarkeit"}];
   if(month.published) tabs.push({id:"plan", label:"Dienstplan"});
   tabs.push({id:"time", label:"Zeiterfassung"});
-  tabs.push({id:"account", label:"Konto"});
   let tab = ui.empTab;
   if(tab === "plan" && !month.published) tab = "avail";
   const body = tab === "plan" ? staffPlan() : tab === "time" ? staffTime()
-    : tab === "account" ? accountPanel() : staffAvail();
+    : tab === "einst" ? einstellungen() : staffAvail();
   return headerBar(tabs, tab)
     + `<main><div class="wrap"><div class="spalte">${body}</div>${fussnote()}</div></main>`;
 }
@@ -1966,11 +1976,16 @@ function staffPlan(){
         : "In diesem Monat stehen keine Schichten im Plan."}</p>`);
 }
 
+/* Hinter dem Zahnrad: für das Büro die Einstellungen, für alle das Konto */
+function einstellungen(){
+  return `<h1 class="seite-t">Einstellungen</h1>` + (isAdmin() ? adminSettings() : "") + accountPanel();
+}
+
 function accountPanel(){
   return `
   <div class="card panel">
     <h2>Mein Konto</h2>
-    <p>Angemeldet als ${esc(me.name)}.</p>
+    <p>Angemeldet als ${esc(me.name)}${/\.$/.test(me.name) ? "" : "."}</p>
     <form class="stack" data-form="account">
       <div class="two-col">
         <div>
@@ -1996,16 +2011,13 @@ function viewAdmin(){
   const tabs = [
     {id:"plan", label:"Planung"},
     {id:"time", label:"Zeiterfassung"},
-    {id:"team", label:"Team"},
-    {id:"settings", label:"Einstellungen"},
-    {id:"account", label:"Konto"}
+    {id:"team", label:"Team"}
   ];
   /* Planung und Team nutzen die volle Breite, alles andere ist Lesespalte */
   const t = ui.adminTab;
   const body = t === "team" ? adminTeam()
     : t === "time" ? adminTime()
-    : t === "settings" ? adminSettings()
-    : t === "account" ? accountPanel()
+    : t === "einst" ? einstellungen()
     : adminPlan();
   const breit = t === "plan" || t === "team";
   return headerBar(tabs, t)
@@ -3488,7 +3500,7 @@ function adminTime(){
     + (zeZu() ? `<div class="banner ok">${esc(monthLabel(k))} ist abgeschlossen. Zum Ändern musst du den
         Monat wieder öffnen.</div>` : "")
     + (!zeiten().on ? `<div class="banner info">Für ${esc(monthLabel(k))} ist die Zeiterfassung noch nicht
-        verbindlich (Einstellungen: „Verbindlich ab“). Erfassen und Abschließen gehen trotzdem.</div>` : "")
+        verbindlich (Einstellungen über das Zahnrad: „Verbindlich ab“). Erfassen und Abschließen gehen trotzdem.</div>` : "")
     + kopf + body;
 }
 
@@ -3996,11 +4008,13 @@ const hSchicht = (tag, zeit, unten, buero, ich, cls, nr) => `<div class="ze-day 
   </div>${hHaken(buero, ich, nr)}</div></div>`;
 const hKopf = (reiter, aktiv) => `<div class="h-kopf">
   <div class="top-in">
-    <div class="who grow">Portal – Bar Rennbahn Schwabing</div>
+    <div class="who grow">Portal – Bar Rennbahn</div>
     <div class="top-ic">
       <span class="btn ghost ic-btn">${IC_HILFE}</span>${hNr(2)}
       <span class="btn ghost ic-btn">${IC_NEU}</span>${hNr(3)}
       <span class="btn ghost ic-btn">${IC_FARBE}</span>${hNr(4)}
+      <span class="btn ghost ic-btn">${IC_ZAHNRAD}</span>${hNr(5)}
+      <span class="btn ghost ic-btn">${IC_RAUS}</span>${hNr(6)}
     </div>
   </div>
   <div class="tabs passt">${hNr(1)}${reiter.map(t =>
@@ -4020,9 +4034,10 @@ function hilfeMitarbeiter(){
     ["hm-zeit", "Zeiten bestätigen"], ["hm-konto", "Konto und Handy"], ["hm-fragen", "Häufige Fragen"]])}
 
   ${hTeil("hm-ueber", "Überblick", `
-    ${hFig(hKopf(["Verfügbarkeit", "Dienstplan", "Zeiterfassung", "Konto"], "Verfügbarkeit"),
-      `${hNr(1)} Die vier Bereiche der App. ${hNr(2)} Diese Anleitung. ${hNr(3)} Neu laden — holt den
-       aktuellen Stand, wenn das Büro gerade etwas geändert hat. ${hNr(4)} Helles oder dunkles Erscheinungsbild.`)}
+    ${hFig(hKopf(["Verfügbarkeit", "Dienstplan", "Zeiterfassung"], "Verfügbarkeit"),
+      `${hNr(1)} Die drei Bereiche der App. ${hNr(2)} Diese Anleitung. ${hNr(3)} Neu laden — holt den
+       aktuellen Stand, wenn das Büro gerade etwas geändert hat. ${hNr(4)} Helles oder dunkles Erscheinungsbild.
+       ${hNr(5)} Einstellungen: Name, Passwort, Nutzungsvereinbarung. ${hNr(6)} Abmelden.`)}
     <ol>
       <li><b>Verfügbarkeit:</b> Vor jedem Monat trägst du ein, wann du nicht kannst.</li>
       <li><b>Dienstplan:</b> Sobald das Büro den Plan freigibt, siehst du deine Schichten.</li>
@@ -4111,7 +4126,7 @@ function hilfeMitarbeiter(){
       sag dem Büro Bescheid — es kann deine Bestätigung wieder aufheben.`)}`)}
 
   ${hTeil("hm-konto", "Konto und Handy", `
-    <p>Unter <b>Konto</b> änderst du deinen Namen und dein Passwort. Hast du das Passwort vergessen, tippe auf der
+    <p>Hinter dem <b>Zahnrad</b> oben rechts änderst du deinen Namen und dein Passwort. Hast du das Passwort vergessen, tippe auf der
       Anmeldeseite auf <b>Passwort vergessen</b> — du bekommst einen Link per E-Mail.</p>
     <p>Dort steht auch die <b>Nutzungsvereinbarung</b>, der du beim ersten Öffnen zugestimmt hast — zum Nachlesen
       und als PDF.</p>
@@ -4328,6 +4343,8 @@ function hilfeBuero(){
       Verfügbarkeit zum Ändern zurück. Am Rechner ziehst du die Karten am Griff in die gewünschte Reihenfolge.</p>`)}
 
   ${hTeil("hb-einst", "5 · Einstellungen", `
+    <p>Das <b>Zahnrad</b> oben rechts öffnet die Einstellungen. Unten auf derselben Seite steht dein Konto: Name,
+      Passwort und die Nutzungsvereinbarung. Das Zeichen daneben meldet dich ab.</p>
     <ul>
       <li><b>Löhne und Grenze:</b> Stundenlohn, Lohn für Schichtleitung und die Minijob-Grenze. Sie sind die
         Grundlage der Lohnvorschau in der Planung und der Warnung in der Zeiterfassung.</li>
@@ -4632,7 +4649,13 @@ async function rahmenClick(act, el){
     case "authmode":
       ui.authMode = ui.authMode === "reset" ? "login" : "reset";
       ui.authError = ""; ui.authInfo = ""; ui.authDetail = ""; render(); return true;
-    case "logout": await sb.auth.signOut(); return true;
+    /* Das Zeichen sitzt neben den anderen — ein Fehltipp soll nicht abmelden */
+    case "logout": ask("Wirklich abmelden?", "Abmelden", async () => { await sb.auth.signOut(); }); return true;
+    case "einst":
+      if(isAdmin()) ui.adminTab = "einst"; else ui.empTab = "einst";
+      ui.picker = null; ui.editingShift = null; ui.formError = ""; ui.formInfo = "";
+      zeSchliessen();
+      render(); window.scrollTo(0, 0); return true;
     case "theme": toggleTheme(); return true;
 
     /* Anleitung: auf, zu, zwischen den beiden Fassungen wechseln, springen */
