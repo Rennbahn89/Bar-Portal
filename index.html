@@ -257,7 +257,7 @@ main{padding:16px 0 110px}
 .pl-days{display:flex; flex-direction:column; gap:6px}
 .pl-kw{font-size:11px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
   color:var(--ink-2); padding:6px 2px 0}
-.pl-kw:first-child{padding-top:0}
+.pl-kw:first-child{padding-top:0; line-height:16px}
 .pl-day{display:flex; background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
   scroll-margin-top:calc(var(--kopf, 100px) + 10px)}
 .pl-day.full{background:var(--ok-soft); border-color:var(--ok-line)}
@@ -802,6 +802,9 @@ button.ze-h:disabled{cursor:not-allowed}
 @media (min-width:960px){
   /* Die Stundenübersicht steht rechts und bleibt beim Rollen im Bild */
   .pl-wrap{grid-template-columns:minmax(0, 1fr) 290px}
+  /* Bündig mit dem ersten Tag, nicht mit der Zeile „KW …“ darüber:
+     16 Pixel Zeile plus 6 Pixel Abstand */
+  .pl-wrap.tage .pl-std{margin-top:22px}
   .pl-std{position:sticky; top:calc(var(--kopf, 100px) + 12px);
     max-height:calc(100vh - var(--kopf, 100px) - 24px); overflow-y:auto}
 }
@@ -1039,7 +1042,7 @@ const IC_FARBE = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
 const THEME_KEY = "rennbahn_theme";
 
 /* Stand dieser Fassung — wird unten auf jeder Ansicht angezeigt */
-const PATCH_AM  = "26.11.2026 um 20:48 Uhr";
+const PATCH_AM  = "28.11.2026 um 11:49 Uhr";
 const PATCH_VON = "D. Henrich";
 
 /* VB-ANFANG — Nutzungsvereinbarung. Der Text steht genau einmal hier:
@@ -2062,7 +2065,7 @@ function adminPlan(){
         ${st.conflicts ? `<span class="pill warn"><b>${st.conflicts}</b> trotz Absage eingeteilt</span>` : ""}
        </div>`
     + planSchalter()
-    + `<div class="pl-wrap">
+    + `<div class="pl-wrap ${ui.planView === "monat" ? "monat" : "tage"}">
         <div class="pl-main">${ui.planView === "monat" ? planMonat() : planTage()}</div>
         ${payPanel()}
        </div>`;
